@@ -11,6 +11,7 @@
 	import type { Pathname } from '$app/types';
 	import * as Command from '$lib/core/components/ui/command';
 	import { navGroups } from '$lib/shell/nav';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		open?: boolean;
@@ -36,20 +37,20 @@
 	});
 </script>
 
-<Command.Dialog bind:open title="Command Menu" description="Search and jump to a page">
-	<Command.Input placeholder="Type a command or search..." />
+<Command.Dialog bind:open title={t('commandMenu.title')} description={t('commandMenu.description')}>
+	<Command.Input placeholder={t('commandMenu.placeholder')} />
 	<Command.List>
-		<Command.Empty>No results found.</Command.Empty>
-		{#each navGroups as group (group.label)}
-			<Command.Group heading={group.label}>
+		<Command.Empty>{t('commandMenu.noResults')}</Command.Empty>
+		{#each navGroups as group (group.labelKey)}
+			<Command.Group heading={t(group.labelKey)}>
 				{#each group.items as item (item.href)}
 					{@const Icon = item.icon}
 					<Command.Item
-						value={`${group.label} ${item.title} ${item.href}`}
+						value={`${t(group.labelKey)} ${t(item.titleKey)} ${item.href}`}
 						onSelect={() => runCommand(item.href)}
 					>
 						<Icon class="size-4" aria-hidden="true" />
-						<span>{item.title}</span>
+						<span>{t(item.titleKey)}</span>
 					</Command.Item>
 				{/each}
 			</Command.Group>

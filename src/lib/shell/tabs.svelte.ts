@@ -19,7 +19,7 @@ function baseLabelFor(pathname: string, data?: unknown, override?: string): stri
 	const breadcrumb = (data as { breadcrumb?: unknown } | undefined)?.breadcrumb;
 	if (typeof breadcrumb === 'string' && breadcrumb.trim()) return breadcrumb;
 	const match = findNavItem(pathname);
-	if (match?.item.href === pathname) return match.item.title;
+	if (match?.item.href === pathname) return t(match.item.titleKey);
 	const segment = pathname.split('/').filter(Boolean).pop();
 	return segment ? titleCase(segment) : 'Untitled';
 }

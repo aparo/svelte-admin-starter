@@ -15,6 +15,7 @@
 	import { auth } from '$lib/auth';
 	import { loginSchema, fieldError } from '$lib/core/utils/validators';
 	import { config } from '$lib/config';
+	import { t } from '$lib/i18n';
 
 	let email = $state(config.auth.demo.email);
 	let password = $state(config.auth.demo.password);
@@ -43,10 +44,10 @@
 		submitting = false;
 
 		if (result.ok) {
-			toast.success('Welcome back!');
+			toast.success(t('login.welcomeToast'));
 			goto(resolve('/dashboard'));
 		} else {
-			formError = result.error ?? 'Unable to sign in. Please try again.';
+			formError = result.error ?? t('login.errorFallback');
 			toast.error(formError);
 		}
 	}
@@ -65,8 +66,8 @@
 
 <Card.Root class="shadow-sm">
 	<Card.Header class="space-y-1 text-center">
-		<Card.Title class="text-xl">Welcome back</Card.Title>
-		<Card.Description>Sign in to your account to continue</Card.Description>
+		<Card.Title class="text-xl">{t('login.cardTitle')}</Card.Title>
+		<Card.Description>{t('login.cardDescription')}</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
@@ -76,14 +77,14 @@
 			onclick={fillDemo}
 			class="mb-5 w-full rounded-lg border border-dashed border-border bg-muted/50 px-3 py-2.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted"
 		>
-			<span class="font-medium text-foreground">Demo credentials</span> — click to autofill:
+			{t('login.demoHint')}
 			<span class="font-mono">{config.auth.demo.email}</span> /
 			<span class="font-mono">{config.auth.demo.password}</span>
 		</button>
 
 		<form class="space-y-4" onsubmit={handleSubmit} novalidate>
 			<div class="space-y-2">
-				<Label for="email">Email</Label>
+				<Label for="email">{t('auth.email')}</Label>
 				<Input
 					id="email"
 					type="email"
@@ -99,12 +100,12 @@
 
 			<div class="space-y-2">
 				<div class="flex items-center justify-between">
-					<Label for="password">Password</Label>
+					<Label for="password">{t('auth.password')}</Label>
 					<a
 						href={resolve('/forgot-password')}
 						class="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
 					>
-						Forgot password?
+						{t('login.forgotPassword')}
 					</a>
 				</div>
 				<PasswordInput
@@ -126,9 +127,9 @@
 			<Button type="submit" class="w-full" disabled={submitting}>
 				{#if submitting}
 					<Spinner class="size-4 text-primary-foreground" />
-					Signing in…
+					{t('login.submitting')}
 				{:else}
-					Sign in
+					{t('login.submit')}
 				{/if}
 			</Button>
 		</form>
@@ -136,12 +137,12 @@
 
 	<Card.Footer class="justify-center">
 		<p class="text-sm text-muted-foreground">
-			Don't have an account?
+			{t('login.noAccount')}
 			<a
 				href={resolve('/register')}
 				class="font-medium text-foreground underline-offset-4 hover:underline"
 			>
-				Sign up
+				{t('login.signUp')}
 			</a>
 		</p>
 	</Card.Footer>

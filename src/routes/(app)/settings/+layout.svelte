@@ -10,6 +10,7 @@
 	import type { Pathname } from '$app/types';
 	import { PageContainer, PageHeader } from '$lib/components/shared';
 	import { cn } from '$lib/core/utils';
+	import { t } from '$lib/i18n';
 	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 	import Palette from '@lucide/svelte/icons/palette';
 	import Bell from '@lucide/svelte/icons/bell';
@@ -22,15 +23,15 @@
 	let { children }: Props = $props();
 
 	interface SettingsNavItem {
-		title: string;
+		titleKey: string;
 		href: Pathname;
 		icon: Component;
 	}
 
 	const navItems: SettingsNavItem[] = [
-		{ title: 'General', href: '/settings', icon: SlidersHorizontal },
-		{ title: 'Appearance', href: '/settings/appearance', icon: Palette },
-		{ title: 'Notifications', href: '/settings/notifications', icon: Bell }
+		{ titleKey: 'settings.navGeneral', href: '/settings', icon: SlidersHorizontal },
+		{ titleKey: 'settings.navAppearance', href: '/settings/appearance', icon: Palette },
+		{ titleKey: 'settings.navNotifications', href: '/settings/notifications', icon: Bell }
 	];
 
 	// Exact match for the index route, prefix match for nested ones so that the
@@ -43,15 +44,12 @@
 </script>
 
 <PageContainer>
-	<PageHeader
-		title="Settings"
-		description="Manage your organization, appearance, and notification preferences."
-	/>
+	<PageHeader title={t('settings.pageTitle')} description={t('settings.pageDescription')} />
 
 	<div class="flex flex-col gap-6 lg:flex-row lg:gap-10">
 		<!-- Secondary nav: horizontal scroll on mobile, vertical list from sm up. -->
 		<nav
-			aria-label="Settings"
+			aria-label={t('settings.pageTitle')}
 			class="-mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:w-52 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
 		>
 			{#each navItems as item (item.href)}
@@ -66,7 +64,7 @@
 					)}
 				>
 					<item.icon class="size-4" />
-					{item.title}
+					{t(item.titleKey)}
 				</a>
 			{/each}
 		</nav>

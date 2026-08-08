@@ -25,6 +25,7 @@
 	import * as Resizable from '$lib/core/components/ui/resizable';
 	import { initials } from '$lib/core/utils/formatters';
 	import { cn } from '$lib/core/utils';
+	import { t } from '$lib/i18n';
 
 	type Label = 'work' | 'personal' | 'updates';
 
@@ -252,14 +253,11 @@
 </svelte:head>
 
 <PageContainer class="flex h-full min-h-0 flex-col">
-	<PageHeader
-		title="Inbox"
-		description="Read, triage and reply to your messages — all in one place."
-	>
+	<PageHeader title={t('inbox.pageTitle')} description={t('inbox.pageDescription')}>
 		{#snippet actions()}
 			<Button>
 				<PenSquare class="size-4" aria-hidden="true" />
-				Compose
+				{t('inbox.compose')}
 			</Button>
 		{/snippet}
 	</PageHeader>
@@ -271,26 +269,28 @@
 				<!-- Toolbar -->
 				<div class="flex flex-col gap-3 border-b border-border p-3">
 					<div class="flex items-center justify-between gap-2">
-						<h2 class="text-sm font-semibold tracking-tight text-foreground">All mail</h2>
+						<h2 class="text-sm font-semibold tracking-tight text-foreground">
+							{t('inbox.allMail')}
+						</h2>
 						<span class="text-xs text-muted-foreground tabular-nums">
-							{unreadCount} unread
+							{t('inbox.unread', { count: unreadCount })}
 						</span>
 					</div>
-					<SearchInput bind:value={search} placeholder="Search messages..." />
+					<SearchInput bind:value={search} placeholder={t('inbox.searchPlaceholder')} />
 					<div class="flex items-center gap-1">
 						<Button
 							variant={filter === 'all' ? 'secondary' : 'ghost'}
 							size="sm"
 							onclick={() => (filter = 'all')}
 						>
-							All
+							{t('inbox.filterAll')}
 						</Button>
 						<Button
 							variant={filter === 'unread' ? 'secondary' : 'ghost'}
 							size="sm"
 							onclick={() => (filter = 'unread')}
 						>
-							Unread
+							{t('inbox.filterUnread')}
 						</Button>
 					</div>
 				</div>
@@ -301,8 +301,8 @@
 						<div class="p-4">
 							<EmptyState
 								icon={Mail}
-								title="No messages"
-								description="Nothing matches your search or filter right now."
+								title={t('inbox.emptyTitle')}
+								description={t('inbox.emptyDescription')}
 							/>
 						</div>
 					{:else}
@@ -370,7 +370,7 @@
 										<span
 											role="button"
 											tabindex="0"
-											aria-label={email.starred ? 'Unstar message' : 'Star message'}
+											aria-label={email.starred ? t('inbox.unstar') : t('inbox.star')}
 											onclick={(e) => toggleStar(email.id, e)}
 											onkeydown={(e) => {
 												if (e.key === 'Enter' || e.key === ' ') {
@@ -402,20 +402,20 @@
 					<div class="flex items-center gap-1 border-b border-border p-2">
 						<Button variant="ghost" size="sm">
 							<Reply class="size-4" aria-hidden="true" />
-							Reply
+							{t('inbox.reply')}
 						</Button>
 						<Button variant="ghost" size="sm">
 							<Forward class="size-4" aria-hidden="true" />
-							Forward
+							{t('inbox.forward')}
 						</Button>
 						<div class="ml-auto flex items-center gap-1">
 							<Button variant="ghost" size="sm">
 								<Archive class="size-4" aria-hidden="true" />
-								Archive
+								{t('inbox.archive')}
 							</Button>
 							<Button variant="ghost" size="sm" class="text-destructive hover:text-destructive">
 								<Trash2 class="size-4" aria-hidden="true" />
-								Delete
+								{t('inbox.delete')}
 							</Button>
 						</div>
 					</div>
@@ -464,7 +464,7 @@
 
 							<div class="flex items-center gap-2 text-xs text-muted-foreground">
 								<Paperclip class="size-3.5" aria-hidden="true" />
-								<span>2 attachments</span>
+								<span>{t('inbox.attachments', { count: 2 })}</span>
 							</div>
 						</div>
 					</div>
@@ -473,14 +473,14 @@
 					<div class="border-t border-border bg-muted/30 p-3">
 						<Textarea
 							bind:value={replyText}
-							placeholder={`Reply to ${selected.from.name}...`}
+							placeholder={t('inbox.replyPlaceholder', { name: selected.from.name })}
 							class="min-h-[72px] resize-none bg-background"
 						/>
 						<div class="mt-2 flex items-center justify-between">
-							<span class="text-xs text-muted-foreground">Drafts are saved automatically</span>
+							<span class="text-xs text-muted-foreground">{t('inbox.draftSaved')}</span>
 							<Button size="sm" disabled={replyText.trim().length === 0}>
 								<Send class="size-4" aria-hidden="true" />
-								Send
+								{t('inbox.send')}
 							</Button>
 						</div>
 					</div>
@@ -488,8 +488,8 @@
 					<div class="flex h-full items-center justify-center p-6">
 						<EmptyState
 							icon={Mail}
-							title="Select a message"
-							description="Choose a conversation from the list to read it here."
+							title={t('inbox.selectTitle')}
+							description={t('inbox.selectDescription')}
 						/>
 					</div>
 				{/if}

@@ -6,6 +6,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { Button } from '$lib/core/components/ui/button';
+	import { t } from '$lib/i18n';
 	import House from '@lucide/svelte/icons/house';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
@@ -14,20 +15,20 @@
 
 	const headline = $derived(
 		page.status === 404
-			? 'Page not found'
+			? t('errors.notFound')
 			: page.status === 403
-				? 'Access denied'
+				? t('errors.accessDenied')
 				: page.status >= 500
-					? 'Something went wrong'
-					: 'Unexpected error'
+					? t('errors.somethingWrong')
+					: t('errors.unexpectedError')
 	);
 
 	const description = $derived(
 		page.status === 404
-			? "The page you're looking for doesn't exist or may have been moved."
+			? t('errors.notFoundDesc')
 			: page.status === 403
-				? "You don't have permission to view this page."
-				: (page.error?.message ?? 'An unexpected error occurred. Please try again.')
+				? t('errors.accessDeniedDesc')
+				: (page.error?.message ?? t('errors.unexpectedDesc'))
 	);
 
 	function goBack() {
@@ -57,7 +58,7 @@
 		>
 			A
 		</div>
-		<span class="text-sm font-semibold tracking-tight">Admin Starter</span>
+		<span class="text-sm font-semibold tracking-tight">{t('errors.brandLabel')}</span>
 	</div>
 
 	<p
@@ -74,17 +75,17 @@
 	<div class="relative mt-6 flex flex-wrap items-center justify-center gap-2">
 		<Button href="/dashboard">
 			<House class="size-4" aria-hidden="true" />
-			Go to dashboard
+			{t('errors.goToDashboard')}
 		</Button>
 		{#if isNotFound}
 			<Button variant="outline" onclick={goBack}>
 				<ArrowLeft class="size-4" aria-hidden="true" />
-				Go back
+				{t('errors.goBack')}
 			</Button>
 		{:else}
 			<Button variant="outline" onclick={reload}>
 				<RotateCcw class="size-4" aria-hidden="true" />
-				Try again
+				{t('errors.tryAgain')}
 			</Button>
 		{/if}
 	</div>

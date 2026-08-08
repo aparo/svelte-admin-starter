@@ -22,6 +22,7 @@
 	import { fieldError } from '$lib/core/utils/validators';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
+	import { t } from '$lib/i18n';
 	import { z } from 'zod';
 	import { DateFormatter, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
@@ -30,10 +31,10 @@
 
 	// --- Static option lists for the demo selects/groups ---
 	const categories = [
-		{ value: 'web', label: 'Web app' },
-		{ value: 'mobile', label: 'Mobile app' },
-		{ value: 'api', label: 'API service' },
-		{ value: 'data', label: 'Data pipeline' }
+		{ value: 'web', label: t('forms.catWebApp') },
+		{ value: 'mobile', label: t('forms.catMobileApp') },
+		{ value: 'api', label: t('forms.catApiService') },
+		{ value: 'data', label: t('forms.catDataPipeline') }
 	];
 
 	const stackOptions = [
@@ -44,19 +45,19 @@
 	];
 
 	const visibilityOptions = [
-		{ value: 'private', label: 'Private', hint: 'Only invited members can access.' },
-		{ value: 'team', label: 'Team', hint: 'Everyone in your workspace can view.' },
-		{ value: 'public', label: 'Public', hint: 'Anyone with the link can view.' }
+		{ value: 'private', label: t('forms.visPrivate'), hint: t('forms.visPrivateHint') },
+		{ value: 'team', label: t('forms.visTeam'), hint: t('forms.visTeamHint') },
+		{ value: 'public', label: t('forms.visPublic'), hint: t('forms.visPublicHint') }
 	];
 
 	// --- Validation schema (inline — specific to this demo form) ---
 	const schema = z.object({
-		name: z.string().trim().min(3, 'Name must be at least 3 characters'),
-		description: z.string().trim().max(280, 'Keep the description under 280 characters'),
-		category: z.string().min(1, 'Select a category'),
-		stack: z.array(z.string()).min(1, 'Pick at least one technology'),
+		name: z.string().trim().min(3, t('forms.nameMinLength')),
+		description: z.string().trim().max(280, t('forms.descMaxLength')),
+		category: z.string().min(1, t('forms.categoryRequired')),
+		stack: z.array(z.string()).min(1, t('forms.stackRequired')),
 		visibility: z.enum(['private', 'team', 'public']),
-		dueDate: z.string().min(1, 'Choose a due date'),
+		dueDate: z.string().min(1, t('forms.dueDateRequired')),
 		priority: z.number().min(0).max(100)
 	});
 
@@ -78,7 +79,7 @@
 	const minDate = today(getLocalTimeZone());
 
 	const categoryLabel = $derived(
-		categories.find((c) => c.value === category)?.label ?? 'Select a category'
+		categories.find((c) => c.value === category)?.label ?? t('forms.categoryRequired')
 	);
 
 	function toggleStack(value: string, checked: boolean): void {
@@ -99,12 +100,12 @@
 
 		if (!result.success) {
 			errors = result.error;
-			toast.error('Please fix the highlighted fields');
+			toast.error(t('forms.fixFields'));
 			return;
 		}
 
 		errors = null;
-		toast.success('Project created', { description: `"${name}" is ready to go.` });
+		toast.success(t('forms.projectCreated'), { description: `"${name}" is ready to go.` });
 		reset();
 	}
 
@@ -126,27 +127,24 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader
-		title="Forms"
-		description="Field patterns and validation states for building data-entry screens."
-	/>
+	<PageHeader title={t('forms.pageTitle')} description={t('forms.pageDescription')} />
 
 	<form onsubmit={handleSubmit} class="grid gap-6">
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Create project</Card.Title>
+				<Card.Title>{t('forms.createProjectTitle')}</Card.Title>
 				<Card.Description>
-					A realistic form combining the most common field types with inline validation.
+					{t('forms.createProjectDescription')}
 				</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-6">
 				<!-- Name -->
 				<div class="grid gap-2">
-					<Label for="name">Project name</Label>
+					<Label for="name">{t('forms.projectName')}</Label>
 					<Input
 						id="name"
 						bind:value={name}
-						placeholder="Aurora Dashboard"
+						placeholder={t('forms.projectNamePlaceholder')}
 						aria-invalid={fieldError(errors, 'name') ? 'true' : undefined}
 					/>
 					{#if fieldError(errors, 'name')}
@@ -156,12 +154,12 @@
 
 				<!-- Description -->
 				<div class="grid gap-2">
-					<Label for="description">Description</Label>
+					<Label for="description">{t('forms.projectDescription')}</Label>
 					<Textarea
 						id="description"
 						bind:value={description}
 						rows={3}
-						placeholder="What is this project about?"
+						placeholder={t('forms.projectDescPlaceholder')}
 						aria-invalid={fieldError(errors, 'description') ? 'true' : undefined}
 					/>
 					<div class="flex items-center justify-between">
@@ -177,7 +175,7 @@
 				<div class="grid gap-6 sm:grid-cols-2">
 					<!-- Category -->
 					<div class="grid gap-2">
-						<Label for="category">Category</Label>
+						<Label for="category">{t('forms.category')}</Label>
 						<Select.Root type="single" bind:value={category}>
 							<Select.Trigger
 								id="category"
@@ -199,7 +197,7 @@
 
 					<!-- Due date -->
 					<div class="grid gap-2">
-						<Label for="due-date">Due date</Label>
+						<Label for="due-date">{t('forms.dueDate')}</Label>
 						<Popover.Root bind:open={datePopoverOpen}>
 							<Popover.Trigger id="due-date">
 								{#snippet child({ props })}
@@ -213,7 +211,9 @@
 										aria-invalid={fieldError(errors, 'dueDate') ? 'true' : undefined}
 									>
 										<CalendarIcon class="size-4" />
-										{dueValue ? df.format(dueValue.toDate(getLocalTimeZone())) : 'Pick a date'}
+										{dueValue
+											? df.format(dueValue.toDate(getLocalTimeZone()))
+											: t('forms.pickDate')}
 									</Button>
 								{/snippet}
 							</Popover.Trigger>
@@ -235,7 +235,7 @@
 
 				<!-- Tech stack (multi-checkbox) -->
 				<div class="grid gap-3">
-					<Label>Technology stack</Label>
+					<Label>{t('forms.techStack')}</Label>
 					<div class="grid gap-3 sm:grid-cols-2">
 						{#each stackOptions as option (option.value)}
 							<Label
@@ -256,7 +256,7 @@
 
 				<!-- Visibility (radio group) -->
 				<div class="grid gap-3">
-					<Label>Visibility</Label>
+					<Label>{t('forms.visibility')}</Label>
 					<RadioGroup.Root bind:value={visibility} class="gap-3">
 						{#each visibilityOptions as option (option.value)}
 							<Label
@@ -275,7 +275,7 @@
 				<!-- Priority (slider) -->
 				<div class="grid gap-3">
 					<div class="flex items-center justify-between">
-						<Label for="priority">Priority</Label>
+						<Label for="priority">{t('forms.priority')}</Label>
 						<span class="text-muted-foreground text-sm tabular-nums">{priority}%</span>
 					</div>
 					<Slider id="priority" type="single" bind:value={priority} min={0} max={100} step={5} />
@@ -284,19 +284,19 @@
 				<!-- Notifications (switch) -->
 				<div class="flex items-center justify-between rounded-md border border-border p-4">
 					<div class="space-y-0.5">
-						<Label>Notify on completion</Label>
+						<Label>{t('forms.notifyOnCompletion')}</Label>
 						<p class="text-muted-foreground text-xs">
-							Send a notification when this project is marked done.
+							{t('forms.notifyHint')}
 						</p>
 					</div>
 					<Switch checked={notifyOnComplete} onCheckedChange={(v) => (notifyOnComplete = v)} />
 				</div>
 			</Card.Content>
 			<Card.Footer class="justify-end gap-2 border-t">
-				<Button type="button" variant="outline" onclick={reset}>Reset</Button>
+				<Button type="button" variant="outline" onclick={reset}>{t('forms.reset')}</Button>
 				<Button type="submit">
 					<RocketIcon class="size-4" />
-					Create project
+					{t('forms.submit')}
 				</Button>
 			</Card.Footer>
 		</Card.Root>
@@ -304,28 +304,28 @@
 		<!-- Input states reference -->
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Input states</Card.Title>
-				<Card.Description>The visual states an input can take.</Card.Description>
+				<Card.Title>{t('forms.statesTitle')}</Card.Title>
+				<Card.Description>{t('forms.statesDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 				<div class="grid gap-2">
-					<Label for="state-default">Default</Label>
+					<Label for="state-default">{t('forms.stateDefault')}</Label>
 					<Input id="state-default" placeholder="Type something…" />
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-disabled">Disabled</Label>
+					<Label for="state-disabled">{t('forms.stateDisabled')}</Label>
 					<Input id="state-disabled" value="Read only" disabled />
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-error">Error</Label>
+					<Label for="state-error">{t('forms.stateError')}</Label>
 					<Input id="state-error" value="invalid-email" aria-invalid="true" />
-					<p class="text-destructive text-xs">Enter a valid email address.</p>
+					<p class="text-destructive text-xs">{t('forms.emailError')}</p>
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-icon">With icon</Label>
+					<Label for="state-icon">{t('forms.stateWithIcon')}</Label>
 					<div class="relative">
 						<MailIcon
 							class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
@@ -335,7 +335,7 @@
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-password">Password (with eye toggle)</Label>
+					<Label for="state-password">{t('forms.statePassword')}</Label>
 					<PasswordInput
 						id="state-password"
 						bind:value={demoPassword}

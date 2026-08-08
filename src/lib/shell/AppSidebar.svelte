@@ -63,7 +63,7 @@
 							</div>
 							<div class="grid flex-1 text-left text-sm leading-tight">
 								<span class="truncate font-semibold">{config.app.name}</span>
-								<span class="text-muted-foreground truncate text-xs">Dashboard</span>
+								<span class="text-muted-foreground truncate text-xs">{t('sidebar.subtitle')}</span>
 							</div>
 						</a>
 					{/snippet}
@@ -73,9 +73,9 @@
 	</Sidebar.Header>
 
 	<Sidebar.Content>
-		{#each navGroups as group (group.label)}
+		{#each navGroups as group (group.labelKey)}
 			<Sidebar.Group>
-				<Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
+				<Sidebar.GroupLabel>{t(group.labelKey)}</Sidebar.GroupLabel>
 				<Sidebar.Menu>
 					{#each group.items as item (item.href)}
 						<Sidebar.MenuItem>
@@ -84,7 +84,7 @@
 									{#snippet child({ props: ctxProps })}
 										<Sidebar.MenuButton
 											isActive={isActive(item.href)}
-											tooltipContent={item.title}
+											tooltipContent={t(item.titleKey)}
 											class="relative transition-colors data-active:text-sidebar-primary data-active:before:absolute data-active:before:inset-y-1.5 data-active:before:left-0 data-active:before:w-0.5 data-active:before:rounded-full data-active:before:bg-sidebar-primary data-active:before:content-['']"
 										>
 											{#snippet child({ props })}
@@ -96,7 +96,7 @@
 													{...mergeProps(props, ctxProps)}
 												>
 													<item.icon />
-													<span>{item.title}</span>
+													<span>{t(item.titleKey)}</span>
 												</a>
 											{/snippet}
 										</Sidebar.MenuButton>
@@ -139,7 +139,7 @@
 									</Avatar.Fallback>
 								</Avatar.Root>
 								<div class="grid flex-1 text-left text-sm leading-tight">
-									<span class="truncate font-semibold">{user?.name ?? 'Guest'}</span>
+									<span class="truncate font-semibold">{user?.name ?? t('sidebar.profile')}</span>
 									<span class="text-muted-foreground truncate text-xs capitalize">
 										{user?.role ?? ''}
 									</span>
@@ -165,7 +165,7 @@
 									</Avatar.Fallback>
 								</Avatar.Root>
 								<div class="grid flex-1 text-left text-sm leading-tight">
-									<span class="truncate font-semibold">{user?.name ?? 'Guest'}</span>
+									<span class="truncate font-semibold">{user?.name ?? t('sidebar.profile')}</span>
 									<span class="text-muted-foreground truncate text-xs">{user?.email ?? ''}</span>
 								</div>
 							</div>
@@ -176,7 +176,7 @@
 								{#snippet child({ props })}
 									<a href={resolve('/profile')} onclick={handleNavClick} {...props}>
 										<UserIcon />
-										Profile
+										{t('sidebar.profile')}
 									</a>
 								{/snippet}
 							</DropdownMenu.Item>
@@ -184,7 +184,7 @@
 								{#snippet child({ props })}
 									<a href={resolve('/settings')} onclick={handleNavClick} {...props}>
 										<SettingsIcon />
-										Settings
+										{t('sidebar.settings')}
 									</a>
 								{/snippet}
 							</DropdownMenu.Item>
@@ -192,7 +192,7 @@
 						<DropdownMenu.Separator />
 						<DropdownMenu.Item variant="destructive" onSelect={() => (logoutDialog.open = true)}>
 							<LogOut />
-							Logout
+							{t('sidebar.logout')}
 						</DropdownMenu.Item>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>

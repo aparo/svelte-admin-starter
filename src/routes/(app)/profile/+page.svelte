@@ -18,6 +18,7 @@
 	import { toast } from 'svelte-sonner';
 
 	import { auth } from '$lib/auth';
+	import { t } from '$lib/i18n';
 	import { initials } from '$lib/core/utils/formatters';
 
 	// `value` is typed `string` to satisfy the single-select binding (bits-ui).
@@ -40,11 +41,11 @@
 
 	function save(event: SubmitEvent) {
 		event.preventDefault();
-		toast.success('Profile updated');
+		toast.success(t('profile.savedToast'));
 	}
 
 	function changeAvatar() {
-		toast.info('Avatar upload is not available in this demo');
+		toast.info(t('profile.avatarToast'));
 	}
 </script>
 
@@ -53,17 +54,14 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader
-		title="Profile"
-		description="Manage your personal information and account preferences."
-	/>
+	<PageHeader title={t('profile.pageTitle')} description={t('profile.pageDescription')} />
 
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 		<!-- Left: avatar card -->
 		<Card.Root class="lg:col-span-1">
 			<Card.Header>
-				<Card.Title>Your photo</Card.Title>
-				<Card.Description>This is how you appear across the workspace.</Card.Description>
+				<Card.Title>{t('profile.photoTitle')}</Card.Title>
+				<Card.Description>{t('profile.photoDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content class="flex flex-col items-center gap-4 text-center">
 				<Avatar.Root class="size-24">
@@ -73,12 +71,12 @@
 					<Avatar.Fallback class="text-2xl">{avatarInitials}</Avatar.Fallback>
 				</Avatar.Root>
 				<div class="space-y-0.5">
-					<p class="font-medium text-foreground">{name || 'Unnamed user'}</p>
+					<p class="font-medium text-foreground">{name || t('profile.unnamed')}</p>
 					<p class="text-sm text-muted-foreground">{email}</p>
 				</div>
 				<Button variant="outline" size="sm" onclick={changeAvatar}>
 					<Camera class="size-4" aria-hidden="true" />
-					Change avatar
+					{t('profile.changeAvatar')}
 				</Button>
 			</Card.Content>
 		</Card.Root>
@@ -87,29 +85,34 @@
 		<Card.Root class="lg:col-span-2">
 			<form onsubmit={save}>
 				<Card.Header>
-					<Card.Title>Account details</Card.Title>
-					<Card.Description>Update your name, contact email, and bio.</Card.Description>
+					<Card.Title>{t('profile.detailsTitle')}</Card.Title>
+					<Card.Description>{t('profile.detailsDescription')}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<div class="grid gap-4 sm:grid-cols-2">
 						<div class="space-y-2">
-							<Label for="name">Name</Label>
-							<Input id="name" bind:value={name} placeholder="Your full name" autocomplete="name" />
+							<Label for="name">{t('profile.nameLabel')}</Label>
+							<Input
+								id="name"
+								bind:value={name}
+								placeholder={t('profile.namePlaceholder')}
+								autocomplete="name"
+							/>
 						</div>
 						<div class="space-y-2">
-							<Label for="email">Email</Label>
+							<Label for="email">{t('profile.emailLabel')}</Label>
 							<Input
 								id="email"
 								type="email"
 								bind:value={email}
-								placeholder="you@example.com"
+								placeholder={t('profile.emailPlaceholder')}
 								autocomplete="email"
 							/>
 						</div>
 					</div>
 
 					<div class="space-y-2">
-						<Label for="role">Role</Label>
+						<Label for="role">{t('profile.roleLabel')}</Label>
 						<Select.Root type="single" bind:value={role} disabled>
 							<Select.Trigger id="role" class="w-full">
 								{roleLabel}
@@ -123,22 +126,22 @@
 							</Select.Content>
 						</Select.Root>
 						<p class="text-xs text-muted-foreground">
-							Roles are managed by your workspace administrator.
+							{t('profile.roleNote')}
 						</p>
 					</div>
 
 					<div class="space-y-2">
-						<Label for="bio">Bio</Label>
+						<Label for="bio">{t('profile.bioLabel')}</Label>
 						<Textarea
 							id="bio"
 							bind:value={bio}
 							rows={4}
-							placeholder="Tell us a little about yourself"
+							placeholder={t('profile.bioPlaceholder')}
 						/>
 					</div>
 				</Card.Content>
 				<Card.Footer class="justify-end gap-2">
-					<Button type="submit">Save changes</Button>
+					<Button type="submit">{t('profile.saveChanges')}</Button>
 				</Card.Footer>
 			</form>
 		</Card.Root>

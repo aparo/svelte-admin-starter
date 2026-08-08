@@ -11,16 +11,17 @@
 	import { auth } from '$lib/auth';
 	import { config } from '$lib/config';
 	import { ThemeToggle, LanguageToggle } from '$lib/components/shared';
+	import { t } from '$lib/i18n';
 	import Check from '@lucide/svelte/icons/check';
 
 	let { children } = $props();
 
-	const highlights = [
-		'Svelte 5 runes + SvelteKit 2',
-		'Tailwind v4 + shadcn-svelte UI',
-		'Dark mode, i18n & ⌘K command palette',
-		'Responsive, accessible and fully typed'
-	];
+	const highlightKeys = [
+		'authLayout.featureSvelte',
+		'authLayout.featureTailwind',
+		'authLayout.featureI18n',
+		'authLayout.featureTyped'
+	] as const;
 
 	onMount(() => {
 		auth.init();
@@ -61,26 +62,25 @@
 					{config.app.tagline}
 				</h1>
 				<p class="text-primary-foreground/80 text-base leading-relaxed">
-					A polished SvelteKit starter — auth, dashboard, tables, forms and charts, fully wired and
-					ready to extend.
+					{t('authLayout.tagline')}
 				</p>
 			</div>
 			<ul class="space-y-3">
-				{#each highlights as item (item)}
+				{#each highlightKeys as key (key)}
 					<li class="flex items-center gap-3">
 						<span
 							class="bg-primary-foreground/15 flex size-5 shrink-0 items-center justify-center rounded-full"
 						>
 							<Check class="size-3.5" aria-hidden="true" />
 						</span>
-						<span class="text-primary-foreground/90 text-sm">{item}</span>
+						<span class="text-primary-foreground/90 text-sm">{t(key)}</span>
 					</li>
 				{/each}
 			</ul>
 		</div>
 
 		<p class="text-primary-foreground/60 relative text-xs">
-			Svelte 5 · Tailwind v4 · shadcn-svelte
+			{t('authLayout.footer')}
 		</p>
 	</aside>
 
@@ -107,7 +107,7 @@
 		</div>
 
 		<p class="text-muted-foreground absolute inset-x-0 bottom-4 text-center text-xs">
-			A SvelteKit admin starter template.
+			{t('authLayout.formFooter')}
 		</p>
 	</main>
 </div>

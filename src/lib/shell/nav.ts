@@ -19,65 +19,65 @@ import Tag from '@lucide/svelte/icons/tag';
 import CreditCard from '@lucide/svelte/icons/credit-card';
 
 export interface NavItem {
-	title: string;
+	titleKey: string;
 	href: Pathname;
 	icon: Component;
 	badge?: string | number;
 }
 
 export interface NavGroup {
-	label: string;
+	labelKey: string;
 	items: NavItem[];
 }
 
 export const navGroups: NavGroup[] = [
 	{
-		label: 'Overview',
-		items: [{ title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }]
+		labelKey: 'nav.groupOverview',
+		items: [{ titleKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard }]
 	},
 	{
-		label: 'Management',
+		labelKey: 'nav.groupManagement',
 		items: [
-			{ title: 'Users', href: '/users', icon: Users },
-			{ title: 'Tables', href: '/tables', icon: Table },
-			{ title: 'Forms', href: '/forms', icon: ClipboardList }
+			{ titleKey: 'nav.users', href: '/users', icon: Users },
+			{ titleKey: 'nav.tables', href: '/tables', icon: Table },
+			{ titleKey: 'nav.forms', href: '/forms', icon: ClipboardList }
 		]
 	},
 	{
-		label: 'Apps',
+		labelKey: 'nav.groupApps',
 		items: [
-			{ title: 'Calendar', href: '/calendar', icon: CalendarDays },
-			{ title: 'Inbox', href: '/inbox', icon: Inbox },
-			{ title: 'Board', href: '/kanban', icon: SquareKanban }
+			{ titleKey: 'nav.calendar', href: '/calendar', icon: CalendarDays },
+			{ titleKey: 'nav.inbox', href: '/inbox', icon: Inbox },
+			{ titleKey: 'nav.kanban', href: '/kanban', icon: SquareKanban }
 		]
 	},
 	{
-		label: 'Commerce',
+		labelKey: 'nav.groupCommerce',
 		items: [
-			{ title: 'Sales Orders', href: '/orders', icon: ShoppingBag },
-			{ title: 'Cart', href: '/cart', icon: ShoppingCart }
+			{ titleKey: 'nav.orders', href: '/orders', icon: ShoppingBag },
+			{ titleKey: 'nav.cart', href: '/cart', icon: ShoppingCart }
 		]
 	},
 	{
-		label: 'Showcase',
+		labelKey: 'nav.groupShowcase',
 		items: [
-			{ title: 'Components', href: '/components', icon: ComponentIcon },
-			{ title: 'Icons', href: '/icons', icon: Sparkles },
-			{ title: 'Charts', href: '/charts', icon: ChartLine }
+			{ titleKey: 'nav.components', href: '/components', icon: ComponentIcon },
+			{ titleKey: 'nav.icons', href: '/icons', icon: Sparkles },
+			{ titleKey: 'nav.charts', href: '/charts', icon: ChartLine }
 		]
 	},
 	{
-		label: 'Billing',
+		labelKey: 'nav.groupBilling',
 		items: [
-			{ title: 'Pricing', href: '/pricing', icon: Tag },
-			{ title: 'Billing', href: '/billing', icon: CreditCard }
+			{ titleKey: 'nav.pricing', href: '/pricing', icon: Tag },
+			{ titleKey: 'nav.billing', href: '/billing', icon: CreditCard }
 		]
 	},
 	{
-		label: 'Account',
+		labelKey: 'nav.groupAccount',
 		items: [
-			{ title: 'Profile', href: '/profile', icon: User },
-			{ title: 'Settings', href: '/settings', icon: Settings }
+			{ titleKey: 'nav.profile', href: '/profile', icon: User },
+			{ titleKey: 'nav.settings', href: '/settings', icon: Settings }
 		]
 	}
 ];

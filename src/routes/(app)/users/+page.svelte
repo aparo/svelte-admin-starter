@@ -34,6 +34,7 @@
 	import { exportToCsv } from '$lib/core/utils/csv';
 	import { formatDate, initials } from '$lib/core/utils/formatters';
 	import { toast } from 'svelte-sonner';
+	import { t } from '$lib/i18n';
 	import { z } from 'zod';
 
 	// --- Local, mutable copy of the mock data ------------------------------
@@ -44,14 +45,14 @@
 	type Status = DemoUser['status'];
 
 	const ROLES: { value: Role; label: string }[] = [
-		{ value: 'admin', label: 'Admin' },
-		{ value: 'editor', label: 'Editor' },
-		{ value: 'viewer', label: 'Viewer' }
+		{ value: 'admin', label: t('users.roleAdmin') },
+		{ value: 'editor', label: t('users.roleEditor') },
+		{ value: 'viewer', label: t('users.roleViewer') }
 	];
 	const STATUSES: { value: Status; label: string }[] = [
-		{ value: 'active', label: 'Active' },
-		{ value: 'invited', label: 'Invited' },
-		{ value: 'suspended', label: 'Suspended' }
+		{ value: 'active', label: t('users.statusActive') },
+		{ value: 'invited', label: t('users.statusInvited') },
+		{ value: 'suspended', label: t('users.statusSuspended') }
 	];
 
 	// Map roles/statuses to the shared StatusBadge tones — one tint convention
@@ -70,11 +71,11 @@
 	}
 
 	const columns: Column<DemoUser>[] = [
-		{ key: 'name', header: 'Name', sortable: true, searchable: true },
-		{ key: 'email', header: 'Email', searchable: true },
-		{ key: 'role', header: 'Role' },
-		{ key: 'status', header: 'Status' },
-		{ key: 'createdAt', header: 'Joined', sortable: true }
+		{ key: 'name', header: t('users.columnName'), sortable: true, searchable: true },
+		{ key: 'email', header: t('users.columnEmail'), searchable: true },
+		{ key: 'role', header: t('users.columnRole') },
+		{ key: 'status', header: t('users.columnStatus') },
+		{ key: 'createdAt', header: t('users.columnJoined'), sortable: true }
 	];
 
 	// --- Add / Edit dialog state -------------------------------------------
@@ -90,7 +91,7 @@
 	});
 	let errors = $state<z.ZodError | null>(null);
 
-	const dialogTitle = $derived(editingId ? 'Edit user' : 'Add user');
+	const dialogTitle = $derived(editingId ? t('users.editTitle') : t('users.addTitle'));
 	const roleTriggerLabel = $derived(roleLabel(form.role as Role));
 	const statusTriggerLabel = $derived(statusLabel(form.status as Status));
 
@@ -148,7 +149,7 @@
 						}
 					: u
 			);
-			toast.success('User updated');
+			toast.success(t('users.updatedToast'));
 		} else {
 			const id = `usr_${Math.random().toString(36).slice(2, 8)}`;
 			users = [
@@ -162,7 +163,7 @@
 				},
 				...users
 			];
-			toast.success('User added');
+			toast.success(t('users.addedToast'));
 		}
 		dialogOpen = false;
 	}
@@ -180,7 +181,7 @@
 		const id = pendingDelete.id;
 		users = users.filter((u) => u.id !== id);
 		selected = selected.filter((s) => s !== id);
-		toast.success('User deleted');
+		toast.success(t('users.deletedToast'));
 		pendingDelete = null;
 	}
 
@@ -215,11 +216,11 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader title="Users" description="Manage team members, their roles and access.">
+	<PageHeader title={t('users.pageTitle')} description={t('users.pageDescription')}>
 		{#snippet actions()}
 			<Button onclick={openAdd}>
 				<Plus class="size-4" />
-				Add user
+				{t('users.addUser')}
 			</Button>
 		{/snippet}
 	</PageHeader>
@@ -230,18 +231,18 @@
 		searchable
 		selectable
 		bind:selected
-		emptyTitle="No users"
-		emptyDescription="Add your first user to get started."
+		emptyTitle={t('users.emptyTitle')}
+		emptyDescription={t('users.emptyDescription')}
 	>
 		{#snippet toolbar()}
 			<Button variant="outline" size="sm" onclick={exportCsv}>
 				<Download class="size-4" />
-				Export CSV
+				{t('users.exportCsv')}
 			</Button>
 			{#if selected.length > 0}
 				<Button variant="outline" size="sm" onclick={() => (bulkDeleteOpen = true)}>
 					<Trash2 class="size-4 text-red-500" />
-					Delete selected ({selected.length})
+					{t('users.deleteSelected', { n: selected.length })}
 				</Button>
 			{/if}
 		{/snippet}
@@ -289,7 +290,7 @@
 					variant="ghost"
 					size="icon"
 					class="text-muted-foreground hover:text-foreground size-8"
-					title="Edit"
+					title={t('users.edit')}
 					aria-label={`Edit ${row.name}`}
 					onclick={() => openEdit(row)}
 				>
@@ -299,7 +300,7 @@
 					variant="ghost"
 					size="icon"
 					class="text-muted-foreground hover:text-destructive size-8"
-					title="Delete"
+					title={t('users.deleteText')}
 					aria-label={`Delete ${row.name}`}
 					onclick={() => requestDelete(row)}
 				>
@@ -316,7 +317,7 @@
 		<Sheet.Header class="border-b">
 			<Sheet.Title>{dialogTitle}</Sheet.Title>
 			<Sheet.Description>
-				{editingId ? 'Update the details for this user.' : 'Create a new user record.'}
+				{editingId ? t('users.editDescription') : t('users.addDescription')}
 			</Sheet.Description>
 		</Sheet.Header>
 
@@ -329,20 +330,25 @@
 		>
 			<div class="flex-1 space-y-4 overflow-y-auto p-4">
 				<div class="space-y-2">
-					<Label for="user-name">Name</Label>
-					<Input id="user-name" bind:value={form.name} placeholder="Jane Doe" autocomplete="off" />
+					<Label for="user-name">{t('users.nameLabel')}</Label>
+					<Input
+						id="user-name"
+						bind:value={form.name}
+						placeholder={t('users.namePlaceholder')}
+						autocomplete="off"
+					/>
 					{#if fieldError(errors, 'name')}
 						<p class="text-xs text-red-500">{fieldError(errors, 'name')}</p>
 					{/if}
 				</div>
 
 				<div class="space-y-2">
-					<Label for="user-email">Email</Label>
+					<Label for="user-email">{t('users.emailLabel')}</Label>
 					<Input
 						id="user-email"
 						type="email"
 						bind:value={form.email}
-						placeholder="jane@example.com"
+						placeholder={t('users.emailPlaceholder')}
 						autocomplete="off"
 					/>
 					{#if fieldError(errors, 'email')}
@@ -352,7 +358,7 @@
 
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
-						<Label>Role</Label>
+						<Label>{t('users.roleLabel')}</Label>
 						<Select.Root type="single" bind:value={form.role}>
 							<Select.Trigger class="w-full capitalize">{roleTriggerLabel}</Select.Trigger>
 							<Select.Content>
@@ -364,7 +370,7 @@
 					</div>
 
 					<div class="space-y-2">
-						<Label>Status</Label>
+						<Label>{t('users.statusLabel')}</Label>
 						<Select.Root type="single" bind:value={form.status}>
 							<Select.Trigger class="w-full capitalize">{statusTriggerLabel}</Select.Trigger>
 							<Select.Content>
@@ -379,8 +385,10 @@
 			</div>
 
 			<Sheet.Footer class="flex-row justify-end border-t">
-				<Button type="button" variant="outline" onclick={() => (dialogOpen = false)}>Cancel</Button>
-				<Button type="submit">{editingId ? 'Save changes' : 'Add user'}</Button>
+				<Button type="button" variant="outline" onclick={() => (dialogOpen = false)}
+					>{t('users.cancel')}</Button
+				>
+				<Button type="submit">{editingId ? t('users.saveChanges') : t('users.addSubmit')}</Button>
 			</Sheet.Footer>
 		</form>
 	</Sheet.Content>
@@ -390,8 +398,8 @@
 <Sheet.Root bind:open={viewOpen}>
 	<Sheet.Content side="right" class="gap-0 sm:max-w-lg!">
 		<Sheet.Header class="border-b">
-			<Sheet.Title>User details</Sheet.Title>
-			<Sheet.Description>Read-only overview of this team member.</Sheet.Description>
+			<Sheet.Title>{t('users.viewTitle')}</Sheet.Title>
+			<Sheet.Description>{t('users.viewDescription')}</Sheet.Description>
 		</Sheet.Header>
 
 		{#if viewingUser}
@@ -420,33 +428,33 @@
 				<!-- Details -->
 				<dl class="divide-border bg-card divide-y rounded-lg border">
 					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Email</dt>
+						<dt class="text-muted-foreground text-sm">{t('users.viewEmail')}</dt>
 						<dd class="truncate text-sm font-medium">{viewingUser.email}</dd>
 					</div>
 					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Role</dt>
+						<dt class="text-muted-foreground text-sm">{t('users.viewRole')}</dt>
 						<dd class="text-sm font-medium">{roleLabel(viewingUser.role)}</dd>
 					</div>
 					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Status</dt>
+						<dt class="text-muted-foreground text-sm">{t('users.viewStatus')}</dt>
 						<dd class="text-sm font-medium">{statusLabel(viewingUser.status)}</dd>
 					</div>
 					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Joined</dt>
+						<dt class="text-muted-foreground text-sm">{t('users.viewJoined')}</dt>
 						<dd class="text-sm font-medium">{formatDate(viewingUser.createdAt)}</dd>
 					</div>
 					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">User ID</dt>
+						<dt class="text-muted-foreground text-sm">{t('users.viewId')}</dt>
 						<dd class="text-muted-foreground font-mono text-xs">{viewingUser.id}</dd>
 					</div>
 				</dl>
 			</div>
 
 			<Sheet.Footer class="flex-row justify-end border-t">
-				<Button variant="outline" onclick={() => (viewOpen = false)}>Close</Button>
+				<Button variant="outline" onclick={() => (viewOpen = false)}>{t('users.close')}</Button>
 				<Button onclick={editFromView}>
 					<Pencil class="size-4" />
-					Edit
+					{t('users.edit')}
 				</Button>
 			</Sheet.Footer>
 		{/if}
@@ -457,11 +465,11 @@
 <ConfirmDialog
 	bind:open={deleteOpen}
 	variant="destructive"
-	title="Delete user?"
+	title={t('users.deleteTitle')}
 	description={pendingDelete
 		? `${pendingDelete.name} will be permanently removed. This cannot be undone.`
 		: ''}
-	confirmText="Delete"
+	confirmText={t('users.deleteText')}
 	onConfirm={confirmDelete}
 />
 
@@ -469,8 +477,8 @@
 <ConfirmDialog
 	bind:open={bulkDeleteOpen}
 	variant="destructive"
-	title="Delete selected users?"
+	title={t('users.deleteSelectedTitle')}
 	description={`${selected.length} ${selected.length === 1 ? 'user' : 'users'} will be permanently removed. This cannot be undone.`}
-	confirmText="Delete"
+	confirmText={t('users.deleteText')}
 	onConfirm={confirmBulkDelete}
 />

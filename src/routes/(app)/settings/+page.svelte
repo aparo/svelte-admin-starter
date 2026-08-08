@@ -15,7 +15,7 @@
 	import { toast } from 'svelte-sonner';
 	import { auth } from '$lib/auth';
 	import { logoutDialog } from '$lib/shell';
-	import { setLocale, LOCALES, i18n, type Locale } from '$lib/i18n';
+	import { setLocale, LOCALES, i18n, t, type Locale } from '$lib/i18n';
 	import { initials } from '$lib/core/utils/formatters';
 	import Save from '@lucide/svelte/icons/save';
 
@@ -55,8 +55,8 @@
 	function saveGeneral(event: SubmitEvent): void {
 		event.preventDefault();
 		// No backend — just confirm the (local) change.
-		toast.success('Settings saved', {
-			description: 'Your general settings have been updated.'
+		toast.success(t('settings.savedToast'), {
+			description: t('settings.savedDescription')
 		});
 	}
 </script>
@@ -68,19 +68,19 @@
 <form onsubmit={saveGeneral} class="space-y-6">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Organization</Card.Title>
+			<Card.Title>{t('settings.orgTitle')}</Card.Title>
 			<Card.Description>
-				Details about your organization shown across the workspace.
+				{t('settings.orgDescription')}
 			</Card.Description>
 		</Card.Header>
 		<Card.Content class="space-y-5">
 			<div class="grid gap-2">
-				<Label for="org-name">Organization name</Label>
+				<Label for="org-name">{t('settings.orgName')}</Label>
 				<Input id="org-name" bind:value={orgName} placeholder="Acme Inc." />
 			</div>
 
 			<div class="grid gap-2">
-				<Label for="support-email">Support email</Label>
+				<Label for="support-email">{t('settings.supportEmail')}</Label>
 				<Input
 					id="support-email"
 					type="email"
@@ -88,13 +88,13 @@
 					placeholder="support@example.com"
 				/>
 				<p class="text-muted-foreground text-xs">
-					Replies to customer notifications are sent to this address.
+					{t('settings.emailNote')}
 				</p>
 			</div>
 
 			<div class="grid gap-5 sm:grid-cols-2">
 				<div class="grid gap-2">
-					<Label for="timezone">Timezone</Label>
+					<Label for="timezone">{t('settings.timezone')}</Label>
 					<Select.Root type="single" bind:value={timezone}>
 						<Select.Trigger id="timezone" class="w-full">
 							{timezoneLabel}
@@ -110,7 +110,7 @@
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="language">Language</Label>
+					<Label for="language">{t('settings.language')}</Label>
 					<Select.Root type="single" value={language} onValueChange={onLanguageChange}>
 						<Select.Trigger id="language" class="w-full">
 							{languageLabel}
@@ -124,7 +124,7 @@
 						</Select.Content>
 					</Select.Root>
 					<p class="text-muted-foreground text-xs">
-						Changes apply immediately across the interface.
+						{t('settings.timezoneNote')}
 					</p>
 				</div>
 			</div>
@@ -132,15 +132,15 @@
 		<Card.Footer class="justify-end border-t">
 			<Button type="submit">
 				<Save class="size-4" />
-				Save changes
+				{t('settings.saveChanges')}
 			</Button>
 		</Card.Footer>
 	</Card.Root>
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Account</Card.Title>
-			<Card.Description>The account currently signed in.</Card.Description>
+			<Card.Title>{t('settings.accountTitle')}</Card.Title>
+			<Card.Description>{t('settings.accountDescription')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -155,13 +155,13 @@
 					</Avatar.Root>
 					<div class="min-w-0">
 						<div class="flex items-center gap-2">
-							<p class="truncate font-medium">{user?.name ?? 'Guest'}</p>
+							<p class="truncate font-medium">{user?.name ?? t('settings.guest')}</p>
 							{#if user}
 								<Badge variant="secondary" class="capitalize">{user.role}</Badge>
 							{/if}
 						</div>
 						<p class="text-muted-foreground truncate text-sm">
-							{user?.email ?? 'Not signed in'}
+							{user?.email ?? t('settings.notSignedIn')}
 						</p>
 					</div>
 				</div>
@@ -171,12 +171,12 @@
 					class="text-destructive hover:text-destructive"
 					onclick={() => (logoutDialog.open = true)}
 				>
-					Sign out
+					{t('settings.signOut')}
 				</Button>
 			</div>
 			<Separator class="my-4" />
 			<p class="text-muted-foreground text-xs">
-				This is a demo account. Profile editing is available on the Profile page.
+				{t('settings.demoNote')}
 			</p>
 		</Card.Content>
 	</Card.Root>

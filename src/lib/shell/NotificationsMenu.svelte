@@ -10,6 +10,7 @@
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import CheckCheck from '@lucide/svelte/icons/check-check';
+	import { t } from '$lib/i18n';
 
 	const items = $derived(notifications.items);
 	const unread = $derived(notifications.unread);
@@ -34,7 +35,13 @@
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
 		{#snippet child({ props })}
-			<Button {...props} variant="ghost" size="icon" class="relative" aria-label="Notifications">
+			<Button
+				{...props}
+				variant="ghost"
+				size="icon"
+				class="relative"
+				aria-label={t('notifications.title')}
+			>
 				<Bell />
 				{#if unread > 0}
 					<Badge
@@ -48,7 +55,7 @@
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content align="end" class="w-80 p-0">
 		<div class="flex items-center justify-between px-3 py-2">
-			<span class="text-sm font-semibold">Notifications</span>
+			<span class="text-sm font-semibold">{t('notifications.title')}</span>
 			{#if unread > 0}
 				<button
 					type="button"
@@ -56,13 +63,15 @@
 					onclick={() => notifications.markAllRead()}
 				>
 					<CheckCheck class="size-3.5" />
-					Mark all read
+					{t('notifications.markAllRead')}
 				</button>
 			{/if}
 		</div>
 		<DropdownMenu.Separator class="my-0" />
 		{#if items.length === 0}
-			<div class="text-muted-foreground px-3 py-8 text-center text-sm">You're all caught up</div>
+			<div class="text-muted-foreground px-3 py-8 text-center text-sm">
+				{t('notifications.allCaughtUp')}
+			</div>
 		{:else}
 			<div class="max-h-80 overflow-y-auto">
 				{#each items as n (n.id)}

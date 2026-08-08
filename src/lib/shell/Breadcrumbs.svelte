@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { findNavItem } from './nav';
 	import { cn } from '$lib/core/utils';
+	import { t } from '$lib/i18n';
 
 	interface Crumb {
 		label: string;
@@ -23,8 +24,8 @@
 
 		const match = findNavItem(pathname);
 		if (match) {
-			trail.push({ label: match.group.label });
-			trail.push({ label: match.item.title, href: match.item.href });
+			trail.push({ label: t(match.group.labelKey) });
+			trail.push({ label: t(match.item.titleKey), href: match.item.href });
 
 			// Any path segments beyond the matched nav item become extra crumbs.
 			const rest = pathname.slice(match.item.href.length).split('/').filter(Boolean);

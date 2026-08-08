@@ -14,6 +14,7 @@
 	import { revenueSeries, trafficByChannel } from '$lib/data/dashboard';
 	import { formatCurrency, formatNumber } from '$lib/core/utils/formatters';
 	import { PieChart } from 'layerchart';
+	import { t } from '$lib/i18n';
 
 	// Turn the "2025-06" month strings into short labels like "Jun" for the axes.
 	function monthLabel(date: string): string {
@@ -104,17 +105,14 @@
 {/snippet}
 
 <PageContainer>
-	<PageHeader
-		title="Charts"
-		description="A gallery of common chart types wired to the mock dashboard data."
-	/>
+	<PageHeader title={t('charts.pageTitle')} description={t('charts.pageDescription')} />
 
 	<div class="grid gap-6 lg:grid-cols-2">
 		<!-- Area chart — monthly revenue -->
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Revenue</Card.Title>
-				<Card.Description>Monthly revenue over the last 12 months.</Card.Description>
+				<Card.Title>{t('charts.revenueTitle')}</Card.Title>
+				<Card.Description>{t('charts.revenueDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<div class="flex gap-3">
@@ -126,7 +124,7 @@
 							style="height: {CHART_H}px"
 							preserveAspectRatio="none"
 							role="img"
-							aria-label="Monthly revenue over the last 12 months"
+							aria-label={t('charts.revenueDescription')}
 						>
 							<defs>
 								<linearGradient id="rev-area" x1="0" y1="0" x2="0" y2="1">
@@ -165,8 +163,8 @@
 		<!-- Bar chart — visitors by channel (CSS bars, perfectly rounded) -->
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Traffic by channel</Card.Title>
-				<Card.Description>Visitor sessions grouped by acquisition channel.</Card.Description>
+				<Card.Title>{t('charts.trafficTitle')}</Card.Title>
+				<Card.Description>{t('charts.trafficDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<div class="flex gap-3">
@@ -203,8 +201,8 @@
 		<!-- Line chart — monthly orders -->
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Orders</Card.Title>
-				<Card.Description>Number of orders placed each month.</Card.Description>
+				<Card.Title>{t('charts.ordersTitle')}</Card.Title>
+				<Card.Description>{t('charts.ordersDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<div class="flex gap-3">
@@ -216,7 +214,7 @@
 							style="height: {CHART_H}px"
 							preserveAspectRatio="none"
 							role="img"
-							aria-label="Number of orders placed each month"
+							aria-label={t('charts.ordersDescription')}
 						>
 							{#each ord.ticks as t (t)}
 								<line
@@ -248,8 +246,8 @@
 		<!-- Donut chart — share of traffic by channel -->
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Channel share</Card.Title>
-				<Card.Description>Each channel's share of total visitors.</Card.Description>
+				<Card.Title>{t('charts.channelTitle')}</Card.Title>
+				<Card.Description>{t('charts.channelDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content class="flex items-center justify-center">
 				<Chart.Container config={channelConfig} class="mx-auto aspect-square h-[260px]">
@@ -279,7 +277,7 @@
 								text-anchor="middle"
 								class="fill-muted-foreground text-xs"
 							>
-								Visitors
+								{t('charts.visitors')}
 							</text>
 						{/snippet}
 						{#snippet tooltip()}

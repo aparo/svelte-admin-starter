@@ -101,11 +101,11 @@
 				<h1 class="text-2xl font-semibold tracking-tight">
 					{t('dashboard.greeting', { name: firstName })}
 				</h1>
-				<p class="text-muted-foreground">Here is what is happening across your workspace today.</p>
+				<p class="text-muted-foreground">{t('dashboard.todayHint')}</p>
 			</div>
 			<Button onclick={downloadReport} class="shrink-0">
 				<Download class="size-4" aria-hidden="true" />
-				Download
+				{t('common.download')}
 			</Button>
 		</div>
 	</div>
@@ -119,7 +119,7 @@
 				change={stat.change}
 				trend={stat.trend}
 				icon={statIcons[i]}
-				hint="vs last month"
+				hint={t('dashboard.vsLastMonth')}
 			/>
 		{/each}
 	</div>
@@ -128,8 +128,8 @@
 	<div class="grid grid-cols-1 gap-4 lg:grid-cols-7">
 		<Card.Root class="lg:col-span-4">
 			<Card.Header>
-				<Card.Title>Revenue overview</Card.Title>
-				<Card.Description>Monthly revenue over the last 12 months</Card.Description>
+				<Card.Title>{t('dashboard.revenueTitle')}</Card.Title>
+				<Card.Description>{t('dashboard.revenueDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<svg
@@ -175,8 +175,8 @@
 
 		<Card.Root class="lg:col-span-3">
 			<Card.Header>
-				<Card.Title>Traffic by channel</Card.Title>
-				<Card.Description>Visitors grouped by acquisition channel</Card.Description>
+				<Card.Title>{t('dashboard.trafficTitle')}</Card.Title>
+				<Card.Description>{t('dashboard.trafficDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-4">
 				{#each trafficByChannel as item (item.channel)}
@@ -202,8 +202,8 @@
 	<!-- Recent activity feed -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Recent activity</Card.Title>
-			<Card.Description>Latest actions taken by your team</Card.Description>
+			<Card.Title>{t('dashboard.activityTitle')}</Card.Title>
+			<Card.Description>{t('dashboard.activityDescription')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<ul class="divide-y divide-border">

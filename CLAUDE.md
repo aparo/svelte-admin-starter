@@ -21,7 +21,7 @@ session, in every clone.
   (shadcn-svelte). Do not introduce parallel component sets, raw hex colors,
   or ad-hoc spacing — use the design tokens.
 - i18n: every user-facing string via `t('…')`, keys added to **both**
-  `src/lib/i18n/locales/en.ts` and `zh-CN.ts`.
+  `src/lib/i18n/locales/en.ts`, `src/lib/i18n/locales/it.ts`, and `src/lib/i18n/locales/zh-CN.ts`.
 - Navigation always through `resolve()` from `$app/paths`; sidebar entries in
   `src/lib/shell/nav.ts`.
 

@@ -23,6 +23,7 @@
 	import { Badge } from '$lib/core/components/ui/badge';
 	import { cn } from '$lib/core/utils';
 	import { initials } from '$lib/core/utils/formatters';
+	import { t } from '$lib/i18n';
 
 	type Priority = 'low' | 'medium' | 'high';
 
@@ -55,16 +56,16 @@
 		high: SignalHigh
 	};
 	const PRIORITY_LABEL: Record<Priority, string> = {
-		low: 'Low',
-		medium: 'Medium',
-		high: 'High'
+		low: t('kanban.priorityLow'),
+		medium: t('kanban.priorityMedium'),
+		high: t('kanban.priorityHigh')
 	};
 
 	// --- Mock board: five stages, ~12 cards distributed across them. ---
 	let columns = $state<Column[]>([
 		{
 			id: 'backlog',
-			title: 'Backlog',
+			title: t('kanban.colBacklog'),
 			tasks: [
 				{
 					id: 't-1',
@@ -99,7 +100,7 @@
 		},
 		{
 			id: 'todo',
-			title: 'To do',
+			title: t('kanban.colTodo'),
 			tasks: [
 				{
 					id: 't-4',
@@ -124,7 +125,7 @@
 		},
 		{
 			id: 'in-progress',
-			title: 'In progress',
+			title: t('kanban.colInProgress'),
 			tasks: [
 				{
 					id: 't-6',
@@ -158,7 +159,7 @@
 		},
 		{
 			id: 'review',
-			title: 'Review',
+			title: t('kanban.colReview'),
 			tasks: [
 				{
 					id: 't-9',
@@ -183,7 +184,7 @@
 		},
 		{
 			id: 'done',
-			title: 'Done',
+			title: t('kanban.colDone'),
 			tasks: [
 				{
 					id: 't-11',
@@ -271,11 +272,11 @@
 		nextId += 1;
 		const task: Task = {
 			id,
-			title: 'New task',
-			description: 'Add a description, assignee and priority.',
+			title: t('kanban.newTaskTitle'),
+			description: t('kanban.newTaskDescription'),
 			priority: 'low',
-			label: 'Untitled',
-			assignee: 'Unassigned',
+			label: t('kanban.newTaskLabel'),
+			assignee: t('kanban.newTaskAssignee'),
 			comments: 0,
 			attachments: 0
 		};
@@ -283,7 +284,7 @@
 			col.id === columnId ? { ...col, tasks: [...col.tasks, task] } : col
 		);
 		const column = columns.find((c) => c.id === columnId);
-		toast.success('Task added', {
+		toast.success(t('kanban.taskAdded'), {
 			description: `A new card was added to ${column?.title ?? 'the board'}.`
 		});
 	}
@@ -299,19 +300,19 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader title="Board" description="Plan and track work across stages.">
+	<PageHeader title={t('kanban.pageTitle')} description={t('kanban.pageDescription')}>
 		{#snippet actions()}
 			<Button onclick={addToBoard}>
 				<Plus class="size-4" aria-hidden="true" />
-				Add task
+				{t('kanban.addTask')}
 			</Button>
 		{/snippet}
 	</PageHeader>
 
 	<div class="flex items-center gap-2 text-sm text-muted-foreground">
-		<span>{totalTasks} tasks across {columns.length} stages</span>
+		<span>{t('kanban.tasksInfo', { total: totalTasks, stages: columns.length })}</span>
 		<span aria-hidden="true">·</span>
-		<span>Drag a card to move it between columns</span>
+		<span>{t('kanban.dragHint')}</span>
 	</div>
 
 	<!-- Horizontally scrollable row of fixed-width columns. -->
@@ -340,7 +341,7 @@
 						size="icon"
 						class="size-7 text-muted-foreground"
 						onclick={() => addTask(column.id)}
-						aria-label="Add task to {column.title}"
+						aria-label={t('kanban.addTaskToColumn', { column: column.title })}
 					>
 						<Plus class="size-4" aria-hidden="true" />
 					</Button>
@@ -416,7 +417,7 @@
 							class="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-6 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
 						>
 							<Plus class="size-3.5" aria-hidden="true" />
-							Add a task
+							{t('kanban.addTaskEmpty')}
 						</button>
 					{/if}
 				</div>

@@ -22,6 +22,7 @@
 	import type { DemoProduct } from '$lib/data/products';
 	import { formatCurrency, formatNumber } from '$lib/core/utils/formatters';
 	import type { PageData } from './$types';
+	import { t } from '$lib/i18n';
 
 	// Products are loaded on the server via `+page.server.ts` (the `db` data seam),
 	// not imported directly — this is the pattern to follow for real data.
@@ -36,20 +37,20 @@
 	function statusLabel(status: Status): string {
 		switch (status) {
 			case 'in_stock':
-				return 'In stock';
+				return t('tables.statusInStock');
 			case 'low':
-				return 'Low';
+				return t('tables.statusLow');
 			case 'out':
-				return 'Out';
+				return t('tables.statusOut');
 		}
 	}
 
 	const columns: Column<DemoProduct>[] = [
-		{ key: 'name', header: 'Product', sortable: true, searchable: true },
-		{ key: 'category', header: 'Category', sortable: true, searchable: true },
-		{ key: 'price', header: 'Price', sortable: true, align: 'right' },
-		{ key: 'stock', header: 'Stock', sortable: true, align: 'right' },
-		{ key: 'status', header: 'Status' }
+		{ key: 'name', header: t('tables.colProduct'), sortable: true, searchable: true },
+		{ key: 'category', header: t('tables.colCategory'), sortable: true, searchable: true },
+		{ key: 'price', header: t('tables.colPrice'), sortable: true, align: 'right' },
+		{ key: 'stock', header: t('tables.colStock'), sortable: true, align: 'right' },
+		{ key: 'status', header: t('tables.colStatus') }
 	];
 
 	// Documented props for the intro card.
@@ -68,16 +69,13 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader
-		title="Tables"
-		description="A reference example of the reusable DataTable component."
-	/>
+	<PageHeader title={t('tables.pageTitle')} description={t('tables.pageDescription')} />
 
 	<Card.Root>
 		<Card.Header>
 			<Card.Title class="flex items-center gap-2">
 				<Info class="size-4 text-muted-foreground" />
-				About this component
+				{t('tables.aboutTitle')}
 			</Card.Title>
 			<Card.Description>
 				<code class="rounded bg-muted px-1 py-0.5 text-xs">DataTable</code> is a generic,
@@ -107,8 +105,8 @@
 		{columns}
 		searchable
 		pageSize={8}
-		emptyTitle="No products"
-		emptyDescription="There are no products to display."
+		emptyTitle={t('tables.emptyTitle')}
+		emptyDescription={t('tables.emptyDescription')}
 	>
 		{#snippet toolbar()}
 			<div class="flex items-center gap-2 text-sm text-muted-foreground">

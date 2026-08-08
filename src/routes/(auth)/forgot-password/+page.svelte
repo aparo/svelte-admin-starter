@@ -12,6 +12,7 @@
 	import { Label } from '$lib/core/components/ui/label';
 	import { Spinner } from '$lib/components/shared';
 	import { emailSchema, fieldError } from '$lib/core/utils/validators';
+	import { t } from '$lib/i18n';
 
 	let email = $state('');
 	let submitting = $state(false);
@@ -24,7 +25,7 @@
 
 		const result = emailSchema.safeParse(email);
 		if (!result.success) {
-			error = fieldError(result.error, '') ?? 'Enter a valid email address';
+			error = fieldError(result.error, '') ?? t('forgotPassword.emailInvalid');
 			return;
 		}
 
@@ -48,28 +49,27 @@
 			>
 				<MailCheck class="size-6" aria-hidden="true" />
 			</div>
-			<Card.Title class="text-xl">Check your inbox</Card.Title>
+			<Card.Title class="text-xl">{t('forgotPassword.sentTitle')}</Card.Title>
 			<Card.Description>
-				If an account exists for <span class="font-medium text-foreground">{email}</span>, we sent a
-				reset link.
+				{t('forgotPassword.sentDescription', { email })}
 			</Card.Description>
 		</Card.Header>
 		<Card.Footer class="justify-center">
 			<Button href="/login" variant="outline" class="w-full">
 				<ArrowLeft class="size-4" aria-hidden="true" />
-				Back to sign in
+				{t('forgotPassword.backToSignIn')}
 			</Button>
 		</Card.Footer>
 	{:else}
 		<Card.Header class="space-y-1 text-center">
-			<Card.Title class="text-xl">Forgot your password?</Card.Title>
-			<Card.Description>Enter your email and we'll send you a link to reset it.</Card.Description>
+			<Card.Title class="text-xl">{t('forgotPassword.cardTitle')}</Card.Title>
+			<Card.Description>{t('forgotPassword.cardDescription')}</Card.Description>
 		</Card.Header>
 
 		<Card.Content>
 			<form class="space-y-4" onsubmit={handleSubmit} novalidate>
 				<div class="space-y-2">
-					<Label for="email">Email</Label>
+					<Label for="email">{t('auth.email')}</Label>
 					<Input
 						id="email"
 						type="email"
@@ -86,9 +86,9 @@
 				<Button type="submit" class="w-full" disabled={submitting}>
 					{#if submitting}
 						<Spinner class="size-4 text-primary-foreground" />
-						Sending…
+						{t('forgotPassword.sending')}
 					{:else}
-						Send reset link
+						{t('forgotPassword.submit')}
 					{/if}
 				</Button>
 			</form>
@@ -100,7 +100,7 @@
 				class="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
 			>
 				<ArrowLeft class="size-4" aria-hidden="true" />
-				Back to sign in
+				{t('forgotPassword.footerLink')}
 			</a>
 		</Card.Footer>
 	{/if}

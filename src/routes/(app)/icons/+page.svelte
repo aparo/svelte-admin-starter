@@ -8,6 +8,7 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { t } from '$lib/i18n';
 	import { PageContainer, PageHeader, SearchInput, EmptyState } from '$lib/components/shared';
 	import SearchXIcon from '@lucide/svelte/icons/search-x';
 	import HouseIcon from '@lucide/svelte/icons/house';
@@ -335,9 +336,9 @@
 		const statement = `import ${bindingName(name)} from '@lucide/svelte/icons/${name}';`;
 		try {
 			await navigator.clipboard.writeText(statement);
-			toast.success('Import copied', { description: statement });
+			toast.success(t('icons.copiedToast'), { description: statement });
 		} catch {
-			toast.error('Could not copy to clipboard');
+			toast.error(t('icons.copyFailedToast'));
 		}
 	}
 </script>
@@ -347,13 +348,14 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader
-		title="Icons"
-		description="A searchable sample of the Lucide icon set. Click any icon to copy its import."
-	/>
+	<PageHeader title={t('icons.pageTitle')} description={t('icons.pageDescription')} />
 
 	<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-		<SearchInput bind:value={query} placeholder="Search icons…" class="sm:max-w-xs" />
+		<SearchInput
+			bind:value={query}
+			placeholder={t('icons.searchPlaceholder')}
+			class="sm:max-w-xs"
+		/>
 		<p class="text-muted-foreground text-sm tabular-nums">
 			{filtered.length} of {icons.length}
 		</p>
@@ -362,8 +364,8 @@
 	{#if filtered.length === 0}
 		<EmptyState
 			icon={SearchXIcon}
-			title="No icons found"
-			description="No icon name matches your search. Try a different keyword."
+			title={t('icons.emptyTitle')}
+			description={t('icons.emptyDescription')}
 		/>
 	{:else}
 		<div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
@@ -372,7 +374,7 @@
 				<button
 					type="button"
 					onclick={() => copyImport(icon.name)}
-					title={`Copy import for "${icon.name}"`}
+					title={t('icons.copyTitle', { name: icon.name })}
 					class="group bg-card border-border hover:border-primary/40 hover:bg-accent focus-visible:ring-ring flex flex-col items-center gap-2 rounded-lg border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
 				>
 					<Icon class="text-foreground size-6" aria-hidden="true" />

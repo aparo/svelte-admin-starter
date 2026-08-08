@@ -7,22 +7,23 @@
 	import { page } from '$app/state';
 	import { Button } from '$lib/core/components/ui/button';
 	import { PageContainer } from '$lib/components/shared';
+	import { t } from '$lib/i18n';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import House from '@lucide/svelte/icons/house';
 
 	const headline = $derived(
 		page.status === 404
-			? 'Page not found'
+			? t('errors.notFound')
 			: page.status >= 500
-				? 'Something went wrong'
-				: 'Unexpected error'
+				? t('errors.somethingWrong')
+				: t('errors.unexpectedError')
 	);
 
 	const description = $derived(
 		page.status === 404
-			? "This page doesn't exist or may have been moved."
-			: (page.error?.message ?? 'An unexpected error occurred while loading this page.')
+			? t('errors.pageNotFoundDesc')
+			: (page.error?.message ?? t('errors.loadErrorDesc'))
 	);
 
 	function reload() {
@@ -43,7 +44,9 @@
 		</div>
 
 		<div class="space-y-1.5">
-			<p class="text-muted-foreground text-sm font-medium tabular-nums">Error {page.status}</p>
+			<p class="text-muted-foreground text-sm font-medium tabular-nums">
+				{t('errors.errorStatus', { status: page.status })}
+			</p>
 			<h1 class="text-2xl font-semibold tracking-tight">{headline}</h1>
 			<p class="text-muted-foreground mx-auto max-w-md text-sm">{description}</p>
 		</div>
@@ -51,11 +54,11 @@
 		<div class="flex flex-wrap items-center justify-center gap-2">
 			<Button onclick={reload}>
 				<RotateCcw class="size-4" aria-hidden="true" />
-				Try again
+				{t('errors.tryAgain')}
 			</Button>
 			<Button href="/dashboard" variant="outline">
 				<House class="size-4" aria-hidden="true" />
-				Back to dashboard
+				{t('errors.goToDashboard')}
 			</Button>
 		</div>
 	</div>

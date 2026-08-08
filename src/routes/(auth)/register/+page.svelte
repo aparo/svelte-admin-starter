@@ -13,6 +13,7 @@
 	import { PasswordInput, Spinner } from '$lib/components/shared';
 	import { auth } from '$lib/auth';
 	import { emailSchema, fieldError } from '$lib/core/utils/validators';
+	import { t } from '$lib/i18n';
 
 	let name = $state('');
 	let email = $state('');
@@ -25,13 +26,13 @@
 
 	function validate(): boolean {
 		const next: typeof errors = {};
-		if (!name.trim()) next.name = 'Name is required';
+		if (!name.trim()) next.name = t('register.nameRequired');
 
 		const emailResult = emailSchema.safeParse(email);
 		if (!emailResult.success) next.email = fieldError(emailResult.error, '');
 
-		if (password.length < 8) next.password = 'Password must be at least 8 characters';
-		if (confirm !== password) next.confirm = 'Passwords do not match';
+		if (password.length < 8) next.password = t('register.passwordTooShort');
+		if (confirm !== password) next.confirm = t('register.passwordMismatch');
 
 		errors = next;
 		return Object.keys(next).length === 0;
@@ -47,10 +48,10 @@
 		submitting = false;
 
 		if (result.ok) {
-			toast.success('Account created. Welcome aboard!');
+			toast.success(t('register.successToast'));
 			goto(resolve('/dashboard'));
 		} else {
-			formError = result.error ?? 'Unable to create account. Please try again.';
+			formError = result.error ?? t('register.errorFallback');
 			toast.error(formError);
 		}
 	}
@@ -62,19 +63,19 @@
 
 <Card.Root class="shadow-sm">
 	<Card.Header class="space-y-1 text-center">
-		<Card.Title class="text-xl">Create your account</Card.Title>
-		<Card.Description>Get started with the admin starter</Card.Description>
+		<Card.Title class="text-xl">{t('register.cardTitle')}</Card.Title>
+		<Card.Description>{t('register.cardDescription')}</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
 		<form class="space-y-4" onsubmit={handleSubmit} novalidate>
 			<div class="space-y-2">
-				<Label for="name">Full name</Label>
+				<Label for="name">{t('register.fullName')}</Label>
 				<Input
 					id="name"
 					type="text"
 					autocomplete="name"
-					placeholder="Jane Doe"
+					placeholder={t('register.namePlaceholder')}
 					bind:value={name}
 					aria-invalid={errors.name ? 'true' : undefined}
 				/>
@@ -84,7 +85,7 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="email">Email</Label>
+				<Label for="email">{t('auth.email')}</Label>
 				<Input
 					id="email"
 					type="email"
@@ -99,11 +100,11 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="password">Password</Label>
+				<Label for="password">{t('auth.password')}</Label>
 				<PasswordInput
 					id="password"
 					autocomplete="new-password"
-					placeholder="At least 8 characters"
+					placeholder={t('register.passwordPlaceholder')}
 					bind:value={password}
 					aria-invalid={errors.password ? 'true' : undefined}
 				/>
@@ -113,11 +114,11 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="confirm">Confirm password</Label>
+				<Label for="confirm">{t('register.confirmPassword')}</Label>
 				<PasswordInput
 					id="confirm"
 					autocomplete="new-password"
-					placeholder="Re-enter your password"
+					placeholder={t('register.confirmPlaceholder')}
 					bind:value={confirm}
 					aria-invalid={errors.confirm ? 'true' : undefined}
 				/>
@@ -133,9 +134,9 @@
 			<Button type="submit" class="w-full" disabled={submitting}>
 				{#if submitting}
 					<Spinner class="size-4 text-primary-foreground" />
-					Creating account…
+					{t('register.submitting')}
 				{:else}
-					Create account
+					{t('register.submit')}
 				{/if}
 			</Button>
 		</form>
@@ -143,12 +144,12 @@
 
 	<Card.Footer class="justify-center">
 		<p class="text-sm text-muted-foreground">
-			Already have an account?
+			{t('register.hasAccount')}
 			<a
 				href={resolve('/login')}
 				class="font-medium text-foreground underline-offset-4 hover:underline"
 			>
-				Sign in
+				{t('auth.signIn')}
 			</a>
 		</p>
 	</Card.Footer>

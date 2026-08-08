@@ -15,6 +15,7 @@
 	import { cn } from '$lib/core/utils';
 	import { formatCurrency } from '$lib/core/utils/formatters';
 	import { toast } from 'svelte-sonner';
+	import { t } from '$lib/i18n';
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
@@ -44,10 +45,10 @@
 	const plans: Plan[] = [
 		{
 			id: 'starter',
-			name: 'Starter',
+			name: t('pricing.planStarter'),
 			description: 'For individuals and small side projects getting off the ground.',
 			monthly: 19,
-			cta: 'Start free trial',
+			cta: t('pricing.ctaFreeTrial'),
 			popular: false,
 			features: [
 				{ label: 'Up to 3 team members', included: true },
@@ -61,10 +62,10 @@
 		},
 		{
 			id: 'pro',
-			name: 'Pro',
+			name: t('pricing.planPro'),
 			description: 'For growing teams that need automation and deeper insights.',
 			monthly: 49,
-			cta: 'Upgrade to Pro',
+			cta: t('pricing.ctaUpgrade'),
 			popular: true,
 			features: [
 				{ label: 'Up to 20 team members', included: true },
@@ -78,10 +79,10 @@
 		},
 		{
 			id: 'enterprise',
-			name: 'Enterprise',
+			name: t('pricing.planEnterprise'),
 			description: 'For organizations with advanced security and scale requirements.',
 			monthly: 99,
-			cta: 'Contact sales',
+			cta: t('pricing.ctaContact'),
 			popular: false,
 			features: [
 				{ label: 'Unlimited team members', included: true },
@@ -149,16 +150,13 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader
-		title="Pricing"
-		description="Simple, transparent pricing that scales with your team. No hidden fees."
-	/>
+	<PageHeader title={t('pricing.pageTitle')} description={t('pricing.pageDescription')} />
 
 	<!-- Billing cycle toggle: segmented control mirroring the appearance page. -->
 	<div class="flex flex-col items-center gap-3">
 		<div
 			role="radiogroup"
-			aria-label="Billing cycle"
+			aria-label={t('pricing.billingAriaLabel')}
 			class="bg-muted inline-grid grid-cols-2 gap-1 rounded-lg p-1"
 		>
 			<button
@@ -174,7 +172,7 @@
 						: 'text-muted-foreground hover:text-foreground'
 				)}
 			>
-				Monthly
+				{t('pricing.monthly')}
 			</button>
 			<button
 				type="button"
@@ -189,19 +187,17 @@
 						: 'text-muted-foreground hover:text-foreground'
 				)}
 			>
-				Annual
+				{t('pricing.annual')}
 				<Badge
 					variant="secondary"
 					class={cn('border-transparent', billing === 'annual' && 'bg-primary/10 text-primary')}
 				>
-					Save 20%
+					{t('pricing.saveBadge')}
 				</Badge>
 			</button>
 		</div>
 		<p class="text-muted-foreground text-xs">
-			{billing === 'annual'
-				? 'Billed yearly. Prices shown per month.'
-				: 'Billed monthly. Switch to annual to save 20%.'}
+			{billing === 'annual' ? t('pricing.billedYearly') : t('pricing.billedMonthly')}
 		</p>
 	</div>
 
@@ -217,7 +213,7 @@
 				{#if plan.popular}
 					<Badge class="absolute -top-3 left-1/2 -translate-x-1/2 gap-1 shadow-sm">
 						<Sparkles class="size-3" aria-hidden="true" />
-						Most popular
+						{t('pricing.mostPopular')}
 					</Badge>
 				{/if}
 
@@ -233,13 +229,13 @@
 							<span class="text-foreground text-4xl font-semibold tracking-tight tabular-nums">
 								{formatCurrency(monthlyPrice(plan))}
 							</span>
-							<span class="text-muted-foreground text-sm font-medium">/mo</span>
+							<span class="text-muted-foreground text-sm font-medium">{t('pricing.perMonth')}</span>
 						</div>
 						<p class="text-muted-foreground mt-1 text-xs tabular-nums">
 							{#if billing === 'annual'}
-								{formatCurrency(periodTotal(plan))} billed annually
+								{t('pricing.billedAnnuallyAmount', { amount: formatCurrency(periodTotal(plan)) })}
 							{:else}
-								Billed monthly
+								{t('pricing.billedMonthlyLabel')}
 							{/if}
 						</p>
 					</div>
@@ -286,8 +282,8 @@
 	<!-- FAQ -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Frequently asked questions</Card.Title>
-			<Card.Description>Everything you need to know about billing and plans.</Card.Description>
+			<Card.Title>{t('pricing.faqTitle')}</Card.Title>
+			<Card.Description>{t('pricing.faqDescription')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<Accordion.Root type="single">

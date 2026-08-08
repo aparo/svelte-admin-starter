@@ -5,12 +5,14 @@
 import { browser } from '$app/environment';
 import { config } from '$lib/config';
 import en from './locales/en';
+import it from './locales/it';
 import zhCN from './locales/zh-CN';
 
-export type Locale = 'en' | 'zh-CN';
+export type Locale = 'en' | 'it' | 'zh-CN';
 
 export const LOCALES: { value: Locale; label: string }[] = [
 	{ value: 'en', label: 'English' },
+	{ value: 'it', label: 'Italiano' },
 	{ value: 'zh-CN', label: '简体中文' }
 ];
 
@@ -20,11 +22,12 @@ type Dictionary = Record<string, unknown>;
 
 const dictionaries: Record<Locale, Dictionary> = {
 	en,
+	it,
 	'zh-CN': zhCN
 };
 
 function isLocale(value: string | null): value is Locale {
-	return value === 'en' || value === 'zh-CN';
+	return value === 'en' || value === 'it' || value === 'zh-CN';
 }
 
 /** Walk a nested dictionary by a dot-path; return the string leaf or undefined. */

@@ -35,6 +35,7 @@
 
 	import { formatCurrency, formatDate } from '$lib/core/utils/formatters';
 	import { toast } from 'svelte-sonner';
+	import { t } from '$lib/i18n';
 
 	// --- Types --------------------------------------------------------------
 	interface DemoOrder {
@@ -201,19 +202,24 @@
 	// --- KPI stat cards -----------------------------------------------------
 	const statIcons: Component[] = [Package, DollarSign, Clock, CircleCheckBig];
 	const stats = [
-		{ title: 'Total orders', value: '1,290', change: 8.4, trend: 'up' as const },
-		{ title: 'Revenue', value: formatCurrency(48920), change: 12.5, trend: 'up' as const },
-		{ title: 'Pending', value: '38', change: -3.2, trend: 'down' as const },
-		{ title: 'Delivered', value: '1,072', change: 5.1, trend: 'up' as const }
+		{ title: t('orders.statTotal'), value: '1,290', change: 8.4, trend: 'up' as const },
+		{
+			title: t('orders.statRevenue'),
+			value: formatCurrency(48920),
+			change: 12.5,
+			trend: 'up' as const
+		},
+		{ title: t('orders.statPending'), value: '38', change: -3.2, trend: 'down' as const },
+		{ title: t('orders.statDelivered'), value: '1,072', change: 5.1, trend: 'up' as const }
 	];
 
 	// --- Status presentation ------------------------------------------------
 	const STATUSES: { value: Status; label: string; tone: BadgeTone }[] = [
-		{ value: 'pending', label: 'Pending', tone: 'warning' },
-		{ value: 'processing', label: 'Processing', tone: 'info' },
-		{ value: 'shipped', label: 'Shipped', tone: 'brand' },
-		{ value: 'delivered', label: 'Delivered', tone: 'success' },
-		{ value: 'cancelled', label: 'Cancelled', tone: 'danger' }
+		{ value: 'pending', label: t('orders.statusPending'), tone: 'warning' },
+		{ value: 'processing', label: t('orders.statusProcessing'), tone: 'info' },
+		{ value: 'shipped', label: t('orders.statusShipped'), tone: 'brand' },
+		{ value: 'delivered', label: t('orders.statusDelivered'), tone: 'success' },
+		{ value: 'cancelled', label: t('orders.statusCancelled'), tone: 'danger' }
 	];
 
 	function statusTone(status: Status): BadgeTone {
@@ -228,12 +234,12 @@
 	}
 
 	const columns: Column<DemoOrder>[] = [
-		{ key: 'number', header: 'Order', sortable: true, searchable: true },
-		{ key: 'customer', header: 'Customer', sortable: true, searchable: true },
-		{ key: 'date', header: 'Date', sortable: true },
-		{ key: 'items', header: 'Items', align: 'center' },
-		{ key: 'total', header: 'Total', sortable: true, align: 'right' },
-		{ key: 'status', header: 'Status' }
+		{ key: 'number', header: t('orders.colOrder'), sortable: true, searchable: true },
+		{ key: 'customer', header: t('orders.colCustomer'), sortable: true, searchable: true },
+		{ key: 'date', header: t('orders.colDate'), sortable: true },
+		{ key: 'items', header: t('orders.colItems'), align: 'center' },
+		{ key: 'total', header: t('orders.colTotal'), sortable: true, align: 'right' },
+		{ key: 'status', header: t('orders.colStatus') }
 	];
 
 	// --- Detail drawer state ------------------------------------------------
@@ -256,10 +262,10 @@
 
 	// --- Status timeline ----------------------------------------------------
 	const TIMELINE: { key: Status; label: string; icon: Component }[] = [
-		{ key: 'pending', label: 'Order placed', icon: Package },
-		{ key: 'processing', label: 'Processing', icon: Clock },
-		{ key: 'shipped', label: 'Shipped', icon: Truck },
-		{ key: 'delivered', label: 'Delivered', icon: CircleCheckBig }
+		{ key: 'pending', label: t('orders.timelinePlaced'), icon: Package },
+		{ key: 'processing', label: t('orders.timelineProcessing'), icon: Clock },
+		{ key: 'shipped', label: t('orders.timelineShipped'), icon: Truck },
+		{ key: 'delivered', label: t('orders.timelineDelivered'), icon: CircleCheckBig }
 	];
 	const TIMELINE_ORDER: Status[] = ['pending', 'processing', 'shipped', 'delivered'];
 
@@ -267,12 +273,12 @@
 	const reachedIndex = $derived(selectedOrder ? TIMELINE_ORDER.indexOf(selectedOrder.status) : -1);
 
 	function exportOrders() {
-		toast.success(`Exported ${orders.length} orders to CSV`);
+		toast.success(t('orders.exportToast', { n: orders.length }));
 	}
 
 	function markAsShipped() {
 		if (!selectedOrder) return;
-		toast.success(`${selectedOrder.number} marked as shipped`);
+		toast.success(t('orders.shippedToast', { order: selectedOrder.number }));
 		drawerOpen = false;
 	}
 </script>
@@ -282,11 +288,11 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader title="Sales Orders" description="Track and manage customer orders.">
+	<PageHeader title={t('orders.pageTitle')} description={t('orders.pageDescription')}>
 		{#snippet actions()}
 			<Button onclick={exportOrders}>
 				<Download class="size-4" />
-				Export
+				{t('orders.export')}
 			</Button>
 		{/snippet}
 	</PageHeader>
@@ -300,7 +306,7 @@
 				change={stat.change}
 				trend={stat.trend}
 				icon={statIcons[i]}
-				hint="vs last month"
+				hint={t('orders.vsLastMonth')}
 			/>
 		{/each}
 	</div>
@@ -309,8 +315,8 @@
 		data={orders}
 		{columns}
 		searchable
-		emptyTitle="No orders"
-		emptyDescription="Orders from your store will appear here."
+		emptyTitle={t('orders.emptyTitle')}
+		emptyDescription={t('orders.emptyDescription')}
 	>
 		{#snippet cell(row, column)}
 			{#if column.key === 'number'}
@@ -337,7 +343,7 @@
 					variant="ghost"
 					size="icon"
 					class="text-muted-foreground hover:text-foreground size-8"
-					title="View"
+					title={t('orders.actionView')}
 					aria-label={`View ${row.number}`}
 					onclick={() => openDetail(row)}
 				>
@@ -360,28 +366,31 @@
 					</StatusBadge>
 				</div>
 				<Sheet.Description>
-					Placed by {selectedOrder.customer} on {formatDate(selectedOrder.date)}.
+					{t('orders.orderPlacedBy', {
+						customer: selectedOrder.customer,
+						date: formatDate(selectedOrder.date)
+					})}
 				</Sheet.Description>
 			</Sheet.Header>
 
 			<div class="flex-1 space-y-6 overflow-y-auto p-4">
 				<!-- Customer / contact -->
 				<section class="space-y-3">
-					<h3 class="text-sm font-semibold text-foreground">Customer</h3>
+					<h3 class="text-sm font-semibold text-foreground">{t('orders.sectionCustomer')}</h3>
 					<dl class="divide-border bg-card divide-y rounded-lg border">
 						<div class="flex items-center gap-3 px-4 py-3">
 							<User class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-							<dt class="sr-only">Name</dt>
+							<dt class="sr-only">{t('orders.srName')}</dt>
 							<dd class="text-sm font-medium">{selectedOrder.customer}</dd>
 						</div>
 						<div class="flex items-center gap-3 px-4 py-3">
 							<Mail class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-							<dt class="sr-only">Email</dt>
+							<dt class="sr-only">{t('orders.srEmail')}</dt>
 							<dd class="truncate text-sm text-muted-foreground">{selectedOrder.email}</dd>
 						</div>
 						<div class="flex items-center gap-3 px-4 py-3">
 							<Calendar class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-							<dt class="sr-only">Order date</dt>
+							<dt class="sr-only">{t('orders.srDate')}</dt>
 							<dd class="text-sm text-muted-foreground">{formatDate(selectedOrder.date)}</dd>
 						</div>
 					</dl>
@@ -390,9 +399,9 @@
 				<!-- Line items -->
 				<section class="space-y-3">
 					<div class="flex items-center justify-between">
-						<h3 class="text-sm font-semibold text-foreground">Items</h3>
+						<h3 class="text-sm font-semibold text-foreground">{t('orders.sectionItems')}</h3>
 						<span class="text-xs text-muted-foreground tabular-nums">
-							{itemCount(selectedOrder)} total
+							{t('orders.itemTotal', { count: itemCount(selectedOrder) })}
 						</span>
 					</div>
 					<ul class="divide-border bg-card divide-y rounded-lg border">
@@ -414,25 +423,25 @@
 
 				<!-- Totals summary -->
 				<section class="space-y-3">
-					<h3 class="text-sm font-semibold text-foreground">Summary</h3>
+					<h3 class="text-sm font-semibold text-foreground">{t('orders.sectionSummary')}</h3>
 					<div class="rounded-lg border bg-card p-4">
 						<dl class="space-y-2 text-sm">
 							<div class="flex items-center justify-between">
-								<dt class="text-muted-foreground">Subtotal</dt>
+								<dt class="text-muted-foreground">{t('orders.summarySubtotal')}</dt>
 								<dd class="font-medium tabular-nums">{formatCurrency(summary.subtotal)}</dd>
 							</div>
 							<div class="flex items-center justify-between">
-								<dt class="text-muted-foreground">Shipping</dt>
+								<dt class="text-muted-foreground">{t('orders.summaryShipping')}</dt>
 								<dd class="font-medium tabular-nums">{formatCurrency(summary.shipping)}</dd>
 							</div>
 							<div class="flex items-center justify-between">
-								<dt class="text-muted-foreground">Tax</dt>
+								<dt class="text-muted-foreground">{t('orders.summaryTax')}</dt>
 								<dd class="font-medium tabular-nums">{formatCurrency(summary.tax)}</dd>
 							</div>
 						</dl>
 						<Separator class="my-3" />
 						<div class="flex items-center justify-between text-base">
-							<span class="font-semibold text-foreground">Total</span>
+							<span class="font-semibold text-foreground">{t('orders.summaryTotal')}</span>
 							<span class="font-semibold text-foreground tabular-nums">
 								{formatCurrency(summary.total)}
 							</span>
@@ -442,12 +451,12 @@
 
 				<!-- Status timeline -->
 				<section class="space-y-3">
-					<h3 class="text-sm font-semibold text-foreground">Status timeline</h3>
+					<h3 class="text-sm font-semibold text-foreground">{t('orders.sectionTimeline')}</h3>
 					{#if selectedOrder.status === 'cancelled'}
 						<div
 							class="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
 						>
-							This order was cancelled.
+							{t('orders.cancelled')}
 						</div>
 					{:else}
 						<ol class="relative space-y-5 pl-2">
@@ -490,10 +499,10 @@
 			</div>
 
 			<Sheet.Footer class="flex-row justify-end border-t">
-				<Button variant="outline" onclick={() => (drawerOpen = false)}>Close</Button>
+				<Button variant="outline" onclick={() => (drawerOpen = false)}>{t('orders.close')}</Button>
 				<Button onclick={markAsShipped}>
 					<Truck class="size-4" />
-					Mark as shipped
+					{t('orders.markShipped')}
 				</Button>
 			</Sheet.Footer>
 		{/if}

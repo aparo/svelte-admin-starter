@@ -8,7 +8,7 @@
 	import { Label } from '$lib/core/components/ui/label';
 	import { Switch } from '$lib/core/components/ui/switch';
 	import { setMode, mode } from 'mode-watcher';
-	import { setLocale, LOCALES, i18n, type Locale } from '$lib/i18n';
+	import { setLocale, LOCALES, i18n, t, type Locale } from '$lib/i18n';
 	import { persisted } from '$lib/core/stores/persisted.svelte';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
@@ -27,9 +27,9 @@
 	}
 
 	const modeOptions: ModeOption[] = [
-		{ value: 'light', label: 'Light', icon: Sun },
-		{ value: 'dark', label: 'Dark', icon: Moon },
-		{ value: 'system', label: 'System', icon: Monitor }
+		{ value: 'light', label: t('appearance.light'), icon: Sun },
+		{ value: 'dark', label: t('appearance.dark'), icon: Moon },
+		{ value: 'system', label: t('appearance.system'), icon: Monitor }
 	];
 
 	// Track the user's selected preference locally. mode-watcher only exposes the
@@ -57,7 +57,7 @@
 
 	function onDensityChange(next: boolean): void {
 		compact.current = next;
-		toast.success(next ? 'Compact density enabled' : 'Comfortable density enabled');
+		toast.success(next ? t('appearance.compactToast') : t('appearance.comfortableToast'));
 	}
 </script>
 
@@ -67,16 +67,16 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Theme</Card.Title>
+		<Card.Title>{t('appearance.themeTitle')}</Card.Title>
 		<Card.Description>
-			Choose how the interface looks. System follows your device setting.
+			{t('appearance.themeDescription')}
 		</Card.Description>
 	</Card.Header>
 	<Card.Content class="space-y-6">
 		<!-- Segmented mode control. -->
 		<div
 			role="radiogroup"
-			aria-label="Theme mode"
+			aria-label={t('appearance.themeAriaLabel')}
 			class="bg-muted grid grid-cols-3 gap-1 rounded-lg p-1"
 		>
 			{#each modeOptions as option (option.value)}
@@ -102,7 +102,7 @@
 
 		<!-- Live preview swatch reflecting the currently resolved theme. -->
 		<div class="grid gap-2">
-			<Label class="text-muted-foreground text-xs font-normal">Preview</Label>
+			<Label class="text-muted-foreground text-xs font-normal">{t('appearance.preview')}</Label>
 			<div class="overflow-hidden rounded-lg border">
 				<div class="bg-background p-4">
 					<div class="flex items-center gap-3">
@@ -114,18 +114,18 @@
 						<span
 							class="bg-secondary text-secondary-foreground rounded-md px-2 py-1 text-xs font-medium"
 						>
-							{resolved === 'dark' ? 'Dark' : 'Light'}
+							{resolved === 'dark' ? t('appearance.dark') : t('appearance.light')}
 						</span>
 					</div>
 					<div class="mt-4 flex flex-wrap gap-2">
 						<span class="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-xs">
-							Primary
+							{t('appearance.primary')}
 						</span>
 						<span class="border-border text-foreground rounded-md border px-3 py-1.5 text-xs">
-							Outline
+							{t('appearance.outline')}
 						</span>
 						<span class="bg-muted text-muted-foreground rounded-md px-3 py-1.5 text-xs">
-							Muted
+							{t('appearance.muted')}
 						</span>
 					</div>
 				</div>
@@ -136,8 +136,8 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Language</Card.Title>
-		<Card.Description>Select the display language for the interface.</Card.Description>
+		<Card.Title>{t('appearance.languageTitle')}</Card.Title>
+		<Card.Description>{t('appearance.languageDescription')}</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<div class="grid gap-2 sm:grid-cols-2">
@@ -166,14 +166,14 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Density</Card.Title>
-		<Card.Description>Adjust the spacing of interface elements.</Card.Description>
+		<Card.Title>{t('appearance.densityTitle')}</Card.Title>
+		<Card.Description>{t('appearance.densityDescription')}</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<div class="flex items-center justify-between gap-4">
 			<div class="space-y-0.5">
-				<Label>Compact mode</Label>
-				<p class="text-muted-foreground text-sm">Reduce padding to fit more content on screen.</p>
+				<Label>{t('appearance.compactLabel')}</Label>
+				<p class="text-muted-foreground text-sm">{t('appearance.compactHint')}</p>
 			</div>
 			<Switch checked={compact.current} onCheckedChange={onDensityChange} />
 		</div>

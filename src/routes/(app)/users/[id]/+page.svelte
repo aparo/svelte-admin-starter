@@ -37,6 +37,7 @@
 
 	import { demoUsers, type DemoUser } from '$lib/data/users';
 	import { formatDate, initials } from '$lib/core/utils/formatters';
+	import { t } from '$lib/i18n';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
 
@@ -47,14 +48,14 @@
 	const user = $derived<DemoUser | undefined>(demoUsers.find((u) => u.id === page.params.id));
 
 	const ROLE_LABELS: Record<Role, string> = {
-		admin: 'Admin',
-		editor: 'Editor',
-		viewer: 'Viewer'
+		admin: t('userDetail.roleAdmin'),
+		editor: t('userDetail.roleEditor'),
+		viewer: t('userDetail.roleViewer')
 	};
 	const STATUS_LABELS: Record<Status, string> = {
-		active: 'Active',
-		invited: 'Invited',
-		suspended: 'Suspended'
+		active: t('userDetail.statusActive'),
+		invited: t('userDetail.statusInvited'),
+		suspended: t('userDetail.statusSuspended')
 	};
 
 	// Map roles/statuses to the shared StatusBadge tones, matching the Users table.
@@ -197,14 +198,14 @@
 		<div class="flex min-h-[60vh] items-center justify-center">
 			<EmptyState
 				icon={UserX}
-				title="User not found"
-				description="We couldn't find a user matching this link. They may have been removed."
+				title={t('userDetail.notFoundTitle')}
+				description={t('userDetail.notFoundDescription')}
 				class="w-full max-w-md"
 			>
 				{#snippet action()}
 					<Button href="/users" variant="outline">
 						<ArrowLeft class="size-4" />
-						Back to users
+						{t('userDetail.backToUsers')}
 					</Button>
 				{/snippet}
 			</EmptyState>
@@ -216,7 +217,7 @@
 			class="text-muted-foreground hover:text-foreground -mb-2 inline-flex w-fit items-center gap-1.5 text-sm font-medium transition-colors"
 		>
 			<ArrowLeft class="size-4" aria-hidden="true" />
-			Back to users
+			{t('userDetail.backToUsers')}
 		</a>
 
 		<!-- Profile header -->
@@ -249,11 +250,11 @@
 				<div class="flex shrink-0 items-center gap-2">
 					<Button variant="outline" onclick={() => notImplemented('Editing')}>
 						<Pencil class="size-4" />
-						Edit
+						{t('userDetail.edit')}
 					</Button>
 					<Button variant="ghost" onclick={() => notImplemented('Messaging')}>
 						<MessageSquare class="size-4" />
-						Send message
+						{t('userDetail.sendMessage')}
 					</Button>
 				</div>
 			</div>
@@ -262,50 +263,55 @@
 		<!-- Tabs -->
 		<Tabs.Root value="overview" class="gap-6">
 			<Tabs.List>
-				<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
-				<Tabs.Trigger value="activity">Activity</Tabs.Trigger>
-				<Tabs.Trigger value="security">Security</Tabs.Trigger>
+				<Tabs.Trigger value="overview">{t('userDetail.tabOverview')}</Tabs.Trigger>
+				<Tabs.Trigger value="activity">{t('userDetail.tabActivity')}</Tabs.Trigger>
+				<Tabs.Trigger value="security">{t('userDetail.tabSecurity')}</Tabs.Trigger>
 			</Tabs.List>
 
 			<!-- Overview -->
 			<Tabs.Content value="overview" class="space-y-6">
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-					<StatCard title="Projects" value={profile.projects} icon={Folder} hint="active" />
 					<StatCard
-						title="Tasks done"
+						title={t('userDetail.statProjects')}
+						value={profile.projects}
+						icon={Folder}
+						hint={t('userDetail.statProjectsHint')}
+					/>
+					<StatCard
+						title={t('userDetail.statTasks')}
 						value={profile.tasksDone}
 						icon={CircleCheck}
 						change={12}
 						trend="up"
-						hint="this quarter"
+						hint={t('userDetail.statTasksHint')}
 					/>
 					<StatCard
-						title="Comments"
+						title={t('userDetail.statComments')}
 						value={profile.comments}
 						icon={MessageCircle}
-						hint="all time"
+						hint={t('userDetail.statCommentsHint')}
 					/>
 				</div>
 
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Details</Card.Title>
-						<Card.Description>Profile information for this team member.</Card.Description>
+						<Card.Title>{t('userDetail.detailsTitle')}</Card.Title>
+						<Card.Description>{t('userDetail.detailsDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content>
 						<dl class="divide-border divide-y">
 							<div class="flex items-center justify-between gap-4 py-3 first:pt-0">
-								<dt class="text-muted-foreground text-sm">Email</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelEmail')}</dt>
 								<dd class="truncate text-sm font-medium">{user.email}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Role</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelRole')}</dt>
 								<dd>
 									<StatusBadge tone={roleTone(user.role)}>{ROLE_LABELS[user.role]}</StatusBadge>
 								</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Status</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelStatus')}</dt>
 								<dd>
 									<StatusBadge tone={statusTone(user.status)}
 										>{STATUS_LABELS[user.status]}</StatusBadge
@@ -313,23 +319,23 @@
 								</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Department</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelDepartment')}</dt>
 								<dd class="text-sm font-medium">{profile.department}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Location</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelLocation')}</dt>
 								<dd class="text-sm font-medium">{profile.location}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Timezone</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelTimezone')}</dt>
 								<dd class="text-sm font-medium tabular-nums">{profile.timezone}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Joined</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelJoined')}</dt>
 								<dd class="text-sm font-medium tabular-nums">{formatDate(user.createdAt)}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3 last:pb-0">
-								<dt class="text-muted-foreground text-sm">User ID</dt>
+								<dt class="text-muted-foreground text-sm">{t('userDetail.labelUserId')}</dt>
 								<dd class="text-muted-foreground font-mono text-xs">{user.id}</dd>
 							</div>
 						</dl>
@@ -341,8 +347,8 @@
 			<Tabs.Content value="activity" class="space-y-6">
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Recent activity</Card.Title>
-						<Card.Description>A timeline of this user's latest actions.</Card.Description>
+						<Card.Title>{t('userDetail.activityTitle')}</Card.Title>
+						<Card.Description>{t('userDetail.activityDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content>
 						<ol class="relative space-y-6">
@@ -376,8 +382,8 @@
 			<Tabs.Content value="security" class="space-y-6">
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Security</Card.Title>
-						<Card.Description>Authentication and active sessions.</Card.Description>
+						<Card.Title>{t('userDetail.securityTitle')}</Card.Title>
+						<Card.Description>{t('userDetail.securityDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-1">
 						<!-- Two-factor -->
@@ -385,9 +391,9 @@
 							<div class="space-y-0.5">
 								<div class="flex items-center gap-2">
 									<ShieldCheck class="text-muted-foreground size-4" aria-hidden="true" />
-									<p class="text-sm font-medium">Two-factor authentication</p>
+									<p class="text-sm font-medium">{t('userDetail.twoFaLabel')}</p>
 								</div>
-								<p class="text-muted-foreground text-sm">Require a verification code at sign-in.</p>
+								<p class="text-muted-foreground text-sm">{t('userDetail.twoFaHint')}</p>
 							</div>
 							<Switch checked={twoFactor} onCheckedChange={onTwoFactorChange} />
 						</div>
@@ -397,9 +403,9 @@
 						<!-- Last password change -->
 						<div class="flex items-center justify-between gap-4 py-2">
 							<div class="space-y-0.5">
-								<p class="text-sm font-medium">Password</p>
+								<p class="text-sm font-medium">{t('userDetail.passwordLabel')}</p>
 								<p class="text-muted-foreground text-sm">
-									Last changed {formatDate('2024-09-14')}.
+									{t('userDetail.passwordHint', { date: formatDate('2024-09-14') })}
 								</p>
 							</div>
 							<Button
@@ -407,7 +413,7 @@
 								size="sm"
 								onclick={() => notImplemented('Resetting passwords')}
 							>
-								Reset password
+								{t('userDetail.resetPassword')}
 							</Button>
 						</div>
 					</Card.Content>
@@ -415,12 +421,14 @@
 
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Active sessions</Card.Title>
-						<Card.Description>Devices currently signed in to this account.</Card.Description>
+						<Card.Title>{t('userDetail.sessionsTitle')}</Card.Title>
+						<Card.Description>{t('userDetail.sessionsDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content>
 						{#if sessions.length === 0}
-							<p class="text-muted-foreground py-4 text-center text-sm">No active sessions.</p>
+							<p class="text-muted-foreground py-4 text-center text-sm">
+								{t('userDetail.noSessions')}
+							</p>
 						{:else}
 							<ul class="divide-border divide-y">
 								{#each sessions as session, i (session.device)}
@@ -435,7 +443,7 @@
 											<div class="flex items-center gap-2">
 												<p class="truncate text-sm font-medium">{session.device}</p>
 												{#if session.current}
-													<StatusBadge tone="success">This device</StatusBadge>
+													<StatusBadge tone="success">{t('userDetail.thisDevice')}</StatusBadge>
 												{/if}
 											</div>
 											<p class="text-muted-foreground truncate text-xs">
@@ -449,7 +457,7 @@
 											disabled={session.current}
 											onclick={() => revokeSession(i)}
 										>
-											Revoke
+											{t('userDetail.revoke')}
 										</Button>
 									</li>
 								{/each}

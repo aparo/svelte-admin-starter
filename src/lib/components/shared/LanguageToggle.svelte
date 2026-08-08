@@ -7,7 +7,7 @@
 	import Check from '@lucide/svelte/icons/check';
 	import * as DropdownMenu from '$lib/core/components/ui/dropdown-menu';
 	import { Button } from '$lib/core/components/ui/button';
-	import { LOCALES, setLocale, i18n, type Locale } from '$lib/i18n';
+	import { LOCALES, setLocale, i18n, t, type Locale } from '$lib/i18n';
 
 	function select(value: Locale) {
 		setLocale(value);
@@ -17,7 +17,7 @@
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
 		{#snippet child({ props })}
-			<Button variant="ghost" size="icon" aria-label="Change language" {...props}>
+			<Button variant="ghost" size="icon" aria-label={t('languageToggle.label')} {...props}>
 				<Languages class="size-4" aria-hidden="true" />
 			</Button>
 		{/snippet}

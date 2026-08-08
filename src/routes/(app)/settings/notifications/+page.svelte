@@ -8,6 +8,7 @@
 	import { Switch } from '$lib/core/components/ui/switch';
 	import { Separator } from '$lib/core/components/ui/separator';
 	import { toast } from 'svelte-sonner';
+	import { t } from '$lib/i18n';
 	import type { Component } from 'svelte';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
@@ -33,20 +34,20 @@
 	let groups = $state<PreferenceGroup[]>([
 		{
 			id: 'email',
-			title: 'Email',
-			description: 'Updates delivered to your inbox.',
+			title: t('notificationsPage.emailGroup'),
+			description: t('notificationsPage.emailGroupDesc'),
 			icon: Mail,
 			preferences: [
 				{
 					id: 'email-product',
-					label: 'Product updates',
-					description: 'News about features and improvements.',
+					label: t('notificationsPage.productUpdates'),
+					description: t('notificationsPage.productUpdatesDesc'),
 					enabled: true
 				},
 				{
 					id: 'email-security',
-					label: 'Security alerts',
-					description: 'Sign-in attempts and password changes.',
+					label: t('notificationsPage.securityAlerts'),
+					description: t('notificationsPage.securityAlertsDesc'),
 					enabled: true
 				},
 				{
@@ -59,8 +60,8 @@
 		},
 		{
 			id: 'push',
-			title: 'Push',
-			description: 'Real-time alerts on your devices.',
+			title: t('notificationsPage.pushGroup'),
+			description: t('notificationsPage.pushGroupDesc'),
 			icon: Smartphone,
 			preferences: [
 				{
@@ -79,8 +80,8 @@
 		},
 		{
 			id: 'sms',
-			title: 'SMS',
-			description: 'Critical messages sent by text.',
+			title: t('notificationsPage.smsGroup'),
+			description: t('notificationsPage.smsGroupDesc'),
 			icon: MessageSquare,
 			preferences: [
 				{
@@ -106,8 +107,8 @@
 	}
 
 	function savePreferences(): void {
-		toast.success('Preferences saved', {
-			description: 'Your notification preferences have been updated.'
+		toast.success(t('notificationsPage.savedToast'), {
+			description: t('notificationsPage.savedDescription')
 		});
 	}
 </script>
@@ -154,6 +155,6 @@
 <div class="flex justify-end">
 	<Button onclick={savePreferences}>
 		<Save class="size-4" />
-		Save preferences
+		{t('notificationsPage.savePreferences')}
 	</Button>
 </div>

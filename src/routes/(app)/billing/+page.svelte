@@ -24,6 +24,7 @@
 	import { formatCurrency, formatDate } from '$lib/core/utils/formatters';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
+	import { t } from '$lib/i18n';
 
 	// --- Current plan (mock) ----------------------------------------------
 	const plan = {
@@ -35,10 +36,10 @@
 	};
 
 	const planHighlights = [
-		'Unlimited projects',
-		'Advanced analytics',
-		'Priority support',
-		'Custom roles & permissions'
+		t('billing.planUnlimitedProjects'),
+		t('billing.planAdvancedAnalytics'),
+		t('billing.planPrioritySupport'),
+		t('billing.planCustomRoles')
 	];
 
 	// --- Metered usage (mock) ---------------------------------------------
@@ -54,9 +55,9 @@
 	}
 
 	const usage: UsageMetric[] = [
-		{ id: 'seats', label: 'Seats', used: 7, limit: 10 },
-		{ id: 'api', label: 'API calls', used: 82_000, limit: 100_000, compact: true },
-		{ id: 'storage', label: 'Storage', used: 14, limit: 20, unit: 'GB' }
+		{ id: 'seats', label: t('billing.usageSeats'), used: 7, limit: 10 },
+		{ id: 'api', label: t('billing.usageApiCalls'), used: 82_000, limit: 100_000, compact: true },
+		{ id: 'storage', label: t('billing.usageStorage'), used: 14, limit: 20, unit: 'GB' }
 	];
 
 	function usagePercent(metric: UsageMetric): number {
@@ -108,40 +109,36 @@
 	function statusLabel(status: InvoiceStatus): string {
 		switch (status) {
 			case 'paid':
-				return 'Paid';
+				return t('billing.statusPaid');
 			case 'pending':
-				return 'Pending';
+				return t('billing.statusPending');
 			case 'failed':
-				return 'Failed';
+				return t('billing.statusFailed');
 		}
 	}
 
 	const columns: Column<DemoInvoice>[] = [
-		{ key: 'number', header: 'Number', sortable: true, searchable: true },
-		{ key: 'date', header: 'Date', sortable: true },
-		{ key: 'amount', header: 'Amount', sortable: true, align: 'right' },
-		{ key: 'status', header: 'Status', sortable: true }
+		{ key: 'number', header: t('billing.colNumber'), sortable: true, searchable: true },
+		{ key: 'date', header: t('billing.colDate'), sortable: true },
+		{ key: 'amount', header: t('billing.colAmount'), sortable: true, align: 'right' },
+		{ key: 'status', header: t('billing.colStatus'), sortable: true }
 	];
 
 	// --- Mock actions ------------------------------------------------------
 	function changePlan(): void {
-		toast.info('Change plan', {
-			description: 'Plan management is not available in this demo.'
+		toast.info(t('billing.toastChangePlan'), {
+			description: t('billing.toastChangePlanDesc')
 		});
 	}
 	function cancelSubscription(): void {
-		toast.warning('Subscription cancellation requested', {
-			description: 'This is a demo — nothing was actually cancelled.'
-		});
+		toast.warning(t('billing.toastCancelSub'));
 	}
 	function updatePaymentMethod(): void {
-		toast.info('Update payment method', {
-			description: 'Payment editing is not available in this demo.'
-		});
+		toast.info(t('billing.toastUpdatePayment'));
 	}
 	function downloadInvoice(invoice: DemoInvoice): void {
-		toast.success(`Downloading ${invoice.number}`, {
-			description: 'Your invoice PDF is being prepared.'
+		toast.success(t('billing.toastDownloading'), {
+			description: invoice.number
 		});
 	}
 </script>
@@ -151,10 +148,7 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader
-		title="Billing"
-		description="Manage your plan, usage, payment method, and invoices."
-	/>
+	<PageHeader title={t('billing.pageTitle')} description={t('billing.pageDescription')} />
 
 	<!-- Plan + payment method row -->
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -165,7 +159,7 @@
 					<div class="space-y-1">
 						<Card.Title class="flex items-center gap-2">
 							{plan.name} plan
-							<StatusBadge tone="brand">Current</StatusBadge>
+							<StatusBadge tone="brand">{t('billing.currentBadge')}</StatusBadge>
 						</Card.Title>
 						<Card.Description>{plan.blurb}</Card.Description>
 					</div>
@@ -176,7 +170,7 @@
 							>
 						</p>
 						<p class="text-xs text-muted-foreground">
-							Renews {formatDate(plan.renewsAt)}
+							{t('billing.planRenews', { date: formatDate(plan.renewsAt) })}
 						</p>
 					</div>
 				</div>
@@ -185,7 +179,7 @@
 				<div class="rounded-lg border border-border bg-muted/40 p-4">
 					<p class="flex items-center gap-1.5 text-sm font-medium text-foreground">
 						<Sparkles class="size-4 text-primary" aria-hidden="true" />
-						Most features included
+						{t('billing.planFeatures')}
 					</p>
 					<ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
 						{#each planHighlights as feature (feature)}
@@ -208,17 +202,17 @@
 					class="text-destructive hover:text-destructive"
 					onclick={cancelSubscription}
 				>
-					Cancel subscription
+					{t('billing.cancelSubscription')}
 				</Button>
-				<Button type="button" onclick={changePlan}>Change plan</Button>
+				<Button type="button" onclick={changePlan}>{t('billing.changePlan')}</Button>
 			</Card.Footer>
 		</Card.Root>
 
 		<!-- Payment method -->
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Payment method</Card.Title>
-				<Card.Description>Charged automatically each billing period.</Card.Description>
+				<Card.Title>{t('billing.paymentTitle')}</Card.Title>
+				<Card.Description>{t('billing.paymentDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-4">
 				<!-- Faux card -->
@@ -242,14 +236,16 @@
 							</p>
 							<div class="mt-2 flex items-center justify-between text-xs text-muted-foreground">
 								<span class="truncate">{paymentMethod.holder}</span>
-								<span class="tabular-nums">Exp {paymentMethod.expiry}</span>
+								<span class="tabular-nums"
+									>{t('billing.cardExpiry', { expiry: paymentMethod.expiry })}</span
+								>
 							</div>
 						</div>
 					</div>
 				</div>
 				<Button type="button" variant="outline" class="w-full" onclick={updatePaymentMethod}>
 					<CreditCard class="size-4" aria-hidden="true" />
-					Update
+					{t('billing.update')}
 				</Button>
 			</Card.Content>
 		</Card.Root>
@@ -258,8 +254,8 @@
 	<!-- Usage -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Usage</Card.Title>
-			<Card.Description>Your consumption against this period's limits.</Card.Description>
+			<Card.Title>{t('billing.usageTitle')}</Card.Title>
+			<Card.Description>{t('billing.usageDescription')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -275,7 +271,9 @@
 							class={cn(percent >= 90 && '[&_[data-slot=progress-indicator]]:bg-amber-500')}
 						/>
 						<p class="text-sm tabular-nums text-muted-foreground">
-							{formatUsage(metric.used, metric)} of {formatUsage(metric.limit, metric)}
+							{formatUsage(metric.used, metric)}
+							{t('billing.usageOf')}
+							{formatUsage(metric.limit, metric)}
 						</p>
 					</div>
 				{/each}
@@ -286,8 +284,8 @@
 	<!-- Invoices -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Invoices</Card.Title>
-			<Card.Description>Your recent billing history.</Card.Description>
+			<Card.Title>{t('billing.invoicesTitle')}</Card.Title>
+			<Card.Description>{t('billing.invoicesDescription')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<DataTable
@@ -295,8 +293,8 @@
 				{columns}
 				searchable
 				pageSize={8}
-				emptyTitle="No invoices"
-				emptyDescription="Invoices will appear here once you are billed."
+				emptyTitle={t('billing.invoicesEmptyTitle')}
+				emptyDescription={t('billing.invoicesEmptyDescription')}
 			>
 				{#snippet cell(row, column)}
 					{#if column.key === 'number'}

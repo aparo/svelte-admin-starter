@@ -162,10 +162,10 @@
 </svelte:head>
 
 <PageContainer>
-	<PageHeader title="Calendar" description="Plan your month and keep track of upcoming events.">
+	<PageHeader title={t('calendar.pageTitle')} description={t('calendar.pageDescription')}>
 		{#snippet actions()}
 			<div class="flex flex-wrap items-center gap-1.5">
-				<Label for="calendar-month-jump" class="sr-only">Jump to month</Label>
+				<Label for="calendar-month-jump" class="sr-only">{t('calendar.jumpToMonth')}</Label>
 				<Input
 					id="calendar-month-jump"
 					type="month"
@@ -173,18 +173,28 @@
 					onchange={jumpToMonth}
 					class="h-8 w-36"
 				/>
-				<Button variant="outline" size="icon" onclick={() => move(-1)} aria-label="Previous month">
+				<Button
+					variant="outline"
+					size="icon"
+					onclick={() => move(-1)}
+					aria-label={t('calendar.prevMonth')}
+				>
 					<ChevronLeft class="size-4" aria-hidden="true" />
 				</Button>
 				<Button variant="outline" size="sm" onclick={goToday} disabled={isViewingCurrentMonth}>
-					Today
+					{t('calendar.today')}
 				</Button>
-				<Button variant="outline" size="icon" onclick={() => move(1)} aria-label="Next month">
+				<Button
+					variant="outline"
+					size="icon"
+					onclick={() => move(1)}
+					aria-label={t('calendar.nextMonth')}
+				>
 					<ChevronRight class="size-4" aria-hidden="true" />
 				</Button>
 				<Button class="ml-1">
 					<Plus class="size-4" aria-hidden="true" />
-					New event
+					{t('calendar.newEvent')}
 				</Button>
 			</div>
 		{/snippet}
@@ -202,8 +212,9 @@
 						<span class="tabular-nums">{heading}</span>
 					</Card.Title>
 					<Card.Description>
-						{monthEventCount}
-						{monthEventCount === 1 ? 'event' : 'events'} this month
+						{monthEventCount === 1
+							? t('calendar.eventsThisMonth', { count: monthEventCount })
+							: t('calendar.eventsThisMonthPlural', { count: monthEventCount })}
 					</Card.Description>
 				</div>
 			</Card.Header>
@@ -274,7 +285,7 @@
 								{/each}
 								{#if overflow > 0}
 									<span class="text-muted-foreground px-1.5 text-[11px] font-medium">
-										+{overflow} more
+										{t('calendar.moreEvents', { count: overflow })}
 									</span>
 								{/if}
 							</div>
@@ -300,14 +311,15 @@
 		<!-- Upcoming (narrow) -->
 		<Card.Root class="lg:col-span-1">
 			<Card.Header>
-				<Card.Title class="text-lg">Upcoming</Card.Title>
-				<Card.Description>Your next {upcoming.length} events</Card.Description>
+				<Card.Title class="text-lg">{t('calendar.upcoming')}</Card.Title>
+				<Card.Description>{t('calendar.upcomingDesc', { count: upcoming.length })}</Card.Description
+				>
 			</Card.Header>
 			<Card.Content>
 				{#if upcoming.length === 0}
 					<div class="text-muted-foreground flex flex-col items-center gap-2 py-8 text-center">
 						<CalendarDays class="size-6" aria-hidden="true" />
-						<p class="text-sm">No upcoming events.</p>
+						<p class="text-sm">{t('calendar.noUpcoming')}</p>
 					</div>
 				{:else}
 					<ul class="space-y-3">
@@ -357,7 +369,7 @@
 						size="sm"
 						class="text-muted-foreground mt-3 w-full justify-center"
 					>
-						View all events
+						{t('calendar.viewAll')}
 						<ArrowRight class="size-4" aria-hidden="true" />
 					</Button>
 				{/if}
