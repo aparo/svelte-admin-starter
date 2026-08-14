@@ -87,7 +87,7 @@
 										<Sidebar.MenuButton
 											isActive={isActive(item.href)}
 											tooltipContent={item.title}
-											class="relative transition-colors data-active:text-sidebar-primary data-active:before:absolute data-active:before:inset-y-1.5 data-active:before:left-0 data-active:before:w-0.5 data-active:before:rounded-full data-active:before:bg-sidebar-primary data-active:before:content-['']"
+											class="relative pl-3 transition-colors data-active:text-sidebar-primary data-active:before:absolute data-active:before:inset-y-1.5 data-active:before:left-0 data-active:before:w-0.5 data-active:before:rounded-full data-active:before:bg-sidebar-primary data-active:before:content-['']"
 										>
 											{#snippet child({ props })}
 												<!-- mergeProps so the context-menu trigger props (oncontextmenu)
