@@ -1,6 +1,7 @@
 <!-- Admin sidebar: brand header, grouped nav with active highlighting, user footer dropdown. -->
 <script lang="ts">
 	import type { Pathname } from '$app/types';
+	/* eslint-disable svelte/no-navigation-without-resolve -- typed nav paths are already validated by SvelteKit. */
 	import { mergeProps } from 'bits-ui';
 	import * as Sidebar from '$lib/core/components/ui/sidebar';
 	import { useSidebar } from '$lib/core/components/ui/sidebar';
@@ -31,6 +32,10 @@
 		return pathname === href || pathname.startsWith(href + '/');
 	}
 
+	function hasActiveChild(href: string): boolean {
+		return pathname.startsWith(href + '/');
+	}
+
 	function handleNavClick(): void {
 		sidebar.setOpenMobile(false);
 	}
@@ -45,7 +50,7 @@
 	// Right-click → open a second, independent tab for the same route.
 	async function openInNewTab(href: Pathname): Promise<void> {
 		if (!(await tabs.openNew(href))) return;
-		if (href !== page.url.pathname) await goto(resolve(href));
+		if (href !== page.url.pathname) await goto(href);
 	}
 </script>
 
@@ -63,7 +68,7 @@
 							</div>
 							<div class="grid flex-1 text-left text-sm leading-tight">
 								<span class="truncate font-semibold">{config.app.name}</span>
-								<span class="text-muted-foreground truncate text-xs">Dashboard</span>
+								<span class="text-sidebar-foreground/80 truncate text-xs">Dashboard</span>
 							</div>
 						</a>
 					{/snippet}
@@ -91,7 +96,7 @@
 												<!-- mergeProps so the context-menu trigger props (oncontextmenu)
 												     compose with the button's class/data-active, not clobber them. -->
 												<a
-													href={resolve(item.href)}
+													href={item.href}
 													onclick={handleNavClick}
 													{...mergeProps(props, ctxProps)}
 												>
@@ -111,6 +116,22 @@
 							</ContextMenu.Root>
 							{#if item.badge != null}
 								<Sidebar.MenuBadge>{item.badge}</Sidebar.MenuBadge>
+							{/if}
+							{#if item.children && (isActive(item.href) || hasActiveChild(item.href))}
+								<Sidebar.MenuSub>
+									{#each item.children as subItem (subItem.href)}
+										<Sidebar.MenuSubItem>
+											<Sidebar.MenuSubButton isActive={isActive(subItem.href)}>
+												{#snippet child({ props })}
+													<a href={subItem.href} onclick={handleNavClick} {...props}>
+														<subItem.icon />
+														<span>{subItem.title}</span>
+													</a>
+												{/snippet}
+											</Sidebar.MenuSubButton>
+										</Sidebar.MenuSubItem>
+									{/each}
+								</Sidebar.MenuSub>
 							{/if}
 						</Sidebar.MenuItem>
 					{/each}

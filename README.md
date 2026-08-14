@@ -88,12 +88,14 @@ src/
     ├── auth/               # mock auth store + types
     ├── i18n/               # light i18n (en, zh-CN)
     └── data/
+templates/
+└── pages/                  # copy-on-create list, form, detail, dashboard, settings scaffolds
 ```
 
 ## 🧭 Where to start
 
 - **Add a nav item:** edit `src/lib/shell/nav.ts`.
-- **Add a page:** create `src/routes/(app)/<name>/+page.svelte`.
+- **Add a page:** copy the closest `templates/pages/<shape>/+page.svelte` into `src/routes/(app)/<name>/`; generated pages do not depend on templates.
 - **Add a UI component:** `npx shadcn-svelte@latest add <name>`.
 - **Configure the backend URL:** set `config.api.baseUrl` in `src/lib/config/index.ts` (empty = mock mode).
 - **Wire a real backend:** implement the seams in `src/lib/auth/provider.ts` (auth) and `src/lib/server/db.ts` (data), then add a server-side guard.

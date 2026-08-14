@@ -22,6 +22,7 @@ export default {
 		name: 'Name',
 		saving: 'Saving...',
 		createFailed: 'Failed to create',
+		openInNewTab: 'Open in new tab',
 		tabLimitTitle: 'Many tabs open',
 		tabLimitDescription: 'You have {count} tabs open. Opening more may affect performance.',
 		forceContinue: 'Continue anyway'

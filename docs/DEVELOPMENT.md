@@ -212,6 +212,9 @@ src/
         ├── dashboard.ts     #   stats / revenueSeries / recentActivity / trafficByChannel
         ├── products.ts
         └── users.ts
+
+templates/
+└── pages/                   # list/form/detail/dashboard/settings 的复制式页面骨架（不参与运行时）
 ```
 
 各层职责约定：
@@ -430,7 +433,9 @@ onMount(() => {
 
 ### 7.1 新增一个 `(app)` 页面
 
-在 `src/routes/(app)/` 下新建目录与 `+page.svelte`，自动受守卫保护并套用 AppShell。推荐用 `PageContainer` + `PageHeader` 保持版式一致：
+先从 `templates/pages/` 选择最接近的 `list`、`form`、`detail`、`dashboard` 或 `settings` 骨架，将其中的 `+page.svelte` 复制到 `src/routes/(app)/<name>/`，再替换占位内容和接入真实业务。生成后的页面归路由自身维护，不要从 `templates/` 运行时导入，也无需与模板保持同步。应用内的 `/templates/*` 路由用于预览这些布局；组件能力则集中在 `/components`、`/icons` 与 `/charts`。
+
+例如，简单页面可以从 list 骨架开始，并用 `PageContainer` + `PageHeader` 保持版式一致：
 
 ```svelte
 <!-- src/routes/(app)/reports/+page.svelte -->

@@ -1,25 +1,25 @@
 # Creating and reworking pages
 
-Use the current application rather than frozen page copies. Neighboring routes are references for conventions, not templates that must be duplicated.
+Start with the closest small scaffold in `templates/pages/`, then make the copied route own its business behavior. Templates are intentionally generic and are not kept synchronized with generated pages.
 
 ## Classify the page
 
-| Page shape   | Typical composition                                                      | Live references to look for          |
-| ------------ | ------------------------------------------------------------------------ | ------------------------------------ |
-| List or CRUD | `PageHeader`, `DataTable`, filters, optional sheet and confirmation      | Existing list or table routes        |
-| Form         | `Card`, form controls, validation, submit feedback                       | Existing create or edit forms        |
-| Detail       | Back action, record heading, information cards, empty/not-found handling | Existing `[id]` routes               |
-| Overview     | `StatCard`, charts, summaries, recent activity                           | Dashboard or feature overview routes |
-| Settings     | Section layout, grouped form cards, save feedback                        | Existing settings routes             |
+| Page shape   | Start from                  | Add in the generated route                                |
+| ------------ | --------------------------- | --------------------------------------------------------- |
+| List or CRUD | `templates/pages/list`      | Domain columns, filters, row actions, confirmation        |
+| Form         | `templates/pages/form`      | Schema, controls, validation, submit feedback             |
+| Detail       | `templates/pages/detail`    | Record loading, fields, actions, empty/not-found handling |
+| Overview     | `templates/pages/dashboard` | Domain metrics, charts, summaries, activity               |
+| Settings     | `templates/pages/settings`  | Preference sections, controls and save feedback           |
 
-If no similar route exists, build from the architecture and component contracts instead of copying an unrelated page.
+If no scaffold fits, build from the architecture and component contracts instead of copying an unrelated page.
 
 ## Creation workflow
 
 1. Read the applicable project instructions and inspect the route tree with `rg --files src/routes`.
 2. Decide the URL, route group, dynamic segments, and whether the page is a top-level navigation destination.
-3. Inspect one or two nearby live pages for current import, layout, state, and interaction conventions.
-4. Create the smallest route surface needed: `+page.svelte`, plus `+page.server.ts`, `+page.ts`, or a nested layout only when the feature requires them.
+3. Copy the closest `templates/pages/<shape>/+page.svelte`, then inspect a nearby live page only for feature-specific behavior.
+4. Create the smallest route surface needed: the copied `+page.svelte`, plus `+page.server.ts`, `+page.ts`, or a nested layout only when the feature requires them.
 5. Compose the page with `PageContainer`, `PageHeader`, shared patterns, and UI primitives. Keep feature-specific state and validation in the feature.
 6. Put real data access in the server seam. Handle loading, empty, error, and destructive states in proportion to the feature.
 7. Register top-level navigation and use `resolve()` for every internal destination.
@@ -35,5 +35,5 @@ For copy, labels, examples, styling corrections, or a small component insertion,
 - The page lives in the correct route group and uses the existing shell.
 - Data does not cross the server/client boundary incorrectly.
 - Navigation, localization, responsive layout, dark mode, accessibility, and empty/error states are covered.
-- No complete page copy or stale snapshot was introduced.
+- The route does not import from `templates/`; its copied scaffold now belongs to the feature.
 - `npm run check`, `npm run lint`, and `npm run build` pass.

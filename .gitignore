@@ -16,6 +16,7 @@ node_modules/
 
 # Tooling (Serena local metadata/cache)
 .serena/
+.codegraph/
 
 # Vite temp files
 vite.config.js.timestamp-*

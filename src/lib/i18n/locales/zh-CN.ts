@@ -22,6 +22,7 @@ export default {
 		name: '名称',
 		saving: '保存中...',
 		createFailed: '创建失败',
+		openInNewTab: '在新标签页中打开',
 		tabLimitTitle: '打开标签页较多',
 		tabLimitDescription: '当前已打开 {count} 个标签页，继续打开可能会影响流畅度。',
 		forceContinue: '继续打开'

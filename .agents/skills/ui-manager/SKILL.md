@@ -16,7 +16,7 @@ Build pages from the repository's current architecture and component system. Ins
 ## Workflow
 
 1. Inspect the current route tree, neighboring pages, shared components, UI primitives, and project instructions.
-2. Classify the requested page and choose the closest live page only as a behavioral reference. Do not copy an unrelated page wholesale.
+2. Classify the requested page and start from the closest file in `templates/pages/`. Inspect a live page only for feature-specific behavior the template does not cover.
 3. Create the route inside the correct route group and preserve the existing shell composition.
 4. Compose the page from `$lib/components/shared` and `$lib/core/components/ui`; add a new shared component only for a genuinely reusable product pattern.
 5. Keep dynamic data behind the existing server boundary. Add navigation only for top-level destinations and wrap internal navigation with `resolve()`.
@@ -26,7 +26,7 @@ Build pages from the repository's current architecture and component system. Ins
 ## Guardrails
 
 - Treat the live repository and its docs as the source of truth.
-- Do not mirror `src/routes`, store full page snapshots, or refresh unrelated examples after a page change.
+- Treat `templates/pages/` as copy-on-create scaffolds, not runtime dependencies or synchronized page snapshots.
 - Do not introduce a parallel component system, raw color values, or ad-hoc page shells.
 - Preserve user changes and avoid rewriting existing files wholesale.
 - For a small edit to an existing page, inspect and patch that page directly; do not run the full page-creation workflow unless its structure changes.

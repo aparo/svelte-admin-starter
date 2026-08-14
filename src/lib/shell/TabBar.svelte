@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Pathname } from '$app/types';
 	import PortableTabBar from '$lib/core/shell/TabBar.svelte';
@@ -14,7 +13,7 @@
 		const pathname = (queryAt === -1 ? url : url.slice(0, queryAt)) as Pathname;
 		const search = queryAt === -1 ? '' : url.slice(queryAt);
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		return goto(`${resolve(pathname)}${search}`);
+		return goto(`${pathname}${search}`);
 	}
 </script>
 

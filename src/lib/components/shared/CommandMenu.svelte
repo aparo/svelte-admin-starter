@@ -7,7 +7,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import type { Pathname } from '$app/types';
 	import * as Command from '$lib/core/components/ui/command';
 	import { navGroups } from '$lib/shell/nav';
@@ -20,7 +19,8 @@
 
 	function runCommand(href: Pathname) {
 		open = false;
-		goto(resolve(href));
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto(href);
 	}
 
 	function onKeydown(event: KeyboardEvent) {
@@ -51,6 +51,16 @@
 						<Icon class="size-4" aria-hidden="true" />
 						<span>{item.title}</span>
 					</Command.Item>
+					{#each item.children ?? [] as child (child.href)}
+						{@const ChildIcon = child.icon}
+						<Command.Item
+							value={`${group.label} ${item.title} ${child.title} ${child.href}`}
+							onSelect={() => runCommand(child.href)}
+						>
+							<ChildIcon class="size-4" aria-hidden="true" />
+							<span>{child.title}</span>
+						</Command.Item>
+					{/each}
 				{/each}
 			</Command.Group>
 		{/each}

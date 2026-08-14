@@ -10,11 +10,13 @@ src/routes/
 ├── (app)/+layout.svelte       authenticated application shell
 │   └── <feature>/+page.svelte pages rendered inside the shell
 └── (auth)/+layout.svelte      authentication-facing layout
+
+templates/pages/               copy-on-create page archetypes
 ```
 
 Route groups organize code and do not appear in URLs. Put authenticated product pages under `(app)` and login, registration, and account-recovery pages under `(auth)`. Use `[id]` for record detail routes and nested `+layout.svelte` files only when a section owns persistent local navigation or state.
 
-The application shell is composed in `src/lib/shell/`. `AppShell` coordinates the sidebar, header, breadcrumbs, tabs, and page outlet. Feature pages should render their content, not recreate those shell elements.
+The application shell is composed in `src/lib/shell/`. `AppShell` coordinates the sidebar, header, breadcrumbs, tabs, and page outlet. Feature pages should render their content, not recreate those shell elements. Files under `templates/pages/` are development scaffolds: copy the closest archetype into a real route, then adapt it there. Never import a template at runtime.
 
 ## Page composition
 
@@ -36,7 +38,7 @@ Do not import `$lib/server/*` from a `.svelte` file. Pages with purely local dem
 - Navigation: register top-level destinations in `src/lib/shell/nav.ts`; use `resolve()` from `$app/paths` for internal links and programmatic navigation.
 - Localization: call `t()` for new user-facing strings and mirror keys in `src/lib/i18n/locales/en.ts` and `zh-CN.ts`.
 - Authentication: rely on the existing `(app)` layout and `$lib/auth`; do not add page-local authentication shells.
-- Components: import page patterns from `$lib/components/shared` and primitives from `$lib/core/components/ui`.
+- Components: import page patterns from `$lib/components/shared` and primitives from `$lib/core/components/ui`; use props and snippets before creating variants.
 
 ## Source-of-truth files
 
