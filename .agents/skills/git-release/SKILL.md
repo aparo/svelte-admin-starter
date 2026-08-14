@@ -23,7 +23,7 @@ GitHub release. Follow the repository's existing release history exactly.
    `package-lock.json` (the lockfile has two spots: the root and the `""`
    package entry).
 3. Commit the version bump with the exact message `chore: bump version to
-   X.Y.Z` (matching prior history — e.g. `chore: bump version to 1.2.0`).
+X.Y.Z` (matching prior history — e.g. `chore: bump version to 1.2.0`).
 4. Create an **annotated** tag (prior tags are annotated, e.g.
    `git cat-file -t v1.2.0` -> `tag`):
    `git tag -a vX.Y.Z -m "vX.Y.Z"`.
@@ -35,7 +35,7 @@ GitHub release. Follow the repository's existing release history exactly.
    - Notes: summarize the changes since the last release, derived from
      `git log` between the previous tag and the new one. Match prior release
      note tone, and add a `**Core Status**: core 无变化 (No changes to
-     src/lib/core).` line unless `src/lib/core/` actually changed.
+src/lib/core).` line unless `src/lib/core/` actually changed.
    - Example command:
      `gh release create vX.Y.Z --title "Svelte Admin Starter vX.Y.Z" --notes "..."`
 7. Ensure the new release is marked `Latest`:
