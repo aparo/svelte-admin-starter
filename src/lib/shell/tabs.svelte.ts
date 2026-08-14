@@ -4,6 +4,7 @@ import { Tabs, TAB_SOFT_LIMIT } from '$lib/core/shell/tabs.svelte';
 import { t } from '$lib/i18n';
 import { leafCrumb } from './breadcrumb.svelte';
 import { findNavItem } from './nav';
+import { config } from '$lib/config';
 
 function titleCase(segment: string): string {
 	return segment
@@ -33,7 +34,7 @@ export function tabTitleFor(pathname: string, data?: unknown, override?: string)
 }
 
 export const tabs = new Tabs({
-	homePathname: '/dashboard',
+	homePathname: config.app.homePath,
 	describe(pathname, data, override) {
 		const title = tabTitleFor(pathname, data, override);
 		return { title, baseTitle: title, icon: findNavItem(pathname)?.item.icon ?? FileIcon };

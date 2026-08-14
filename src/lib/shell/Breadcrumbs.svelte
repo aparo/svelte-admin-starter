@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { findNavItem } from './nav';
 	import { cn } from '$lib/core/utils';
+	import { config } from '$lib/config';
 
 	interface Crumb {
 		label: string;
@@ -19,7 +20,7 @@
 
 	const crumbs = $derived.by((): Crumb[] => {
 		const pathname = page.url.pathname;
-		const trail: Crumb[] = [{ label: 'Home', href: '/dashboard' }];
+		const trail: Crumb[] = [{ label: 'Home', href: config.app.homePath }];
 
 		const match = findNavItem(pathname);
 		if (match) {

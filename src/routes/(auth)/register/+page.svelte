@@ -13,6 +13,7 @@
 	import { PasswordInput, Spinner } from '$lib/components/shared';
 	import { auth } from '$lib/auth';
 	import { emailSchema, fieldError } from '$lib/core/utils/validators';
+	import { config } from '$lib/config';
 
 	let name = $state('');
 	let email = $state('');
@@ -48,7 +49,7 @@
 
 		if (result.ok) {
 			toast.success('Account created. Welcome aboard!');
-			goto(resolve('/dashboard'));
+			goto(resolve(config.app.homePath));
 		} else {
 			formError = result.error ?? 'Unable to create account. Please try again.';
 			toast.error(formError);

@@ -62,7 +62,7 @@ src/
 ├── app.html
 ├── routes/
 │   ├── +layout.svelte       # root: stylesheet, ModeWatcher, Toaster, session/locale init
-│   ├── +page.ts             # redirects / → /dashboard
+│   ├── +page.ts             # redirects / → config.app.homePath
 │   ├── +error.svelte        # status-aware 404 / error page (branded, no shell)
 │   ├── (auth)/              # login · register · forgot-password (split-screen, no shell)
 │   └── (app)/              # behind the mock auth guard, wrapped in <AppShell>
@@ -99,6 +99,20 @@ templates/
 - **Add a UI component:** `npx shadcn-svelte@latest add <name>`.
 - **Configure the backend URL:** set `config.api.baseUrl` in `src/lib/config/index.ts` (empty = mock mode).
 - **Wire a real backend:** implement the seams in `src/lib/auth/provider.ts` (auth) and `src/lib/server/db.ts` (data), then add a server-side guard.
+
+## ✂️ Trim the starter safely
+
+Keep the application infrastructure: `src/routes/+*`, `src/routes/(app)/+*`,
+`src/lib/core/`, `src/lib/shell/`, `src/lib/config/`, and any auth, i18n, or shared components
+still imported by your app. Everything under `src/routes/(app)/<feature>/` is an example or
+feature route and may be removed. Sidebar and command-menu entries for deleted routes disappear
+automatically.
+
+Before deleting the current home route, set `config.app.homePath` in
+`src/lib/config/index.ts` to another existing `(app)` route. You may also remove
+`src/routes/(app)/templates/`, `src/routes/(app)/tables/`, and other demos; keep
+`templates/pages/` only if you want copy-on-create page scaffolds. After trimming, run
+`npm run check && npm run lint && npm test && npm run build`.
 
 ## Portable release contract
 

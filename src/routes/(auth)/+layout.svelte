@@ -2,7 +2,7 @@
   Auth layout — a split-screen canvas. On large screens an indigo brand panel
   (headline + product highlights) sits beside the form; on small screens it
   collapses to a centered form with a compact brand mark. Already-authenticated
-  visitors are bounced to the dashboard.
+  visitors are bounced to the configured home page.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -24,7 +24,7 @@
 
 	onMount(() => {
 		auth.init();
-		if (auth.isAuthenticated) goto(resolve(config.auth.afterLogin));
+		if (auth.isAuthenticated) goto(resolve(config.app.homePath));
 	});
 </script>
 

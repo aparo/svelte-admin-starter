@@ -51,16 +51,6 @@
 						<Icon class="size-4" aria-hidden="true" />
 						<span>{item.title}</span>
 					</Command.Item>
-					{#each item.children ?? [] as child (child.href)}
-						{@const ChildIcon = child.icon}
-						<Command.Item
-							value={`${group.label} ${item.title} ${child.title} ${child.href}`}
-							onSelect={() => runCommand(child.href)}
-						>
-							<ChildIcon class="size-4" aria-hidden="true" />
-							<span>{child.title}</span>
-						</Command.Item>
-					{/each}
 				{/each}
 			</Command.Group>
 		{/each}

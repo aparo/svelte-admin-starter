@@ -13,7 +13,7 @@
 	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth';
 	import { initials } from '$lib/core/utils/formatters';
-	import { navGroups } from './nav';
+	import { findNavItem, navGroups } from './nav';
 	import { tabs } from './tabs.svelte';
 	import { logoutDialog } from './logout-dialog.svelte';
 	import { config } from '$lib/config';
@@ -27,13 +27,10 @@
 	const sidebar = useSidebar();
 	const user = $derived(auth.user);
 	const pathname = $derived(page.url.pathname);
+	const homeTitle = findNavItem(config.app.homePath)?.item.title ?? 'Home';
 
 	function isActive(href: string): boolean {
 		return pathname === href || pathname.startsWith(href + '/');
-	}
-
-	function hasActiveChild(href: string): boolean {
-		return pathname.startsWith(href + '/');
 	}
 
 	function handleNavClick(): void {
@@ -60,7 +57,7 @@
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton size="lg">
 					{#snippet child({ props })}
-						<a href={resolve('/dashboard')} onclick={handleNavClick} {...props}>
+						<a href={resolve(config.app.homePath)} onclick={handleNavClick} {...props}>
 							<div
 								class="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg text-base font-semibold"
 							>
@@ -68,7 +65,7 @@
 							</div>
 							<div class="grid flex-1 text-left text-sm leading-tight">
 								<span class="truncate font-semibold">{config.app.name}</span>
-								<span class="text-sidebar-foreground/80 truncate text-xs">Dashboard</span>
+								<span class="text-sidebar-foreground/80 truncate text-xs">{homeTitle}</span>
 							</div>
 						</a>
 					{/snippet}
@@ -116,22 +113,6 @@
 							</ContextMenu.Root>
 							{#if item.badge != null}
 								<Sidebar.MenuBadge>{item.badge}</Sidebar.MenuBadge>
-							{/if}
-							{#if item.children && (isActive(item.href) || hasActiveChild(item.href))}
-								<Sidebar.MenuSub>
-									{#each item.children as subItem (subItem.href)}
-										<Sidebar.MenuSubItem>
-											<Sidebar.MenuSubButton isActive={isActive(subItem.href)}>
-												{#snippet child({ props })}
-													<a href={subItem.href} onclick={handleNavClick} {...props}>
-														<subItem.icon />
-														<span>{subItem.title}</span>
-													</a>
-												{/snippet}
-											</Sidebar.MenuSubButton>
-										</Sidebar.MenuSubItem>
-									{/each}
-								</Sidebar.MenuSub>
 							{/if}
 						</Sidebar.MenuItem>
 					{/each}

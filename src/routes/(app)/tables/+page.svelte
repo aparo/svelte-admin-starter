@@ -4,8 +4,7 @@
 	import * as Card from '$lib/core/components/ui/card';
 	import { navGroups } from '$lib/shell/nav';
 
-	const examples =
-		navGroups.find((group) => group.label === 'Data Tables')?.items[0]?.children ?? [];
+	const examples = navGroups.find((group) => group.label === 'Data Tables')?.items ?? [];
 </script>
 
 <svelte:head><title>Data Tables · Admin Starter</title></svelte:head>

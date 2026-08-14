@@ -1,5 +1,5 @@
 <!--
-  Index page. The `load` function redirects to /dashboard, so this only
+  Index page. The `load` function redirects to the configured home page, so this only
   flashes briefly (e.g. with JS-disabled SSR) — show a centered spinner.
 -->
 <script lang="ts">

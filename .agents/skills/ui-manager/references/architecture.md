@@ -35,7 +35,8 @@ Do not import `$lib/server/*` from a `.svelte` file. Pages with purely local dem
 
 ## Cross-cutting systems
 
-- Navigation: register top-level destinations in `src/lib/shell/nav.ts`; use `resolve()` from `$app/paths` for internal links and programmatic navigation.
+- Navigation: register top-level destinations in `src/lib/shell/nav.ts`; configured entries are automatically hidden if their route is deleted. Use `resolve()` from `$app/paths` for internal links and programmatic navigation.
+- Home route: `config.app.homePath` is the single destination used by `/`, login, breadcrumbs, errors, sidebar branding, and tabs. Point it to an existing `(app)` route before deleting the current home page.
 - Localization: call `t()` for new user-facing strings and mirror keys in `src/lib/i18n/locales/en.ts` and `zh-CN.ts`.
 - Authentication: rely on the existing `(app)` layout and `$lib/auth`; do not add page-local authentication shells.
 - Components: import page patterns from `$lib/components/shared` and primitives from `$lib/core/components/ui`; use props and snippets before creating variants.

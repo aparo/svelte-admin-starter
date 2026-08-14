@@ -44,7 +44,7 @@
 
 		if (result.ok) {
 			toast.success('Welcome back!');
-			goto(resolve('/dashboard'));
+			goto(resolve(config.app.homePath));
 		} else {
 			formError = result.error ?? 'Unable to sign in. Please try again.';
 			toast.error(formError);

@@ -31,7 +31,6 @@ export interface NavItem {
 	href: Pathname;
 	icon: Component;
 	badge?: string | number;
-	children?: NavItem[];
 }
 
 export interface NavGroup {
@@ -39,7 +38,7 @@ export interface NavGroup {
 	items: NavItem[];
 }
 
-export const navGroups: NavGroup[] = [
+const configuredNavGroups: NavGroup[] = [
 	{
 		label: 'Overview',
 		items: [{ title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }]
@@ -97,21 +96,29 @@ export const navGroups: NavGroup[] = [
 	}
 ];
 
-function visitNavItems(items: NavItem[], visit: (item: NavItem) => void): void {
-	for (const item of items) {
-		visit(item);
-		if (item.children) visitNavItems(item.children, visit);
-	}
+export function filterNavGroups(groups: NavGroup[], routes: ReadonlySet<string>): NavGroup[] {
+	return groups
+		.map((group) => ({ ...group, items: group.items.filter((item) => routes.has(item.href)) }))
+		.filter((group) => group.items.length > 0);
 }
 
-/** Find the longest matching navigation path, including nested items. */
+const appRoutes = new Set(
+	Object.keys(import.meta.glob('/src/routes/**/+page.svelte'))
+		.filter((file) => file.includes('/(app)/'))
+		.map((file) => file.slice('/src/routes/(app)'.length, -'/+page.svelte'.length))
+);
+
+/** Only render configured destinations whose route still exists. */
+export const navGroups = filterNavGroups(configuredNavGroups, appRoutes);
+
+/** Find the longest matching navigation path. */
 export function findNavItem(pathname: string): { group: NavGroup; item: NavItem } | undefined {
 	let best: { group: NavGroup; item: NavItem } | undefined;
 	for (const group of navGroups) {
-		visitNavItems(group.items, (item) => {
+		for (const item of group.items) {
 			const isMatch = pathname === item.href || pathname.startsWith(item.href + '/');
 			if (isMatch && (!best || item.href.length > best.item.href.length)) best = { group, item };
-		});
+		}
 	}
 	return best;
 }

@@ -38,6 +38,7 @@
 		TimePicker
 	} from '$lib/components/shared';
 	import { t } from '$lib/i18n';
+	import { config } from '$lib/config';
 	import { toast } from 'svelte-sonner';
 	import InfoIcon from '@lucide/svelte/icons/info';
 	import AlertTriangleIcon from '@lucide/svelte/icons/triangle-alert';
@@ -534,7 +535,7 @@
 				<Breadcrumb.Root>
 					<Breadcrumb.List>
 						<Breadcrumb.Item>
-							<Breadcrumb.Link href="/dashboard">Home</Breadcrumb.Link>
+							<Breadcrumb.Link href={config.app.homePath}>Home</Breadcrumb.Link>
 						</Breadcrumb.Item>
 						<Breadcrumb.Separator />
 						<Breadcrumb.Item>

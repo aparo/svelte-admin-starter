@@ -36,4 +36,5 @@ For copy, labels, examples, styling corrections, or a small component insertion,
 - Data does not cross the server/client boundary incorrectly.
 - Navigation, localization, responsive layout, dark mode, accessibility, and empty/error states are covered.
 - The route does not import from `templates/`; its copied scaffold now belongs to the feature.
+- If the route is the application home, set `config.app.homePath`; deleting a configured nav route hides its menu entry automatically.
 - `npm run check`, `npm run lint`, and `npm run build` pass.
