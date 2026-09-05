@@ -1,32 +1,18 @@
 ---
 name: ui-manager
-description: Create or structurally rework pages in this SvelteKit admin starter and its clones while preserving the shell, routing, data, i18n, navigation, and component conventions. Use when adding a page, route, screen, view, list, form, detail page, dashboard, or substantially changing a page layout. Do not use for small copy or content-only edits.
+description: Create routes or substantially restructure pages in this SvelteKit admin starter using its shell, components, data, navigation, and i18n conventions. Small styling and copy edits do not need this workflow.
 ---
 
-# Create an admin page
+# Build an admin page
 
-Build pages from the repository's current architecture and component system. Inspect live source files before acting; do not depend on bundled copies of complete pages.
+Deliver the requested page within the current application architecture. Follow the repository's `AGENTS.md` for shared contracts and validation.
 
-## Read the relevant guidance
+- Inspect the affected route, callers, and relevant components. For new pages, use a matching `templates/pages/` scaffold when helpful; for existing pages, adapt the live implementation.
+- Preserve the shell, server/client boundary, navigation, localization, and required interaction states. Add only the route files and reusable abstractions the feature needs.
+- Treat templates as copy-on-create examples, never runtime imports or synchronized snapshots. User requirements and live source take precedence over scaffold defaults.
 
-- Read [references/architecture.md](references/architecture.md) when the shell, route groups, data boundary, navigation, authentication, or localization flow is relevant or unfamiliar.
-- Read [references/page-creation.md](references/page-creation.md) whenever creating a route or structurally reworking a page.
-- Read [references/components.md](references/components.md) when choosing, composing, or extending shared and UI components.
+Read supporting guidance only where needed:
 
-## Workflow
-
-1. Inspect the current route tree, neighboring pages, shared components, UI primitives, and project instructions.
-2. Classify the requested page and start from the closest file in `templates/pages/`. Inspect a live page only for feature-specific behavior the template does not cover.
-3. Create the route inside the correct route group and preserve the existing shell composition.
-4. Compose the page from `$lib/components/shared` and `$lib/core/components/ui`; add a new shared component only for a genuinely reusable product pattern.
-5. Keep dynamic data behind the existing server boundary. Add navigation only for top-level destinations and wrap internal navigation with `resolve()`.
-6. Put every new user-facing string in both locale dictionaries.
-7. Verify with `npm run check && npm run lint && npm run build`.
-
-## Guardrails
-
-- Treat the live repository and its docs as the source of truth.
-- Treat `templates/pages/` as copy-on-create scaffolds, not runtime dependencies or synchronized page snapshots.
-- Do not introduce a parallel component system, raw color values, or ad-hoc page shells.
-- Preserve user changes and avoid rewriting existing files wholesale.
-- For a small edit to an existing page, inspect and patch that page directly; do not run the full page-creation workflow unless its structure changes.
+- [Architecture](references/architecture.md): route groups, shell, data boundaries, auth, navigation, and localization.
+- [Page creation](references/page-creation.md): choosing a scaffold and completing new or restructured pages.
+- [Components](references/components.md): selecting and extending shared patterns and UI primitives.

@@ -1,53 +1,21 @@
 ---
 name: git-release
-description: Bump the version, commit, tag, push, and publish a GitHub release for this SvelteKit admin starter. Use when asked to release a new version, bump the version, cut a tag, or publish a release. Do not use for ordinary code changes or commits.
+description: Update versions, create tags, or publish GitHub releases for this SvelteKit admin starter, limited to the release actions the user requested. Not for ordinary code changes or commits.
 ---
 
-# Release a new version
+# Version and release work
 
-Create a release by bumping the version, tagging, pushing, and publishing the
-GitHub release. Follow the repository's existing release history exactly.
+Match the requested scope: a version bump updates package metadata; a tag request creates a tag; a full release includes commit, tag, push, and GitHub publication. Reuse existing authorization without asking again. Follow [the release procedure](../../../docs/RELEASE.md) for full releases.
 
-## Version determination
+## Preparation
 
-- Read the current version from the top-level `"version"` field in
-  `package.json` (mirrored in `package-lock.json`).
-- Bump the patch version (`X.Y.Z` -> `X.Y.(Z+1)`) unless the user specifies a
-  different target. Never invent a version the user did not ask for.
+- Read `package.json`, the lockfile, branch status, and relevant release history. Honor an explicit target; otherwise default to the next patch for a requested bump or release.
+- Preserve unrelated changes. Do not stash or commit them to obtain a clean tree. Use an isolated checkout when needed; clarify only if the release contents cannot be determined.
+- Update the package version and both lockfile version fields without changing dependencies. For version-only work, validate their agreement and finish without tagging or publishing.
+- For a full release, run `npm run verify`, inspect the diff since the previous release, and prepare notes with actual portable-core changes and migration needs. Use a notes file rather than inline shell text.
 
-## Workflow
+## Publication
 
-1. Confirm the working tree is clean: `git status --short` shows no changes
-   beyond what is being released. Commit or stash unrelated work first.
-2. Update the `"version"` field in **both** `package.json` and
-   `package-lock.json` (the lockfile has two spots: the root and the `""`
-   package entry).
-3. Commit the version bump with the exact message `chore: bump version to
-X.Y.Z` (matching prior history — e.g. `chore: bump version to 1.2.0`).
-4. Create an **annotated** tag (prior tags are annotated, e.g.
-   `git cat-file -t v1.2.0` -> `tag`):
-   `git tag -a vX.Y.Z -m "vX.Y.Z"`.
-5. Push the branch and the tag together:
-   `git push origin <branch> && git push origin vX.Y.Z`.
-6. Publish the GitHub release with `gh`:
-   - Title: `Svelte Admin Starter vX.Y.Z`
-   - Tag: `vX.Y.Z`
-   - Notes: summarize the changes since the last release, derived from
-     `git log` between the previous tag and the new one. Match prior release
-     note tone, and add a `**Core Status**: core 无变化 (No changes to
-src/lib/core).` line unless `src/lib/core/` actually changed.
-   - Example command:
-     `gh release create vX.Y.Z --title "Svelte Admin Starter vX.Y.Z" --notes "..."`
-7. Ensure the new release is marked `Latest`:
-   `gh release edit vX.Y.Z --latest=true`, then confirm with
-   `gh release list`.
+Use the repository's Conventional Commit style and annotated `vX.Y.Z` tags. Verify the intended branch, commit, remote, and target version before publishing. Never replace an existing tag or release.
 
-## Guardrails
-
-- Only commit the version bump; do not fold unrelated changes into the release
-  commit.
-- Never push, tag, or create a release without an explicit request from the
-  user.
-- Never overwrite or delete an existing tag or release.
-- Verify the tag exists and the release is live before reporting completion
-  (`git tag` and `gh release list`).
+Follow the release procedure to push and publish only the authorized scope. If an external operation fails, inspect local and remote state before retrying; if the result or permission is unclear, stop dependent mutations and report completed work and the specific blocker. Verify the remote tag and release URL before reporting publication complete.

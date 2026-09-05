@@ -67,11 +67,11 @@
 	--chart-5: oklch(0.64 0.21 350);
 
 	/* Sidebar — blue navigation panel with high-contrast labels and states */
-	--sidebar: oklch(0.32 0.16 255);
+	--sidebar: oklch(0.42 0.16 255);
 	--sidebar-foreground: oklch(0.97 0.01 255);
 	--sidebar-primary: oklch(0.94 0.04 245);
 	--sidebar-primary-foreground: oklch(0.3 0.13 255);
-	--sidebar-accent: oklch(0.4 0.16 255);
+	--sidebar-accent: oklch(0.35 0.14 255);
 	--sidebar-accent-foreground: oklch(0.99 0.005 255);
 	--sidebar-border: oklch(0.68 0.1 255 / 45%);
 	--sidebar-ring: oklch(0.82 0.1 245 / 65%);

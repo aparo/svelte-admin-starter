@@ -142,7 +142,9 @@
 								</Avatar.Root>
 								<div class="grid flex-1 text-left text-sm leading-tight">
 									<span class="truncate font-semibold">{user?.name ?? 'Guest'}</span>
-									<span class="text-muted-foreground truncate text-xs capitalize">
+									<span
+										class="text-sidebar-foreground/80 dark:text-muted-foreground truncate text-xs capitalize"
+									>
 										{user?.role ?? ''}
 									</span>
 								</div>

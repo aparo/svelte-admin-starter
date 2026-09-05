@@ -43,4 +43,4 @@ Do not import `$lib/server/*` from a `.svelte` file. Pages with purely local dem
 
 ## Source-of-truth files
 
-Inspect `CLAUDE.md` or `AGENTS.md`, `src/lib/shell/`, `src/lib/components/shared/`, `src/lib/core/components/ui/`, `docs/DEVELOPMENT.md`, `docs/COMPONENTS.md`, and `docs/DESIGN.md` before changing the corresponding concern.
+Use `AGENTS.md` for repository contracts. Inspect only the affected source and relevant sections of `docs/DEVELOPMENT.md`, `docs/COMPONENTS.md`, or `docs/DESIGN.md`; live source and installed versions resolve stale examples.

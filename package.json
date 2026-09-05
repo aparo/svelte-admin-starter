@@ -18,7 +18,8 @@
 		"check:export": "node scripts/check-export.mjs",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"test": "vitest run"
+		"test": "vitest run",
+		"verify": "npm run check && npm run lint && npm test && npm run build && npm run check:export"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
