@@ -83,6 +83,7 @@ export default {
 		selectHour: 'Select hour',
 		selectMinute: 'Select minute',
 		date: 'Date',
+		dateRange: 'Date range',
 		time: 'Time',
 		hour: 'Hour',
 		minute: 'Minute',
@@ -90,7 +91,10 @@ export default {
 		pm: 'PM',
 		now: 'Now',
 		clear: 'Clear',
-		apply: 'Apply'
+		apply: 'Apply',
+		close: 'Close',
+		pickDateRange: 'Pick a date range',
+		selectDateRange: 'Select date range'
 	},
 	auth: {
 		signIn: 'Sign in',

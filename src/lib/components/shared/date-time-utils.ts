@@ -1,4 +1,7 @@
 import { CalendarDate, type DateValue } from '@internationalized/date';
+import type { DateRange } from 'bits-ui';
+
+export type { DateRange } from 'bits-ui';
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_PATTERN = /^(\d{2}):(\d{2})$/;
@@ -94,4 +97,39 @@ export function dateValueToString(value: DateValue | undefined): string {
 export function currentTimeValue(): string {
 	const now = new Date();
 	return formatTimeValue(now.getHours(), now.getMinutes());
+}
+
+export function formatDateValueForDisplay(date: DateValue | undefined, locale: string): string {
+	if (!date) return '';
+	return new Intl.DateTimeFormat(locale, {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric'
+	}).format(new Date(date.year, date.month - 1, date.day));
+}
+
+export function formatDateRangeForDisplay(
+	range: DateRange | undefined,
+	locale: string,
+	separator = ' – '
+): string {
+	if (!range?.start) return '';
+	const startStr = formatDateValueForDisplay(range.start, locale);
+	if (!range.end) return startStr;
+	const endStr = formatDateValueForDisplay(range.end, locale);
+	return `${startStr}${separator}${endStr}`;
+}
+
+export function parseDateRange(startStr?: string, endStr?: string): DateRange | undefined {
+	const start = startStr ? parseDateValue(startStr) : undefined;
+	const end = endStr ? parseDateValue(endStr) : undefined;
+	if (!start && !end) return undefined;
+	return { start, end };
+}
+
+export function dateRangeToString(range: DateRange | undefined): { start: string; end: string } {
+	return {
+		start: range?.start ? dateValueToString(range.start) : '',
+		end: range?.end ? dateValueToString(range.end) : ''
+	};
 }

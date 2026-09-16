@@ -83,6 +83,7 @@ export default {
 		selectHour: '选择小时',
 		selectMinute: '选择分钟',
 		date: '日期',
+		dateRange: '日期范围',
 		time: '时间',
 		hour: '小时',
 		minute: '分钟',
@@ -90,7 +91,10 @@ export default {
 		pm: '下午',
 		now: '现在',
 		clear: '清除',
-		apply: '应用'
+		apply: '应用',
+		close: '关闭',
+		pickDateRange: '选择日期范围',
+		selectDateRange: '选择日期范围'
 	},
 	auth: {
 		signIn: '登录',
