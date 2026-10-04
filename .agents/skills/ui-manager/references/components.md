@@ -12,6 +12,8 @@ Use the narrowest existing layer that owns the required responsibility. Read `do
 
 Pages consume the shell but do not reconstruct it. Shared components may depend on UI primitives. UI primitives must not depend on feature pages or shared business patterns.
 
+There is no separate component-template layer. Adjust an existing component with its props, snippets, and installed variants. Keep a one-off composition in the page; promote it to `$lib/components/shared` only after the same product behavior recurs.
+
 ## Shared patterns
 
 - Structure pages with `PageContainer` and `PageHeader`.
@@ -34,7 +36,7 @@ Use primitives such as `Button`, `Input`, `Label`, `Card`, `Select`, `Popover`, 
 
 ## Extension rules
 
-- Extend an existing shared component when the same product behavior appears across pages.
+- Extend an existing shared component when the same product behavior appears across pages; prefer props and snippets over a near-duplicate wrapper.
 - Keep one-off domain behavior in the feature route or a feature-local component.
 - Add a UI primitive only when the base component is missing; do not create a second primitive library.
 - Use semantic tokens such as `bg-background`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `border-border`, and `bg-primary`.

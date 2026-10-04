@@ -13,6 +13,7 @@
 	import { PasswordInput, Spinner } from '$lib/components/shared';
 	import { auth } from '$lib/auth';
 	import { emailSchema, fieldError } from '$lib/core/utils/validators';
+	import { config } from '$lib/config';
 	import { t } from '$lib/i18n';
 
 	let name = $state('');
@@ -49,7 +50,7 @@
 
 		if (result.ok) {
 			toast.success(t('register.successToast'));
-			goto(resolve('/dashboard'));
+			goto(resolve(config.app.homePath));
 		} else {
 			formError = result.error ?? t('register.errorFallback');
 			toast.error(formError);

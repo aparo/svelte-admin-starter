@@ -28,6 +28,8 @@ export const config = {
 	/** Brand identity — shown in the sidebar, auth screens, document titles. */
 	app: {
 		name: 'Admin Starter',
+		/** Existing app route used by /, login redirects, breadcrumbs, errors and tabs. */
+		homePath: '/dashboard',
 		/** Square logo glyph (swap the markup for an <img>/SVG when you have one). */
 		logo: 'A',
 		description: 'A SvelteKit admin dashboard starter',
@@ -52,8 +54,7 @@ export const config = {
 		/** localStorage key for the cached session. */
 		sessionKey: 'admin-starter:session',
 		minPasswordLength: 8,
-		/** Where to send users after sign-in and sign-out. */
-		afterLogin: '/dashboard',
+		/** Where to send users after sign-out. */
 		afterLogout: '/login',
 		/** Credentials shown (and click-to-fill) on the login screen. */
 		demo: { email: 'admin@example.com', password: 'password' }

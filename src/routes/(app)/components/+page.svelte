@@ -31,13 +31,17 @@
 	import { Skeleton } from '$lib/core/components/ui/skeleton';
 	import {
 		DatePicker,
+		DateRangePicker,
 		DateTimePicker,
 		PageContainer,
 		PageHeader,
 		PasswordInput,
 		TimePicker
 	} from '$lib/components/shared';
+	import type { DateRange } from 'bits-ui';
+	import { CalendarDate } from '@internationalized/date';
 	import { t } from '$lib/i18n';
+	import { config } from '$lib/config';
 	import { toast } from 'svelte-sonner';
 	import InfoIcon from '@lucide/svelte/icons/info';
 	import AlertTriangleIcon from '@lucide/svelte/icons/triangle-alert';
@@ -56,8 +60,18 @@
 	let progressValue = $state(45);
 	let page = $state(2);
 	let dateValue = $state('2026-07-15');
+	let dateRangeValue = $state<DateRange | undefined>({
+		start: new CalendarDate(2026, 7, 1),
+		end: new CalendarDate(2026, 7, 15)
+	});
 	let timeValue = $state('13:30');
 	let dateTimeValue = $state('2026-07-15T13:30');
+
+	const dateRangeString = $derived(
+		dateRangeValue?.start
+			? `${dateRangeValue.start.toString()}${dateRangeValue.end ? ` ~ ${dateRangeValue.end.toString()}` : ''}`
+			: '—'
+	);
 
 	const fruits = [
 		{ value: 'apple', label: 'Apple' },
@@ -183,11 +197,16 @@
 				<Card.Title>{t('components.dateTimeTitle')}</Card.Title>
 				<Card.Description>{t('components.dateTimeDescription')}</Card.Description>
 			</Card.Header>
-			<Card.Content class="grid gap-5 md:grid-cols-3">
+			<Card.Content class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
 				<div class="grid content-start gap-2">
 					<Label for="demo-date-picker">{t('dateTimePicker.date')}</Label>
 					<DatePicker id="demo-date-picker" bind:value={dateValue} />
 					<code class="text-muted-foreground truncate text-xs">{dateValue || '—'}</code>
+				</div>
+				<div class="grid content-start gap-2">
+					<Label for="demo-date-range-picker">{t('dateTimePicker.dateRange')}</Label>
+					<DateRangePicker id="demo-date-range-picker" bind:value={dateRangeValue} />
+					<code class="text-muted-foreground truncate text-xs">{dateRangeString}</code>
 				</div>
 				<div class="grid content-start gap-2">
 					<Label for="demo-time-picker">{t('dateTimePicker.time')}</Label>
@@ -534,7 +553,7 @@
 				<Breadcrumb.Root>
 					<Breadcrumb.List>
 						<Breadcrumb.Item>
-							<Breadcrumb.Link href="/dashboard">Home</Breadcrumb.Link>
+							<Breadcrumb.Link href={config.app.homePath}>Home</Breadcrumb.Link>
 						</Breadcrumb.Item>
 						<Breadcrumb.Separator />
 						<Breadcrumb.Item>

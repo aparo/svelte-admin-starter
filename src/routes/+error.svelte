@@ -10,6 +10,7 @@
 	import House from '@lucide/svelte/icons/house';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import { config } from '$lib/config';
 
 	const isNotFound = $derived(page.status === 404);
 
@@ -73,7 +74,7 @@
 	</div>
 
 	<div class="relative mt-6 flex flex-wrap items-center justify-center gap-2">
-		<Button href="/dashboard">
+		<Button href={config.app.homePath}>
 			<House class="size-4" aria-hidden="true" />
 			{t('errors.goToDashboard')}
 		</Button>

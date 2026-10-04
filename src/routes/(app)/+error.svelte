@@ -11,6 +11,7 @@
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import House from '@lucide/svelte/icons/house';
+	import { config } from '$lib/config';
 
 	const headline = $derived(
 		page.status === 404
@@ -56,7 +57,7 @@
 				<RotateCcw class="size-4" aria-hidden="true" />
 				{t('errors.tryAgain')}
 			</Button>
-			<Button href="/dashboard" variant="outline">
+			<Button href={config.app.homePath} variant="outline">
 				<House class="size-4" aria-hidden="true" />
 				{t('errors.goToDashboard')}
 			</Button>

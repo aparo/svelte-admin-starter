@@ -22,12 +22,12 @@ export default {
 		name: '名称',
 		saving: '保存中...',
 		createFailed: '创建失败',
+		openInNewTab: '在新标签页中打开',
 		tabLimitTitle: '打开标签页较多',
 		tabLimitDescription: '当前已打开 {count} 个标签页，继续打开可能会影响流畅度。',
 		forceContinue: '继续打开',
 		actions: '操作',
-		searchPlaceholder: '搜索...',
-		openInNewTab: '在新标签页中打开'
+		searchPlaceholder: '搜索...'
 	},
 	tabs: {
 		open: '打开',
@@ -114,6 +114,7 @@ export default {
 		selectHour: '选择小时',
 		selectMinute: '选择分钟',
 		date: '日期',
+		dateRange: '日期范围',
 		time: '时间',
 		hour: '小时',
 		minute: '分钟',
@@ -121,7 +122,10 @@ export default {
 		pm: '下午',
 		now: '现在',
 		clear: '清除',
-		apply: '应用'
+		apply: '应用',
+		close: '关闭',
+		pickDateRange: '选择日期范围',
+		selectDateRange: '选择日期范围'
 	},
 	auth: {
 		signIn: '登录',

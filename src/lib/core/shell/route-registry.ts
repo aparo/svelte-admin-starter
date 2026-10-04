@@ -26,6 +26,34 @@ export function assertSupportedLayouts(files: string[]): void {
 		throw new Error(`Admin keep-alive does not support dynamic nested layout: ${dynamic}`);
 }
 
+/** Escape static segments before interpreting the supported SvelteKit parameters. */
+function routePattern(id: string): RegExp {
+	if (id === '/') return /^\/$/;
+	const segments = id
+		.split('/')
+		.slice(1)
+		.map((segment) => {
+			if (/^\[\[\w+\]\]$/.test(segment)) return '(?:/([^/]+))?';
+			if (/^\[\.\.\.\w+\]$/.test(segment)) return '(?:/(.*))?';
+			let pattern = '';
+			let offset = 0;
+			for (const match of segment.matchAll(/\[(\w+)\]/g)) {
+				pattern += escape(segment.slice(offset, match.index)) + '([^/]+?)';
+				offset = match.index + match[0].length;
+			}
+			pattern += escape(segment.slice(offset));
+			return '/' + pattern;
+		});
+	return new RegExp(`^${segments.join('')}/?$`);
+}
+
+function escape(value: string): string {
+	if (/[[\]]/.test(value)) {
+		throw new Error(`Admin keep-alive does not support this route syntax: ${value}`);
+	}
+	return value.replace(/[.*+?^${}()|\\]/g, '\\$&');
+}
+
 export function createRouteRegistry(pageModules: Modules, layoutModules: Modules) {
 	const pages = pickAppGroup(pageModules);
 	const layouts = pickAppGroup(layoutModules);
@@ -33,25 +61,39 @@ export function createRouteRegistry(pageModules: Modules, layoutModules: Modules
 
 	const pageRoutes = Object.entries(pages).map(([file, load]) => {
 		const id = toRouteId(file, '/+page.svelte');
-		const pattern = id.replace(/\[[^\]]+\]/g, '[^/]+');
-		return {
-			load,
-			matcher: new RegExp(`^${pattern}$`),
-			staticDepth: id.split('/').filter((segment) => segment && !segment.startsWith('[')).length
-		};
+		return { file, id, load, matcher: routePattern(id) };
 	});
-	pageRoutes.sort((left, right) => right.staticDepth - left.staticDepth);
+	// Compare from the root: static > required parameter > optional > rest.
+	// A deeper static suffix outranks a shorter optional/rest route.
+	pageRoutes.sort((left, right) => {
+		const a = left.id.split('/').slice(1);
+		const b = right.id.split('/').slice(1);
+		const rank = (segment = '') =>
+			segment.includes('[...') ? 0 : segment.startsWith('[[') ? 1 : segment.includes('[') ? 2 : 3;
+		for (let index = 0; index < Math.max(a.length, b.length); index += 1) {
+			const difference = rank(b[index]) - rank(a[index]);
+			if (difference) return difference;
+			const literalLength = (segment = '') => segment.replace(/\[[^\]]*\]/g, '').length;
+			const literalDifference = literalLength(b[index]) - literalLength(a[index]);
+			if (literalDifference) return literalDifference;
+			if (a[index] !== b[index] && rank(a[index]) === 3 && rank(b[index]) === 3) {
+				return (b[index]?.length ?? 0) - (a[index]?.length ?? 0);
+			}
+		}
+		return left.id.localeCompare(right.id);
+	});
 
 	const layoutRoutes = Object.entries(layouts)
-		.map(([file, load]) => ({ id: toRouteId(file, '/+layout.svelte'), load }))
-		.filter((layout) => layout.id !== '/');
+		.map(([file, load]) => ({ directory: file.slice(0, -'/+layout.svelte'.length), load }))
+		.filter((layout) => layout.directory !== '/src/routes/(app)');
 
 	function resolveChain(pathname: string): Loader[] | null {
 		const page = pageRoutes.find((route) => route.matcher.test(pathname));
 		if (!page) return null;
+		// Filesystem ancestry preserves route groups; URL prefixes mix sibling groups.
 		const matchingLayouts = layoutRoutes
-			.filter((layout) => pathname === layout.id || pathname.startsWith(`${layout.id}/`))
-			.sort((left, right) => left.id.length - right.id.length);
+			.filter((layout) => page.file.startsWith(`${layout.directory}/`))
+			.sort((left, right) => left.directory.length - right.directory.length);
 		return [...matchingLayouts.map((layout) => layout.load), page.load];
 	}
 
@@ -62,7 +104,7 @@ export function createRouteRegistry(pageModules: Modules, layoutModules: Modules
 			const chain = resolveChain(pathname);
 			const loading = chain
 				? Promise.all(chain.map((load) => load().then((module) => module.default)))
-				: Promise.resolve([]);
+				: Promise.reject(new Error(`Admin keep-alive found no page for: ${pathname}`));
 			promise = loading.catch((error: unknown) => {
 				if (cache.get(pathname) === promise) cache.delete(pathname);
 				throw error;

@@ -45,7 +45,7 @@
 
 		if (result.ok) {
 			toast.success(t('login.welcomeToast'));
-			goto(resolve('/dashboard'));
+			goto(resolve(config.app.homePath));
 		} else {
 			formError = result.error ?? t('login.errorFallback');
 			toast.error(formError);

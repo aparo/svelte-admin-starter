@@ -1,9 +1,6 @@
 <!--
   Kanban board — a five-stage board (Backlog → Done) with native HTML5
-  drag-and-drop between columns. All data is mock and lives in local $state;
-  there is no backend. Cards carry a title, priority, label, assignee and a
-  little meta (comments/attachments). Dragging a card appends it to the target
-  column. No external drag-and-drop library is used.
+  drag-and-drop insertion and column jump tabs. All data is local mock state.
 -->
 <script lang="ts">
 	import Plus from '@lucide/svelte/icons/plus';
@@ -21,28 +18,11 @@
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Badge } from '$lib/core/components/ui/badge';
+	import * as Tabs from '$lib/core/components/ui/tabs';
 	import { cn } from '$lib/core/utils';
 	import { initials } from '$lib/core/utils/formatters';
 	import { t } from '$lib/i18n';
-
-	type Priority = 'low' | 'medium' | 'high';
-
-	interface Task {
-		id: string;
-		title: string;
-		description?: string;
-		priority: Priority;
-		label: string;
-		assignee: string;
-		comments: number;
-		attachments: number;
-	}
-
-	interface Column {
-		id: string;
-		title: string;
-		tasks: Task[];
-	}
+	import { moveTask, type Column, type Priority, type Task } from './board';
 
 	// Map a task priority to a shared StatusBadge tone (see StatusBadge).
 	const PRIORITY_TONE: Record<Priority, BadgeTone> = {
@@ -211,58 +191,59 @@
 	const totalTasks = $derived(columns.reduce((sum, col) => sum + col.tasks.length, 0));
 
 	// --- Native HTML5 drag-and-drop state ---
-	// The card currently being dragged and where it came from.
 	let dragging = $state<{ taskId: string; fromColumn: string } | null>(null);
-	// The column the pointer is hovering over (for the drop-zone ring).
-	let dragOverColumn = $state<string | null>(null);
+	let dropTarget = $state<{ columnId: string; index: number } | null>(null);
+	let activeColumnId = $state('backlog');
 
-	function onDragStart(taskId: string, fromColumn: string): void {
+	function jumpToColumn(columnId: string): void {
+		activeColumnId = columnId;
+		document
+			.getElementById(`kanban-${columnId}`)
+			?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+	}
+
+	function onDragStart(event: DragEvent, taskId: string, fromColumn: string): void {
 		dragging = { taskId, fromColumn };
+		if (event.dataTransfer) {
+			event.dataTransfer.effectAllowed = 'move';
+			event.dataTransfer.setData('text/plain', taskId);
+		}
 	}
 
 	function onDragEnd(): void {
 		dragging = null;
-		dragOverColumn = null;
+		dropTarget = null;
 	}
 
-	function onDragEnter(columnId: string): void {
-		dragOverColumn = columnId;
-	}
-
-	function onDragLeave(columnId: string): void {
-		// Only clear if we're leaving the column we last entered.
-		if (dragOverColumn === columnId) dragOverColumn = null;
-	}
-
-	// Move the dragged card into `toColumn` (appended), updating state immutably.
-	function onDrop(toColumn: string): void {
-		dragOverColumn = null;
+	function onDragOver(event: DragEvent, columnId: string): void {
 		if (!dragging) return;
-		const { taskId, fromColumn } = dragging;
+		event.preventDefault();
+		if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 
-		if (fromColumn === toColumn) {
-			dragging = null;
-			return;
-		}
-
-		const source = columns.find((c) => c.id === fromColumn);
-		const moved = source?.tasks.find((t) => t.id === taskId);
-		if (!moved) {
-			dragging = null;
-			return;
-		}
-
-		columns = columns.map((col) => {
-			if (col.id === fromColumn) {
-				return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
-			}
-			if (col.id === toColumn) {
-				return { ...col, tasks: [...col.tasks, moved] };
-			}
-			return col;
+		const stack = event.currentTarget as HTMLElement;
+		const cards = Array.from(stack.querySelectorAll<HTMLElement>('[data-task-card]')).filter(
+			(card) => card.dataset.taskId !== dragging?.taskId
+		);
+		const index = cards.findIndex((card) => {
+			const bounds = card.getBoundingClientRect();
+			return event.clientY < bounds.top + bounds.height / 2;
 		});
+		dropTarget = { columnId, index: index === -1 ? cards.length : index };
+		activeColumnId = columnId;
+	}
 
-		dragging = null;
+	function onDrop(event: DragEvent): void {
+		event.preventDefault();
+		if (dragging && dropTarget) {
+			columns = moveTask(
+				columns,
+				dragging.taskId,
+				dragging.fromColumn,
+				dropTarget.columnId,
+				dropTarget.index
+			);
+		}
+		onDragEnd();
 	}
 
 	// Append a fresh mock card to a specific column.
@@ -296,7 +277,7 @@
 </script>
 
 <svelte:head>
-	<title>Board · Admin Starter</title>
+	<title>Kanban · Admin Starter</title>
 </svelte:head>
 
 <PageContainer>
@@ -315,27 +296,43 @@
 		<span>{t('kanban.dragHint')}</span>
 	</div>
 
+	<Tabs.Root value={activeColumnId}>
+		<Tabs.List class="overflow-x-auto no-scrollbar">
+			{#each columns as column (column.id)}
+				<Tabs.Trigger value={column.id} onclick={() => jumpToColumn(column.id)}>
+					{column.title}
+					<Badge variant="secondary" class="tabular-nums">{column.tasks.length}</Badge>
+				</Tabs.Trigger>
+			{/each}
+		</Tabs.List>
+	</Tabs.Root>
+
 	<!-- Horizontally scrollable row of fixed-width columns. -->
-	<div class="-mx-1 flex gap-4 overflow-x-auto px-1 pb-2">
+	<div class="no-scrollbar -mx-1 flex gap-4 overflow-x-auto px-1 pb-2">
 		{#each columns as column (column.id)}
+			{@const dropTasks = column.tasks.filter((task) => task.id !== dragging?.taskId)}
+			{@const insertBeforeId =
+				dropTarget?.columnId === column.id ? dropTasks[dropTarget.index]?.id : undefined}
 			<section
+				id="kanban-{column.id}"
 				class={cn(
-					'flex w-72 shrink-0 flex-col rounded-lg border border-border bg-muted/40 transition-colors',
-					dragOverColumn === column.id && 'ring-2 ring-primary/40'
+					'flex w-72 shrink-0 flex-col rounded-lg border border-border bg-muted/40 transition-all',
+					activeColumnId === column.id && 'border-primary/50 bg-primary/10 shadow-sm',
+					dropTarget?.columnId === column.id && 'ring-2 ring-primary/40'
 				)}
-				role="list"
 				aria-label={column.title}
-				ondragover={(e) => e.preventDefault()}
-				ondragenter={() => onDragEnter(column.id)}
-				ondragleave={() => onDragLeave(column.id)}
-				ondrop={() => onDrop(column.id)}
 			>
 				<!-- Column header: title + count badge + add button -->
 				<header class="flex items-center justify-between gap-2 px-3 py-2.5">
-					<div class="flex items-center gap-2">
+					<button
+						type="button"
+						class="flex min-w-0 flex-1 items-center gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						onclick={() => jumpToColumn(column.id)}
+						aria-label="Select {column.title} board"
+					>
 						<h2 class="text-sm font-semibold text-foreground">{column.title}</h2>
 						<Badge variant="secondary" class="tabular-nums">{column.tasks.length}</Badge>
-					</div>
+					</button>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -348,13 +345,26 @@
 				</header>
 
 				<!-- Task stack -->
-				<div class="flex flex-1 flex-col gap-2.5 px-2.5 pb-3">
+				<div
+					class="flex min-h-20 flex-1 flex-col gap-2.5 px-2.5 pb-3"
+					role="list"
+					ondragover={(event) => onDragOver(event, column.id)}
+					ondrop={onDrop}
+				>
 					{#each column.tasks as task (task.id)}
+						{#if insertBeforeId === task.id}
+							<div
+								class="h-24 shrink-0 rounded-lg border-2 border-dashed border-primary/50 bg-primary/10 opacity-70"
+								aria-hidden="true"
+							></div>
+						{/if}
 						{@const PriorityIcon = PRIORITY_ICON[task.priority]}
 						<Card.Root
+							data-task-card
+							data-task-id={task.id}
 							role="listitem"
 							draggable="true"
-							ondragstart={() => onDragStart(task.id, column.id)}
+							ondragstart={(event) => onDragStart(event, task.id, column.id)}
 							ondragend={onDragEnd}
 							class={cn(
 								'cursor-grab gap-0 rounded-lg border-border py-0 shadow-sm transition active:cursor-grabbing hover:border-primary/40 hover:shadow-md',
@@ -409,8 +419,14 @@
 							</div>
 						</Card.Root>
 					{/each}
+					{#if dropTarget?.columnId === column.id && dropTarget.index === dropTasks.length}
+						<div
+							class="h-24 shrink-0 rounded-lg border-2 border-dashed border-primary/50 bg-primary/10 opacity-70"
+							aria-hidden="true"
+						></div>
+					{/if}
 
-					{#if column.tasks.length === 0}
+					{#if column.tasks.length === 0 && !dragging}
 						<button
 							type="button"
 							onclick={() => addTask(column.id)}

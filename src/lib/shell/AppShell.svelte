@@ -3,7 +3,6 @@
 	import type { Snippet } from 'svelte';
 	import type { Pathname } from '$app/types';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import * as Sidebar from '$lib/core/components/ui/sidebar';
 	import { config } from '$lib/config';
@@ -28,7 +27,7 @@
 			const fallbackPath = (queryAt === -1 ? fallback : fallback.slice(0, queryAt)) as Pathname;
 			const search = queryAt === -1 ? '' : fallback.slice(queryAt);
 			// eslint-disable-next-line svelte/no-navigation-without-resolve
-			await goto(`${resolve(fallbackPath)}${search}`, { replaceState: true });
+			await goto(`${fallbackPath}${search}`, { replaceState: true });
 		});
 	}
 

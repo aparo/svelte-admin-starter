@@ -22,12 +22,12 @@ export default {
 		name: 'Name',
 		saving: 'Saving...',
 		createFailed: 'Failed to create',
+		openInNewTab: 'Open in new tab',
 		tabLimitTitle: 'Many tabs open',
 		tabLimitDescription: 'You have {count} tabs open. Opening more may affect performance.',
 		forceContinue: 'Continue anyway',
 		actions: 'Actions',
-		searchPlaceholder: 'Search...',
-		openInNewTab: 'Open in new tab'
+		searchPlaceholder: 'Search...'
 	},
 	tabs: {
 		open: 'Open',
@@ -114,6 +114,7 @@ export default {
 		selectHour: 'Select hour',
 		selectMinute: 'Select minute',
 		date: 'Date',
+		dateRange: 'Date range',
 		time: 'Time',
 		hour: 'Hour',
 		minute: 'Minute',
@@ -121,7 +122,10 @@ export default {
 		pm: 'PM',
 		now: 'Now',
 		clear: 'Clear',
-		apply: 'Apply'
+		apply: 'Apply',
+		close: 'Close',
+		pickDateRange: 'Pick a date range',
+		selectDateRange: 'Select date range'
 	},
 	auth: {
 		signIn: 'Sign in',

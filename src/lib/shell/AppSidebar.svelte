@@ -1,6 +1,7 @@
 <!-- Admin sidebar: brand header, grouped nav with active highlighting, user footer dropdown. -->
 <script lang="ts">
 	import type { Pathname } from '$app/types';
+	/* eslint-disable svelte/no-navigation-without-resolve -- typed nav paths are already validated by SvelteKit. */
 	import { mergeProps } from 'bits-ui';
 	import * as Sidebar from '$lib/core/components/ui/sidebar';
 	import { useSidebar } from '$lib/core/components/ui/sidebar';
@@ -12,7 +13,7 @@
 	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth';
 	import { initials } from '$lib/core/utils/formatters';
-	import { navGroups } from './nav';
+	import { findNavItem, navGroups } from './nav';
 	import { tabs } from './tabs.svelte';
 	import { logoutDialog } from './logout-dialog.svelte';
 	import { config } from '$lib/config';
@@ -26,6 +27,7 @@
 	const sidebar = useSidebar();
 	const user = $derived(auth.user);
 	const pathname = $derived(page.url.pathname);
+	const homeTitle = t(findNavItem(config.app.homePath)?.item.titleKey ?? 'nav.dashboard');
 
 	function isActive(href: string): boolean {
 		return pathname === href || pathname.startsWith(href + '/');
@@ -45,7 +47,7 @@
 	// Right-click → open a second, independent tab for the same route.
 	async function openInNewTab(href: Pathname): Promise<void> {
 		if (!(await tabs.openNew(href))) return;
-		if (href !== page.url.pathname) await goto(resolve(href));
+		if (href !== page.url.pathname) await goto(href);
 	}
 </script>
 
@@ -55,7 +57,7 @@
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton size="lg">
 					{#snippet child({ props })}
-						<a href={resolve('/dashboard')} onclick={handleNavClick} {...props}>
+						<a href={resolve(config.app.homePath)} onclick={handleNavClick} {...props}>
 							<div
 								class="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg text-base font-semibold"
 							>
@@ -63,7 +65,7 @@
 							</div>
 							<div class="grid flex-1 text-left text-sm leading-tight">
 								<span class="truncate font-semibold">{config.app.name}</span>
-								<span class="text-muted-foreground truncate text-xs">{t('sidebar.subtitle')}</span>
+								<span class="text-sidebar-foreground/80 truncate text-xs">{homeTitle}</span>
 							</div>
 						</a>
 					{/snippet}
@@ -85,13 +87,13 @@
 										<Sidebar.MenuButton
 											isActive={isActive(item.href)}
 											tooltipContent={t(item.titleKey)}
-											class="relative transition-colors data-active:text-sidebar-primary data-active:before:absolute data-active:before:inset-y-1.5 data-active:before:left-0 data-active:before:w-0.5 data-active:before:rounded-full data-active:before:bg-sidebar-primary data-active:before:content-['']"
+											class="relative pl-3 transition-colors data-active:text-sidebar-primary data-active:before:absolute data-active:before:inset-y-1.5 data-active:before:left-0 data-active:before:w-0.5 data-active:before:rounded-full data-active:before:bg-sidebar-primary data-active:before:content-['']"
 										>
 											{#snippet child({ props })}
 												<!-- mergeProps so the context-menu trigger props (oncontextmenu)
 												     compose with the button's class/data-active, not clobber them. -->
 												<a
-													href={resolve(item.href)}
+													href={item.href}
 													onclick={handleNavClick}
 													{...mergeProps(props, ctxProps)}
 												>
@@ -139,8 +141,10 @@
 									</Avatar.Fallback>
 								</Avatar.Root>
 								<div class="grid flex-1 text-left text-sm leading-tight">
-									<span class="truncate font-semibold">{user?.name ?? t('sidebar.profile')}</span>
-									<span class="text-muted-foreground truncate text-xs capitalize">
+									<span class="truncate font-semibold">{user?.name ?? 'Guest'}</span>
+									<span
+										class="text-sidebar-foreground/80 dark:text-muted-foreground truncate text-xs capitalize"
+									>
 										{user?.role ?? ''}
 									</span>
 								</div>

@@ -4,9 +4,9 @@
   scrollable tabs on mobile). The active link is derived from the current path.
 -->
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve -- typed settings paths are already validated by SvelteKit. */
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/state';
-	import { resolve } from '$app/paths';
 	import type { Pathname } from '$app/types';
 	import { PageContainer, PageHeader } from '$lib/components/shared';
 	import { cn } from '$lib/core/utils';
@@ -55,7 +55,7 @@
 			{#each navItems as item (item.href)}
 				{@const active = isActive(item.href)}
 				<a
-					href={resolve(item.href)}
+					href={item.href}
 					aria-current={active ? 'page' : undefined}
 					class={cn(
 						'inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',

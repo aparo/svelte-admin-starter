@@ -26,22 +26,22 @@
 
 这是一个开箱即用的管理后台模板：包含登录/注册/找回密码页、带可折叠侧边栏的应用外壳（app shell）、面包屑、命令面板（⌘K）、通知菜单、主题切换、中英双语、状态感知的错误页，以及一组示例页面：Dashboard、Users（含 `users/[id]` 用户详情页）、Tables、Forms、Calendar、Inbox、Board（kanban）、Sales Orders、Cart、Components、Charts、Pricing、Billing、Profile、Settings。所有数据来自 `src/lib/data/`，鉴权来自 `src/lib/auth/`，均为 mock，便于直接替换为真实后端。
 
-### 技术栈（版本取自 `package.json`）
+### 技术栈（版本以 `package.json` 为准）
 
-| 技术            | 包名                                            | 版本                 | 说明                                                        |
-| --------------- | ----------------------------------------------- | -------------------- | ----------------------------------------------------------- |
-| SvelteKit 2     | `@sveltejs/kit`                                 | `^2.50.1`            | 应用框架、路由、SSR                                         |
-| Svelte 5        | `svelte`                                        | `^5.48.2`            | 组件框架，使用 runes（`$state`/`$derived`/`$props` 等）     |
-| Tailwind CSS v4 | `tailwindcss` / `@tailwindcss/vite`             | `^4.1.18`            | 原子化 CSS，通过 Vite 插件接入（无 `tailwind.config.js`）   |
-| shadcn-svelte   | （源码内置，registry: `shadcn-svelte.com`）     | —                    | UI 组件以源码形式 vendored 在 `src/lib/core/components/ui/` |
-| bits-ui         | `bits-ui`                                       | `^2.18.1`            | shadcn-svelte 底层无样式原语                                |
-| Lucide 图标     | `@lucide/svelte`                                | `^1.17.0`            | 图标库，按 `@lucide/svelte/icons/<kebab>` 单独导入          |
-| 主题切换        | `mode-watcher`                                  | `^1.1.0`             | light/dark/system 模式管理                                  |
-| Toast 通知      | `svelte-sonner`                                 | `^1.0.7`             | toast 提示                                                  |
-| 图表            | `layerchart`                                    | `^2.0.0-next.48`     | 图表库（部分页面用纯 SVG + 设计 token 手绘）                |
-| 表单校验        | `zod`                                           | `^3.25.76`           | schema 校验                                                 |
-| 表单增强        | `sveltekit-superforms` / `formsnap`             | `^2.30.1` / `^2.0.1` | 表单状态/绑定（可选使用）                                   |
-| 类名合并        | `clsx` / `tailwind-merge` / `tailwind-variants` | —                    | `cn()` 工具的底层依赖                                       |
+| 技术            | 包名                                            | 版本                | 说明                                                        |
+| --------------- | ----------------------------------------------- | ------------------- | ----------------------------------------------------------- |
+| SvelteKit 2     | `@sveltejs/kit`                                 | `^2.70.2`           | 应用框架、路由、SSR                                         |
+| Svelte 5        | `svelte`                                        | `^5.56.8`           | 组件框架，使用 runes（`$state`/`$derived`/`$props` 等）     |
+| Tailwind CSS v4 | `tailwindcss` / `@tailwindcss/vite`             | `^4.3.3`            | 原子化 CSS，通过 Vite 插件接入（无 `tailwind.config.js`）   |
+| shadcn-svelte   | （源码内置，registry: `shadcn-svelte.com`）     | —                   | UI 组件以源码形式 vendored 在 `src/lib/core/components/ui/` |
+| bits-ui         | `bits-ui`                                       | `^2.18.1`           | shadcn-svelte 底层无样式原语                                |
+| Lucide 图标     | `@lucide/svelte`                                | `^1.28.0`           | 图标库，按 `@lucide/svelte/icons/<kebab>` 单独导入          |
+| 主题切换        | `mode-watcher`                                  | `^1.1.0`            | light/dark/system 模式管理                                  |
+| Toast 通知      | `svelte-sonner`                                 | `^1.0.7`            | toast 提示                                                  |
+| 图表            | `layerchart`                                    | `^2.0.0-next.48`    | 图表库（部分页面用纯 SVG + 设计 token 手绘）                |
+| 表单校验        | `zod`                                           | `^4.4.3`            | schema 校验                                                 |
+| 表单增强        | `sveltekit-superforms` / `formsnap`             | `^2.0.1` / `^2.0.1` | 表单状态/绑定（可选使用）                                   |
+| 类名合并        | `clsx` / `tailwind-merge` / `tailwind-variants` | —                   | `cn()` 工具的底层依赖                                       |
 
 其它：`@internationalized/date`（calendar）、`embla-carousel-svelte`（carousel）、`paneforge`（resizable）、`vaul-svelte`（drawer）、`date-fns`、`tw-animate-css`。
 
@@ -53,7 +53,7 @@ TypeScript `strict: true`，并对 `.js`/`.svelte` 同样开启类型检查（`t
 
 ### 前置要求
 
-- **Node.js**：要求 `^20.19.0 || >=22.12.0`（SvelteKit 2 / Vite 7 的最低版本）。`package.json` 已声明该 `engines` 字段，且 `.npmrc` 设置了 `engine-strict=true`，因此不满足版本要求的环境会在 `npm install` 时被拦截。请使用 Node 20.19+ 或 22.12+（推荐最新 LTS）。
+- **Node.js**：要求 `^20.19.0 || >=22.12.0`（以项目声明及安装检查为准）。`package.json` 已声明该 `engines` 字段，且 `.npmrc` 设置了 `engine-strict=true`，因此不满足版本要求的环境会在 `npm install` 时被拦截。请使用 Node 20.19+ 或 22.12+（推荐最新 LTS）。
 - **包管理器**：npm（仓库提供 `package-lock.json`）。
 
 ### 安装与启动
@@ -63,7 +63,7 @@ npm install      # 安装依赖（postinstall 会自动跑 svelte-kit sync）
 npm run dev      # 启动开发服务器（Vite），默认 http://localhost:5173
 ```
 
-打开浏览器后访问 `/`，会被重定向到 `/dashboard`；未登录时进一步被守卫重定向到 `/login`。
+打开浏览器后访问 `/`，会被重定向到 `config.app.homePath`（默认 `/dashboard`）；未登录时进一步被守卫重定向到 `/login`。
 
 ### 默认登录
 
@@ -78,30 +78,18 @@ npm run dev      # 启动开发服务器（Vite），默认 http://localhost:517
 
 ## 3. npm scripts 说明
 
-以下命令逐字摘自 `package.json` 的 `scripts`：
+命令定义以 `package.json` 为准；日常任务的验证范围见 [AGENTS.md](../AGENTS.md)。
 
-```jsonc
-{
-	"dev": "vite dev",
-	"build": "vite build",
-	"preview": "vite preview",
-	"prepare": "svelte-kit sync || echo ''",
-	"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-	"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-	"lint": "prettier --check . && eslint .",
-	"format": "prettier --write ."
-}
-```
-
-| 命令                  | 作用                                                                |
-| --------------------- | ------------------------------------------------------------------- |
-| `npm run dev`         | 启动 Vite 开发服务器（HMR）                                         |
-| `npm run build`       | 生产构建（输出由 adapter 决定，默认 `adapter-auto`）                |
-| `npm run preview`     | 本地预览生产构建产物                                                |
-| `npm run check`       | 先 `svelte-kit sync` 生成类型，再用 `svelte-check` 做一次性类型检查 |
-| `npm run check:watch` | 同上，watch 模式                                                    |
-| `npm run lint`        | Prettier 检查格式 + ESLint 检查代码（不修改文件）                   |
-| `npm run format`      | Prettier 自动格式化全仓库                                           |
+| 命令                                    | 作用                                       |
+| --------------------------------------- | ------------------------------------------ |
+| `npm run dev`                           | 启动 Vite 开发服务器                       |
+| `npm run build` / `npm run preview`     | 生产构建 / 本地预览                        |
+| `npm run check` / `npm run check:watch` | Svelte 与 TypeScript 检查 / 持续检查       |
+| `npm run lint`                          | Prettier 与 ESLint 检查                    |
+| `npm test`                              | Vitest 测试                                |
+| `npm run check:export`                  | portable-core 导出契约检查                 |
+| `npm run verify`                        | PR、完整发布和 CI 共用的完整验证入口       |
+| `npm run format`                        | 格式化全仓库；小改动优先仅格式化受影响文件 |
 
 > `prepare` 是 npm 生命周期钩子，`npm install` 后自动执行 `svelte-kit sync`（生成 `.svelte-kit/` 下的类型与 `$lib`/`$app` 别名），通常无需手动调用。
 
@@ -123,10 +111,10 @@ src/
 │   ├── +layout.svelte       # 根布局：挂载样式、ModeWatcher、Toaster，恢复 session + locale
 │   ├── +layout.ts           # 根布局配置：ssr=true, prerender=false
 │   ├── +page.svelte         # 首页（仅在 redirect 前短暂闪现一个 Spinner）
-│   ├── +page.ts             # load() 重定向到 /dashboard
+│   ├── +page.ts             # load() 重定向到 config.app.homePath
 │   ├── +error.svelte        # 全局错误边界：状态感知（404/403/5xx），无 shell 的品牌全屏页
 │   ├── (auth)/              # 鉴权 route group：登录/注册/找回密码（无 shell）
-│   │   ├── +layout.svelte   # 居中卡片画布；已登录则跳转 /dashboard
+│   │   ├── +layout.svelte   # 居中卡片画布；已登录则跳转 config.app.homePath
 │   │   ├── login/+page.svelte
 │   │   ├── register/+page.svelte
 │   │   └── forgot-password/+page.svelte
@@ -212,6 +200,9 @@ src/
         ├── dashboard.ts     #   stats / revenueSeries / recentActivity / trafficByChannel
         ├── products.ts
         └── users.ts
+
+templates/
+└── pages/                   # list/form/detail/dashboard/settings 的复制式页面骨架（不参与运行时）
 ```
 
 各层职责约定：
@@ -430,7 +421,9 @@ onMount(() => {
 
 ### 7.1 新增一个 `(app)` 页面
 
-在 `src/routes/(app)/` 下新建目录与 `+page.svelte`，自动受守卫保护并套用 AppShell。推荐用 `PageContainer` + `PageHeader` 保持版式一致：
+先从 `templates/pages/` 选择最接近的 `list`、`form`、`detail`、`dashboard` 或 `settings` 骨架，将其中的 `+page.svelte` 复制到 `src/routes/(app)/<name>/`，再替换占位内容和接入真实业务。生成后的页面归路由自身维护，不要从 `templates/` 运行时导入，也无需与模板保持同步。应用内的 `/templates/*` 路由用于预览这些布局；组件能力则集中在 `/components`、`/icons` 与 `/charts`。
+
+例如，简单页面可以从 list 骨架开始，并用 `PageContainer` + `PageHeader` 保持版式一致：
 
 ```svelte
 <!-- src/routes/(app)/reports/+page.svelte -->
@@ -461,25 +454,21 @@ onMount(() => {
 `PageHeader` 的 props（来自 `PageHeader.svelte`）：`title: string`、`description?: string`、`actions?: Snippet`、`class?: string`。
 `PageContainer` 的 props：`children: Snippet`、`class?: string`（统一 `max-w-7xl` + 响应式 padding + `space-y-6`）。
 
-> 动态路由（如 `users/[id]`）若想让叶子面包屑显示友好标签而非原始 id 段，可加一个 `+page.ts`，让其 `load` 返回 `{ breadcrumb: '...' }`（见 7.6）。
+> 动态路由（如 `users/[id]`）若想让叶子面包屑显示友好标签而非原始 id 段，可加一个 `+page.ts`，让其 `load` 返回 `{ breadcrumb: '...' }`（见 7.7）。
 
 ### 7.2 在侧边栏新增导航项
 
-导航是数据驱动的——编辑 `src/lib/shell/nav.ts`，往对应 `NavGroup` 的 `items` 里加一条 `NavItem`。`AppSidebar.svelte` 会自动按 `navGroups` 渲染并高亮当前路由。
+导航是数据驱动的——编辑 `src/lib/shell/nav.ts`，往对应 `NavGroup` 的 `items` 里加一条 `NavItem`。`AppSidebar.svelte` 会自动按 `navGroups` 渲染并高亮当前路由；若对应 `+page.svelte` 被删除，该条目及空分组会自动隐藏。
 
-当前 `navGroups`（顺序与条目均取自 `nav.ts`）：
-
-| 分组           | 条目（title → href）                                        |
-| -------------- | ----------------------------------------------------------- |
-| **Overview**   | Dashboard → `/dashboard`                                    |
-| **Management** | Users → `/users`，Tables → `/tables`，Forms → `/forms`      |
-| **Apps**       | Calendar → `/calendar`，Inbox → `/inbox`，Board → `/kanban` |
-| **Commerce**   | Sales Orders → `/orders`，Cart → `/cart`                    |
-| **Showcase**   | Components → `/components`，Charts → `/charts`              |
-| **Billing**    | Pricing → `/pricing`，Billing → `/billing`                  |
-| **Account**    | Profile → `/profile`，Settings → `/settings`                |
+当前分组为 Overview、Applications、Component Gallery、Data Tables、Page Templates 与 Account；具体条目和顺序以 `nav.ts` 为准。
 
 > `users/[id]` 没有自己的导航项——它由 Users 列表里点击姓名进入；活动态由 `findNavItem()` 按「最长 href 前缀」匹配回落到 `/users`。
+
+### 7.3 安全裁剪示例页面
+
+裁剪示例页时保留仍需使用的应用基础设施：`src/routes/+*`、`src/routes/(app)/+*`、`src/lib/core/`、`src/lib/shell/`、`src/lib/config/`，以及仍被业务引用的 auth、i18n 与共享组件。`src/routes/(app)/<feature>/` 下的示例或功能路由可按需删除，侧边栏和命令菜单会自动忽略已删除路由。
+
+删除当前首页前，先把 `src/lib/config/index.ts` 的 `config.app.homePath` 改到另一个存在的 `(app)` 路由。`src/routes/(app)/templates/`、`src/routes/(app)/tables/` 等展示页均可删除；`templates/pages/` 只在需要复制式页面骨架时保留。裁剪后按 [AGENTS.md](../AGENTS.md) 验证路由、构建和受影响行为。
 
 类型定义（来自 `nav.ts`）：
 
@@ -516,7 +505,7 @@ export interface NavGroup {
 
 `badge` 可选；活动态由 `findNavItem()` / `isActive()` 按「最长 href 前缀」匹配，无需手动处理。
 
-### 7.3 新增一个 shadcn 组件
+### 7.4 新增一个 shadcn 组件
 
 UI 原语以源码形式存放在 `src/lib/core/components/ui/`。用 CLI 增量添加（配置已在 `components.json` 中就绪，registry 指向 `https://shadcn-svelte.com/registry`）：
 
@@ -528,7 +517,7 @@ npx shadcn-svelte@latest add data-table
 
 CLI 会按 `components.json` 的别名（`ui` → `$lib/core/components/ui`，`utils` → `$lib/core/utils`，`hooks` → `$lib/core/hooks`）把组件源码写入项目；之后即可 `import * as <Name> from '$lib/core/components/ui/<name>';`。注意：基础色为 `slate`，CSS 入口为 `src/lib/core/theme.css`。
 
-### 7.4 使用 toast（svelte-sonner）
+### 7.5 使用 toast（svelte-sonner）
 
 `Toaster` 已在根布局挂载（`richColors`、`position="top-right"`），页面里直接从 `svelte-sonner` 导入 `toast` 调用即可：
 
@@ -542,7 +531,7 @@ toast.success(next ? 'Compact density enabled' : 'Comfortable density enabled');
 
 （示例分别取自 `login/+page.svelte` 与 `settings/appearance/+page.svelte`。）
 
-### 7.5 使用 i18n `t()` 与新增文案
+### 7.6 使用 i18n `t()` 与新增文案
 
 在组件里导入并调用 `t()`，key 为 dot-path，支持 `{var}` 插值：
 
@@ -564,7 +553,7 @@ nav: { /* ... */, reports: '报表' }
 
 > 查找逻辑：先查当前 locale，未命中回退 `en`，再未命中则原样返回 key。所以漏翻译不会崩溃，但会显示英文或 key 本身。
 
-### 7.6 为动态路由覆写面包屑标签
+### 7.7 为动态路由覆写面包屑标签
 
 面包屑由 `src/lib/shell/Breadcrumbs.svelte` 根据当前路径 + 导航模型自动生成；动态段（如 `[id]`）默认会显示原始 id。要让叶子面包屑显示友好标签，在该路由下加一个 `+page.ts`，让其 `load` 返回 `{ breadcrumb: '...' }`：
 
@@ -609,7 +598,7 @@ export interface User {
 }
 ```
 
-守卫位置：`(app)/+layout.svelte`（未登录跳 `/login`）与 `(auth)/+layout.svelte`（已登录跳 `/dashboard`），都在客户端 `onMount` 调 `auth.init()` 后判断。
+守卫位置：`(app)/+layout.svelte`（未登录跳 `/login`）与 `(auth)/+layout.svelte`（已登录跳 `config.app.homePath`），都在客户端 `onMount` 调 `auth.init()` 后判断。
 
 ### 如何接入真实后端
 
@@ -621,7 +610,7 @@ export interface User {
 | `AuthProvider`       | `src/lib/auth/provider.ts` | 「怎么认证」——login / register / logout 的实现                                  |
 | `db`                 | `src/lib/server/db.ts`     | 「数据从哪来」——仅服务端，业务页面经 `+page.server.ts` 的 `load` 读取           |
 
-> 命名上刻意把「地址」与「策略」分开：`config.api.baseUrl` 被 auth 与数据层**共用**；`config.auth` 只放认证策略（session key、跳转、密码规则、demo 凭据）。
+> 命名上刻意把「地址」与「策略」分开：`config.api.baseUrl` 被 auth 与数据层**共用**；`config.app.homePath` 统一应用首页；`config.auth` 只放认证策略（session key、登出跳转、密码规则、demo 凭据）。
 
 1. **配置后端地址**：把 `config.api.baseUrl` 指向你的 API。生产环境通常从环境变量取，而非硬编码——例如 `import { env } from '$env/dynamic/public'` 后 `baseUrl: env.PUBLIC_API_URL ?? ''`（`PUBLIC_` 前缀的变量可在客户端读取，定义在 `.env`）。`baseUrl` 一旦非空，`provider.ts` 与 `db.ts` 内置的分支就自动走真实 `fetch`，无须改其它代码。
 

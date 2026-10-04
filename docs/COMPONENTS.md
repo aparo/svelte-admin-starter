@@ -43,6 +43,8 @@
 只注入导航、翻译、认证和 SvelteKit 状态。依赖方向保持单向：应用 shell 依赖 portable shell，
 portable shell 依赖 core 的 shared 与 ui，core 不依赖应用层。
 
+项目不设独立「组件模板」层。仅调整尺寸、样式、文案或局部结构时，优先使用现有组件的 props、snippets 与 variants；一次性组合留在业务页面，只有同一产品行为在多个页面重复出现时，才提升到 `src/lib/components/shared/`。页面骨架另放在 `templates/pages/`，只用于复制生成，不参与运行时依赖；`/components`、`/icons`、`/charts` 只展示组件，`/templates/*` 则专门预览页面布局。
+
 ---
 
 ## 2. UI 原子组件 (shadcn-svelte)

@@ -95,18 +95,18 @@ token 在 `src/lib/core/theme.css` 中分两步声明：
 
 ### 2.2 Sidebar token
 
-侧边栏拥有独立的一组 token，以便在视觉上与主内容区轻微区分：亮色下是一块略带冷调的浅灰面板（区别于纯白内容卡片），暗色下比 `background` / `card` 更深一档（`oklch(0.185 …)`），形成一个微微凹陷的导航区。
+日间侧栏使用蓝色背景、浅色文字和更深的悬停/激活背景；夜间保留深灰配色。桌面、折叠侧栏与移动端抽屉共用这些 token。侧栏次要文字使用 `text-sidebar-foreground/80`，避免页面灰色文字在蓝底上对比不足。
 
-| token                        | 用途              | Light (`:root`)                | Dark (`.dark`)               | Tailwind 类                       |
-| ---------------------------- | ----------------- | ------------------------------ | ---------------------------- | --------------------------------- |
-| `sidebar`                    | 侧栏背景          | `oklch(0.985 0.004 269)`       | `oklch(0.185 0.009 269)`     | `bg-sidebar`                      |
-| `sidebar-foreground`         | 侧栏文字          | `oklch(0.32 0.02 269)`         | `oklch(0.86 0.01 269)`       | `text-sidebar-foreground`         |
-| `sidebar-primary`            | 侧栏激活项主色    | `oklch(0.545 0.205 269)`       | `oklch(0.62 0.19 269)`       | `bg-sidebar-primary`              |
-| `sidebar-primary-foreground` | 侧栏激活项文字    | `oklch(0.985 0.002 269)`       | `oklch(0.99 0.003 269)`      | `text-sidebar-primary-foreground` |
-| `sidebar-accent`             | 侧栏悬停/选中高亮 | `oklch(0.94 0.018 269)`        | `oklch(0.28 0.025 269)`      | `bg-sidebar-accent`               |
-| `sidebar-accent-foreground`  | 侧栏高亮项文字    | `oklch(0.42 0.16 269)`         | `oklch(0.92 0.02 269)`       | `text-sidebar-accent-foreground`  |
-| `sidebar-border`             | 侧栏边框/分隔     | `oklch(0.925 0.006 269)`       | `oklch(1 0 0 / 7%)`          | `border-sidebar-border`           |
-| `sidebar-ring`               | 侧栏内 focus ring | `oklch(0.545 0.205 269 / 50%)` | `oklch(0.62 0.19 269 / 55%)` | `ring-sidebar-ring`               |
+| token                        | Light (`:root`)             | Dark (`.dark`)               |
+| ---------------------------- | --------------------------- | ---------------------------- |
+| `sidebar`                    | `oklch(0.42 0.16 255)`      | `oklch(0.185 0.009 269)`     |
+| `sidebar-foreground`         | `oklch(0.97 0.01 255)`      | `oklch(0.86 0.01 269)`       |
+| `sidebar-primary`            | `oklch(0.94 0.04 245)`      | `oklch(0.62 0.19 269)`       |
+| `sidebar-primary-foreground` | `oklch(0.3 0.13 255)`       | `oklch(0.99 0.003 269)`      |
+| `sidebar-accent`             | `oklch(0.35 0.14 255)`      | `oklch(0.28 0.025 269)`      |
+| `sidebar-accent-foreground`  | `oklch(0.99 0.005 255)`     | `oklch(0.92 0.02 269)`       |
+| `sidebar-border`             | `oklch(0.68 0.1 255 / 45%)` | `oklch(1 0 0 / 7%)`          |
+| `sidebar-ring`               | `oklch(0.82 0.1 245 / 65%)` | `oklch(0.62 0.19 269 / 55%)` |
 
 ### 2.3 Chart token
 
