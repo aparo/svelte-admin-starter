@@ -26,6 +26,7 @@
 		minValue?: DateValue;
 		maxValue?: DateValue;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound range. */
 		required?: boolean;
 		clearable?: boolean;
 		class?: string;

@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 
 	const item = { name: 'Item name', description: 'Item description' };
 </script>
-
-<svelte:head><title>{item.name} · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader title={item.name} description={item.description} />

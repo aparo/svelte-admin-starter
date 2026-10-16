@@ -6,12 +6,7 @@
 	import { i18n, t } from '$lib/i18n';
 	import ClockIcon from '@lucide/svelte/icons/clock-3';
 	import XIcon from '@lucide/svelte/icons/x';
-	import {
-		currentTimeValue,
-		formatTimeForDisplay,
-		formatTimeValue,
-		parseTimeValue
-	} from './date-time-utils';
+	import { formatTimeForDisplay, formatTimeValue, parseTimeValue } from './date-time-utils';
 
 	type ClockView = 'hour' | 'minute';
 	type Period = 'AM' | 'PM';
@@ -25,6 +20,7 @@
 		locale?: string;
 		hour12?: boolean;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound value. */
 		required?: boolean;
 		clearable?: boolean;
 		class?: string;
@@ -75,7 +71,8 @@
 
 	$effect(() => {
 		if (!open) return;
-		const parsed = parseTimeValue(value || currentTimeValue())!;
+		const now = new Date();
+		const parsed = parseTimeValue(value) ?? { hour: now.getHours(), minute: now.getMinutes() };
 		draftHour = parsed.hour;
 		draftMinute = parsed.minute;
 		view = 'hour';

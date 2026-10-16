@@ -10,6 +10,9 @@
 	import type { Pathname } from '$app/types';
 	import * as Command from '$lib/core/components/ui/command';
 	import { navGroups } from '$lib/shell/nav';
+	import { navGroupLabel, navTitle } from '$lib/shell/labels';
+	import { resolveAppUrl } from '$lib/shell/paths';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		open?: boolean;
@@ -19,8 +22,9 @@
 
 	function runCommand(href: Pathname) {
 		open = false;
+		// The shared boundary calls $app/paths.resolve and preserves app-relative URLs.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(href);
+		void goto(resolveAppUrl(href));
 	}
 
 	function onKeydown(event: KeyboardEvent) {
@@ -36,20 +40,20 @@
 	});
 </script>
 
-<Command.Dialog bind:open title="Command Menu" description="Search and jump to a page">
-	<Command.Input placeholder="Type a command or search..." />
+<Command.Dialog bind:open title={t('command.title')} description={t('command.description')}>
+	<Command.Input placeholder={t('command.placeholder')} />
 	<Command.List>
-		<Command.Empty>No results found.</Command.Empty>
+		<Command.Empty>{t('command.noResults')}</Command.Empty>
 		{#each navGroups as group (group.label)}
-			<Command.Group heading={group.label}>
+			<Command.Group heading={navGroupLabel(group)}>
 				{#each group.items as item (item.href)}
 					{@const Icon = item.icon}
 					<Command.Item
-						value={`${group.label} ${item.title} ${item.href}`}
+						value={`${navGroupLabel(group)} ${navTitle(item)} ${group.label} ${item.title} ${item.href}`}
 						onSelect={() => runCommand(item.href)}
 					>
 						<Icon class="size-4" aria-hidden="true" />
-						<span>{item.title}</span>
+						<span>{navTitle(item)}</span>
 					</Command.Item>
 				{/each}
 			</Command.Group>

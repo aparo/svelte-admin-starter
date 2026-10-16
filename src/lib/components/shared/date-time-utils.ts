@@ -1,11 +1,17 @@
-import { CalendarDate, type DateValue } from '@internationalized/date';
+import {
+	CalendarDate,
+	Time,
+	toCalendarDate,
+	toCalendarDateTime,
+	type DateValue
+} from '@internationalized/date';
 import type { DateRange } from 'bits-ui';
 
 export type { DateRange } from 'bits-ui';
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_PATTERN = /^(\d{2}):(\d{2})$/;
-const DATE_TIME_PATTERN = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::\d{2})?$/;
+const DATE_TIME_PATTERN = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::([0-5]\d))?$/;
 
 export function parseDateValue(value: string): CalendarDate | undefined {
 	const match = DATE_PATTERN.exec(value);
@@ -34,6 +40,7 @@ export function parseTimeValue(value: string): { hour: number; minute: number } 
 	return { hour, minute };
 }
 
+/** Accept valid optional seconds and normalize to the pickers' minute precision. */
 export function parseDateTimeValue(
 	value: string
 ): { date: CalendarDate; time: string } | undefined {
@@ -47,6 +54,20 @@ export function parseDateTimeValue(
 	return { date, time: formatTimeValue(time.hour, time.minute) };
 }
 
+/** Calendar bounds are inclusive dates, regardless of the value's calendar or time. */
+export function isDateWithinBounds(
+	value: DateValue | undefined,
+	minValue?: DateValue,
+	maxValue?: DateValue
+): boolean {
+	if (!value) return false;
+	const date = toCalendarDate(value);
+	return (
+		(!minValue || date.compare(toCalendarDate(minValue)) >= 0) &&
+		(!maxValue || date.compare(toCalendarDate(maxValue)) <= 0)
+	);
+}
+
 export function formatTimeValue(hour: number, minute: number): string {
 	return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
@@ -56,10 +77,11 @@ export function formatDateForDisplay(value: string, locale: string): string {
 	if (!date) return value;
 
 	return new Intl.DateTimeFormat(locale, {
+		timeZone: 'UTC',
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric'
-	}).format(new Date(date.year, date.month - 1, date.day));
+	}).format(date.toDate('UTC'));
 }
 
 export function formatTimeForDisplay(value: string, locale: string, hour12?: boolean): string {
@@ -79,15 +101,14 @@ export function formatDateTimeForDisplay(value: string, locale: string, hour12?:
 
 	const time = parseTimeValue(parsed.time)!;
 	return new Intl.DateTimeFormat(locale, {
+		timeZone: 'UTC',
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
 		hour: 'numeric',
 		minute: '2-digit',
 		hour12
-	}).format(
-		new Date(parsed.date.year, parsed.date.month - 1, parsed.date.day, time.hour, time.minute)
-	);
+	}).format(toCalendarDateTime(parsed.date, new Time(time.hour, time.minute)).toDate('UTC'));
 }
 
 export function dateValueToString(value: DateValue | undefined): string {
@@ -102,10 +123,11 @@ export function currentTimeValue(): string {
 export function formatDateValueForDisplay(date: DateValue | undefined, locale: string): string {
 	if (!date) return '';
 	return new Intl.DateTimeFormat(locale, {
+		timeZone: 'UTC',
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric'
-	}).format(new Date(date.year, date.month - 1, date.day));
+	}).format(toCalendarDate(date).toDate('UTC'));
 }
 
 export function formatDateRangeForDisplay(

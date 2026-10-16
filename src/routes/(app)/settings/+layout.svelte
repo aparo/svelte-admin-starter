@@ -4,11 +4,16 @@
   scrollable tabs on mobile). The active link is derived from the current path.
 -->
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- typed settings paths are already validated by SvelteKit. */
-	import type { Snippet } from 'svelte';
+	/* eslint-disable svelte/no-navigation-without-resolve -- variable nav URLs use resolveAppUrl's $app/paths boundary. */
+	import { getContext, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import type { Pathname } from '$app/types';
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import { TAB_ROUTE, type TabRoute } from '$lib/core/shell/tab-route';
+	import { resolveAppUrl, toAppPathname } from '$lib/shell/paths';
+	import { translatedLabel } from '$lib/shell/labels';
+	import { t } from '$lib/i18n';
 	import { cn } from '$lib/core/utils';
 	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 	import Palette from '@lucide/svelte/icons/palette';
@@ -20,44 +25,59 @@
 	}
 
 	let { children }: Props = $props();
+	const route = getContext<TabRoute | undefined>(TAB_ROUTE);
+	const pathname = $derived(route?.pathname ?? toAppPathname(page.url.pathname));
 
 	interface SettingsNavItem {
 		title: string;
+		titleKey: string;
 		href: Pathname;
 		icon: Component;
 	}
 
 	const navItems: SettingsNavItem[] = [
-		{ title: 'General', href: '/settings', icon: SlidersHorizontal },
-		{ title: 'Appearance', href: '/settings/appearance', icon: Palette },
-		{ title: 'Notifications', href: '/settings/notifications', icon: Bell }
+		{ title: 'General', titleKey: 'settings.general', href: '/settings', icon: SlidersHorizontal },
+		{
+			title: 'Appearance',
+			titleKey: 'settings.appearance',
+			href: '/settings/appearance',
+			icon: Palette
+		},
+		{
+			title: 'Notifications',
+			titleKey: 'settings.notifications',
+			href: '/settings/notifications',
+			icon: Bell
+		}
 	];
 
 	// Exact match for the index route, prefix match for nested ones so that the
 	// correct tab stays highlighted on every sub-page.
 	function isActive(href: string): boolean {
-		const path = page.url.pathname;
-		if (href === '/settings') return path === href;
-		return path === href || path.startsWith(`${href}/`);
+		if (href === '/settings') return pathname === href;
+		return pathname === href || pathname.startsWith(`${href}/`);
 	}
 </script>
 
 <PageContainer>
 	<PageHeader
-		title="Settings"
-		description="Manage your organization, appearance, and notification preferences."
+		title={t('nav.settings')}
+		description={translatedLabel(
+			'settings.description',
+			'Manage your organization, appearance, and notification preferences.'
+		)}
 	/>
 
 	<div class="flex flex-col gap-6 lg:flex-row lg:gap-10">
 		<!-- Secondary nav: horizontal scroll on mobile, vertical list from sm up. -->
 		<nav
-			aria-label="Settings"
+			aria-label={t('nav.settings')}
 			class="-mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:w-52 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
 		>
 			{#each navItems as item (item.href)}
 				{@const active = isActive(item.href)}
 				<a
-					href={item.href}
+					href={resolveAppUrl(item.href)}
 					aria-current={active ? 'page' : undefined}
 					class={cn(
 						'inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
@@ -66,7 +86,7 @@
 					)}
 				>
 					<item.icon class="size-4" />
-					{item.title}
+					{translatedLabel(item.titleKey, item.title)}
 				</a>
 			{/each}
 		</nav>

@@ -2,6 +2,7 @@
 // and the home route; every operation that can create a tab shares one limit guard.
 import type { Component } from 'svelte';
 import FileIcon from '@lucide/svelte/icons/file';
+import type { TabRoute } from './tab-route';
 
 export interface Tab {
 	id: string;
@@ -11,6 +12,7 @@ export interface Tab {
 	baseTitle: string;
 	icon: Component;
 	data?: unknown;
+	route?: TabRoute;
 	revision: number;
 }
 
@@ -35,6 +37,9 @@ export class Tabs {
 	readonly homePathname: string;
 	readonly softLimit: number;
 	#seq = 0;
+	#generation = 0;
+	#pending = Promise.resolve();
+	#resetController = new AbortController();
 	#describe: TabsOptions['describe'];
 	#confirmOverflow: TabsOptions['confirmOverflow'];
 
@@ -57,15 +62,54 @@ export class Tabs {
 		return !this.atSoftLimit || this.#confirmOverflow(this.softLimit);
 	}
 
-	#update(tab: Tab, data?: unknown, baseTitle?: string): void {
+	// Creation must commit in order: two calls can otherwise both observe a free
+	// slot before their first await. A reset invalidates work already queued.
+	#enqueue<T>(cancelled: T, operation: (generation: number) => Promise<T>): Promise<T> {
+		const generation = this.#generation;
+		const signal = this.#resetController.signal;
+		const result = this.#pending.then(async () => {
+			if (generation !== this.#generation) return cancelled;
+			let cancel!: () => void;
+			const aborted = new Promise<T>((resolve) => {
+				cancel = () => resolve(cancelled);
+				signal.addEventListener('abort', cancel, { once: true });
+			});
+			try {
+				return await Promise.race([operation(generation), aborted]);
+			} finally {
+				signal.removeEventListener('abort', cancel);
+			}
+		});
+		this.#pending = result.then(
+			() => undefined,
+			() => undefined
+		);
+		return result;
+	}
+
+	#focus(url: string, data?: unknown, route?: TabRoute | null): boolean {
+		const current = this.activeTab;
+		const existing = current?.url === url ? current : this.items.find((tab) => tab.url === url);
+		if (!existing) return false;
+		this.#update(existing, data, undefined, route);
+		this.active = existing.id;
+		return true;
+	}
+
+	#update(tab: Tab, data?: unknown, baseTitle?: string, route?: TabRoute | null): void {
+		if (route === null) data = tab.data;
 		const descriptor = this.#describe(tab.href, data, baseTitle);
 		tab.data = data;
+		if (route) tab.route = route;
+		else if (route !== null && tab.route && tab.route.data !== data)
+			tab.route = { ...tab.route, data };
 		tab.baseTitle = descriptor.baseTitle ?? descriptor.title;
 		tab.title = descriptor.title;
 		tab.icon = descriptor.icon ?? FileIcon;
 	}
 
-	#add(pathname: string, data?: unknown, url: string = pathname): string {
+	#add(pathname: string, data?: unknown, url: string = pathname, route?: TabRoute | null): string {
+		if (route === null) data = undefined;
 		const id = `${url}#${this.#seq++}`;
 		const descriptor = this.#describe(pathname, data);
 		this.items.push({
@@ -76,45 +120,54 @@ export class Tabs {
 			baseTitle: descriptor.baseTitle ?? descriptor.title,
 			icon: descriptor.icon ?? FileIcon,
 			data,
+			route: route ?? undefined,
 			revision: 0
 		});
 		this.active = id;
 		return id;
 	}
 
-	/** Focus an existing URL or open it after the shared overflow confirmation. */
-	async open(pathname: string, data?: unknown, url: string = pathname): Promise<boolean> {
-		const current = this.activeTab;
-		if (current?.url === url) {
-			this.#update(current, data);
+	/** Focus an existing URL or open it after confirmation. A null route denotes
+	 * a failed load and preserves any successful data already held by that tab. */
+	async open(
+		pathname: string,
+		data?: unknown,
+		url: string = pathname,
+		route?: TabRoute | null
+	): Promise<boolean> {
+		return this.#enqueue(false, async (generation) => {
+			if (this.#focus(url, data, route)) return true;
+			const allowed = await this.#allowNewTab();
+			if (generation !== this.#generation) return false;
+			// Tabs can be closed or replaced while confirmation is open.
+			if (this.#focus(url, data, route)) return true;
+			if (!allowed) return false;
+			this.#add(pathname, data, url, route);
 			return true;
-		}
-		const existing = this.items.find((tab) => tab.url === url);
-		if (existing) {
-			this.#update(existing, data);
-			this.active = existing.id;
-			return true;
-		}
-		if (!(await this.#allowNewTab())) return false;
-		this.#add(pathname, data, url);
-		return true;
+		});
 	}
 
 	/** Open a new independent tab, even when the URL already exists. */
 	async openNew(pathname: string, data?: unknown, url: string = pathname): Promise<string | null> {
-		if (!(await this.#allowNewTab())) return null;
-		return this.#add(pathname, data, url);
+		return this.#enqueue<string | null>(null, async (generation) => {
+			if (!(await this.#allowNewTab()) || generation !== this.#generation) return null;
+			return this.#add(pathname, data, url);
+		});
 	}
 
 	/** Duplicate an existing tab beside it. */
 	async clone(id: string): Promise<Tab | null> {
-		const index = this.items.findIndex((tab) => tab.id === id);
-		const source = this.items[index];
-		if (!source || !(await this.#allowNewTab())) return null;
-		const cloned = { ...source, id: `${source.url}#${this.#seq++}` };
-		this.items.splice(index + 1, 0, cloned);
-		this.active = cloned.id;
-		return cloned;
+		return this.#enqueue<Tab | null>(null, async (generation) => {
+			if (!this.items.some((tab) => tab.id === id) || !(await this.#allowNewTab())) return null;
+			if (generation !== this.#generation) return null;
+			const index = this.items.findIndex((tab) => tab.id === id);
+			const source = this.items[index];
+			if (!source) return null;
+			const cloned = { ...source, id: `${source.url}#${this.#seq++}` };
+			this.items.splice(index + 1, 0, cloned);
+			this.active = cloned.id;
+			return cloned;
+		});
 	}
 
 	rename(pathname: string, title: string): void {
@@ -219,6 +272,10 @@ export class Tabs {
 	}
 
 	reset(): void {
+		this.#generation += 1;
+		this.#resetController.abort();
+		this.#resetController = new AbortController();
+		this.#pending = Promise.resolve();
 		this.items = [];
 		this.active = '';
 	}
@@ -234,10 +291,18 @@ export async function openLandedRoute(
 	pathname: string,
 	data: unknown,
 	url: string,
-	restore: (url: string) => void | Promise<void>
+	restore: (url: string) => void | Promise<void>,
+	route?: TabRoute | null
 ): Promise<boolean> {
 	const fallback = tabs.activeTab;
-	if (await tabs.open(pathname, data, url)) return true;
-	if (fallback && fallback.url !== url) await restore(fallback.url);
+	if (await tabs.open(pathname, data, url, route)) return true;
+	if (
+		fallback &&
+		fallback.url !== url &&
+		tabs.active === fallback.id &&
+		tabs.items.some((tab) => tab.id === fallback.id)
+	) {
+		await restore(fallback.url);
+	}
 	return false;
 }

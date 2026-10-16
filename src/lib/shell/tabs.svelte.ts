@@ -2,34 +2,18 @@ import FileIcon from '@lucide/svelte/icons/file';
 import { confirm } from '$lib/confirm.svelte';
 import { Tabs, TAB_SOFT_LIMIT } from '$lib/core/shell/tabs.svelte';
 import { t } from '$lib/i18n';
-import { leafCrumb } from './breadcrumb.svelte';
 import { findNavItem } from './nav';
 import { config } from '$lib/config';
-
-function titleCase(segment: string): string {
-	return segment
-		.split('-')
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(' ');
-}
-
-function baseLabelFor(pathname: string, data?: unknown, override?: string): string {
-	if (override) return override;
-	const clientLabel = leafCrumb.get(pathname);
-	if (clientLabel) return clientLabel;
-	const breadcrumb = (data as { breadcrumb?: unknown } | undefined)?.breadcrumb;
-	if (typeof breadcrumb === 'string' && breadcrumb.trim()) return breadcrumb;
-	const match = findNavItem(pathname);
-	if (match?.item.href === pathname) return match.item.title;
-	const segment = pathname.split('/').filter(Boolean).pop();
-	return segment ? titleCase(segment) : 'Untitled';
-}
+import { routeLabelFor, translatedLabel } from './labels';
 
 export function tabTitleFor(pathname: string, data?: unknown, override?: string): string {
-	const title = baseLabelFor(pathname, data, override);
-	if (pathname === '/tables' || pathname.startsWith('/tables/')) return `Table: ${title}`;
-	if (pathname === '/templates' || pathname.startsWith('/templates/')) return `Page: ${title}`;
-	if (pathname === '/settings' || pathname.startsWith('/settings/')) return `Setting: ${title}`;
+	const title = routeLabelFor(pathname, data, override);
+	if (pathname === '/tables' || pathname.startsWith('/tables/'))
+		return translatedLabel('tabs.tableTitle', `Table: ${title}`, { title });
+	if (pathname === '/templates' || pathname.startsWith('/templates/'))
+		return translatedLabel('tabs.pageTitle', `Page: ${title}`, { title });
+	if (pathname === '/settings' || pathname.startsWith('/settings/'))
+		return translatedLabel('tabs.settingTitle', `Setting: ${title}`, { title });
 	return title;
 }
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import * as Card from '$lib/core/components/ui/card';
 	import { Input } from '$lib/core/components/ui/input';
@@ -8,9 +9,8 @@
 
 	let name = $state('');
 	let description = $state('');
+	const instanceId = $props.id();
 </script>
-
-<svelte:head><title>Form Template · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader title="Form Template" description="A focused create or edit page." />
@@ -23,15 +23,15 @@
 			>
 			<Card.Content class="grid gap-5">
 				<div class="grid gap-2">
-					<Label for="template-name">Name</Label><Input
-						id="template-name"
+					<Label for={`${instanceId}-template-name`}>Name</Label><Input
+						id={`${instanceId}-template-name`}
 						bind:value={name}
 						required
 					/>
 				</div>
 				<div class="grid gap-2">
-					<Label for="template-description">Description</Label><Textarea
-						id="template-description"
+					<Label for={`${instanceId}-template-description`}>Description</Label><Textarea
+						id={`${instanceId}-template-description`}
 						bind:value={description}
 						rows={4}
 					/>

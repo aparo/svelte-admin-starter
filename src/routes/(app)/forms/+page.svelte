@@ -6,6 +6,7 @@
   shows a toast and resets the local $state.
 -->
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Select from '$lib/core/components/ui/select';
 	import * as Popover from '$lib/core/components/ui/popover';
@@ -18,7 +19,9 @@
 	import { Checkbox } from '$lib/core/components/ui/checkbox';
 	import { Switch } from '$lib/core/components/ui/switch';
 	import { Slider } from '$lib/core/components/ui/slider';
-	import { PageContainer, PageHeader, PasswordInput } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import PasswordInput from '$lib/core/components/shared/PasswordInput.svelte';
 	import { fieldError } from '$lib/core/utils/validators';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
@@ -119,11 +122,8 @@
 		notifyOnComplete = true;
 		errors = null;
 	}
+	const instanceId = $props.id();
 </script>
-
-<svelte:head>
-	<title>Forms · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader
@@ -142,9 +142,9 @@
 			<Card.Content class="space-y-6">
 				<!-- Name -->
 				<div class="grid gap-2">
-					<Label for="name">Project name</Label>
+					<Label for={`${instanceId}-name`}>Project name</Label>
 					<Input
-						id="name"
+						id={`${instanceId}-name`}
 						bind:value={name}
 						placeholder="Aurora Dashboard"
 						aria-invalid={fieldError(errors, 'name') ? 'true' : undefined}
@@ -156,9 +156,9 @@
 
 				<!-- Description -->
 				<div class="grid gap-2">
-					<Label for="description">Description</Label>
+					<Label for={`${instanceId}-description`}>Description</Label>
 					<Textarea
-						id="description"
+						id={`${instanceId}-description`}
 						bind:value={description}
 						rows={3}
 						placeholder="What is this project about?"
@@ -177,10 +177,10 @@
 				<div class="grid gap-6 sm:grid-cols-2">
 					<!-- Category -->
 					<div class="grid gap-2">
-						<Label for="category">Category</Label>
+						<Label for={`${instanceId}-category`}>Category</Label>
 						<Select.Root type="single" bind:value={category}>
 							<Select.Trigger
-								id="category"
+								id={`${instanceId}-category`}
 								class="w-full"
 								aria-invalid={fieldError(errors, 'category') ? 'true' : undefined}
 							>
@@ -199,9 +199,9 @@
 
 					<!-- Due date -->
 					<div class="grid gap-2">
-						<Label for="due-date">Due date</Label>
+						<Label for={`${instanceId}-due-date`}>Due date</Label>
 						<Popover.Root bind:open={datePopoverOpen}>
-							<Popover.Trigger id="due-date">
+							<Popover.Trigger id={`${instanceId}-due-date`}>
 								{#snippet child({ props })}
 									<Button
 										{...props}
@@ -275,10 +275,17 @@
 				<!-- Priority (slider) -->
 				<div class="grid gap-3">
 					<div class="flex items-center justify-between">
-						<Label for="priority">Priority</Label>
+						<Label for={`${instanceId}-priority`}>Priority</Label>
 						<span class="text-muted-foreground text-sm tabular-nums">{priority}%</span>
 					</div>
-					<Slider id="priority" type="single" bind:value={priority} min={0} max={100} step={5} />
+					<Slider
+						id={`${instanceId}-priority`}
+						type="single"
+						bind:value={priority}
+						min={0}
+						max={100}
+						step={5}
+					/>
 				</div>
 
 				<!-- Notifications (switch) -->
@@ -309,35 +316,42 @@
 			</Card.Header>
 			<Card.Content class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 				<div class="grid gap-2">
-					<Label for="state-default">Default</Label>
-					<Input id="state-default" placeholder="Type something…" />
+					<Label for={`${instanceId}-state-default`}>Default</Label>
+					<Input id={`${instanceId}-state-default`} placeholder="Type something…" />
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-disabled">Disabled</Label>
-					<Input id="state-disabled" value="Read only" disabled />
+					<Label for={`${instanceId}-state-disabled`}>Disabled</Label>
+					<Input id={`${instanceId}-state-disabled`} value="Read only" disabled />
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-error">Error</Label>
-					<Input id="state-error" value="invalid-email" aria-invalid="true" />
+					<Label for={`${instanceId}-state-error`}>Error</Label>
+					<Input id={`${instanceId}-state-error`} value="invalid-email" aria-invalid="true" />
 					<p class="text-destructive text-xs">Enter a valid email address.</p>
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-icon">With icon</Label>
+					<Label for={`${instanceId}-state-icon`}>With icon</Label>
 					<div class="relative">
 						<MailIcon
 							class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
 						/>
-						<Input id="state-icon" type="email" placeholder="you@example.com" class="pl-8" />
+						<Input
+							id={`${instanceId}-state-icon`}
+							type="email"
+							placeholder="you@example.com"
+							class="pl-8"
+						/>
 					</div>
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="state-password">Password (with eye toggle)</Label>
+					<Label for={`${instanceId}-state-password`}>Password (with eye toggle)</Label>
 					<PasswordInput
-						id="state-password"
+						showLabel={t('auth.showPassword')}
+						hideLabel={t('auth.hidePassword')}
+						id={`${instanceId}-state-password`}
 						bind:value={demoPassword}
 						placeholder="Enter password…"
 					/>

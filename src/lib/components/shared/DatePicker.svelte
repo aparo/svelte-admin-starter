@@ -8,7 +8,12 @@
 	import type { DateValue } from '@internationalized/date';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import XIcon from '@lucide/svelte/icons/x';
-	import { dateValueToString, formatDateForDisplay, parseDateValue } from './date-time-utils';
+	import {
+		dateValueToString,
+		formatDateForDisplay,
+		isDateWithinBounds,
+		parseDateValue
+	} from './date-time-utils';
 
 	interface Props {
 		value?: string;
@@ -20,6 +25,7 @@
 		minValue?: DateValue;
 		maxValue?: DateValue;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound value. */
 		required?: boolean;
 		clearable?: boolean;
 		class?: string;
@@ -50,12 +56,14 @@
 	const resolvedLocale = $derived(locale ?? i18n.locale);
 	const resolvedPlaceholder = $derived(placeholder ?? t('dateTimePicker.pickDate'));
 	const displayValue = $derived(value ? formatDateForDisplay(value, resolvedLocale) : '');
+	const canApply = $derived(isDateWithinBounds(draftValue, minValue, maxValue));
 
 	$effect(() => {
 		if (open) draftValue = parseDateValue(value);
 	});
 
 	function commit(nextValue: string): void {
+		if (nextValue && !isDateWithinBounds(parseDateValue(nextValue), minValue, maxValue)) return;
 		value = nextValue;
 		onValueChange?.(nextValue);
 		open = false;
@@ -120,7 +128,7 @@
 					</Button>
 					<Button
 						size="sm"
-						disabled={!draftValue}
+						disabled={!canApply}
 						onclick={() => commit(dateValueToString(draftValue))}
 					>
 						{t('dateTimePicker.apply')}

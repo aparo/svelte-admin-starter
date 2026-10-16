@@ -5,11 +5,14 @@
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import { Separator } from '$lib/core/components/ui/separator';
 	import { Button } from '$lib/core/components/ui/button';
-	import { ThemeToggle, LanguageToggle, CommandMenu } from '$lib/components/shared';
+	import ThemeToggle from '$lib/core/components/shared/ThemeToggle.svelte';
+	import LanguageToggle from '$lib/components/shared/LanguageToggle.svelte';
+	import CommandMenu from '$lib/components/shared/CommandMenu.svelte';
 	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth';
 	import { initials } from '$lib/core/utils/formatters';
 	import { t } from '$lib/i18n';
+	import { translatedLabel } from './labels';
 	import { logoutDialog } from './logout-dialog.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
 	import NotificationsMenu from './NotificationsMenu.svelte';
@@ -58,7 +61,10 @@
 
 		<NotificationsMenu />
 		<LanguageToggle />
-		<ThemeToggle />
+		<ThemeToggle
+			lightLabel={t('common.switchToLightTheme')}
+			darkLabel={t('common.switchToDarkTheme')}
+		/>
 
 		<Separator
 			orientation="vertical"
@@ -69,7 +75,13 @@
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
-					<Button {...props} variant="ghost" size="icon" class="rounded-full" aria-label="Account">
+					<Button
+						{...props}
+						variant="ghost"
+						size="icon"
+						class="rounded-full"
+						aria-label={translatedLabel('common.account', 'Account')}
+					>
 						<Avatar.Root class="size-8">
 							{#if user?.avatarUrl}
 								<Avatar.Image src={user.avatarUrl} alt={user.name} />
@@ -89,7 +101,9 @@
 							<Avatar.Fallback>{user ? initials(user.name) : '?'}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 leading-tight">
-							<span class="truncate font-semibold">{user?.name ?? 'Guest'}</span>
+							<span class="truncate font-semibold"
+								>{user?.name ?? translatedLabel('common.guest', 'Guest')}</span
+							>
 							<span class="text-muted-foreground truncate text-xs">{user?.email ?? ''}</span>
 						</div>
 					</div>

@@ -9,9 +9,15 @@
 	import { toggleMode, mode } from 'mode-watcher';
 	import { Button } from '../ui/button';
 
-	const label = $derived(
-		mode.current === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
-	);
+	interface Props {
+		lightLabel?: string;
+		darkLabel?: string;
+	}
+
+	let { lightLabel = 'Switch to light theme', darkLabel = 'Switch to dark theme' }: Props =
+		$props();
+
+	const label = $derived(mode.current === 'dark' ? lightLabel : darkLabel);
 </script>
 
 <Button variant="ghost" size="icon" onclick={toggleMode} aria-label={label} title={label}>

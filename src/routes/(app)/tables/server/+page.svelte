@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { DataTable, PageContainer, PageHeader } from '$lib/components/shared';
+	import { t } from '$lib/i18n';
+	import DataTable from '$lib/core/components/shared/DataTable.svelte';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { demoProducts, type DemoProduct } from '$lib/data/products';
 	import ProductCell from '../ProductCell.svelte';
 	import { columns } from '../demo';
@@ -25,14 +28,13 @@
 	const rows = $derived(matches.slice((page - 1) * 5, page * 5));
 </script>
 
-<svelte:head><title>Server-side Data Table · Admin Starter</title></svelte:head>
-
 <PageContainer>
 	<PageHeader
 		title="Server-side"
 		description="Delegate search, sorting and pagination while passing only the active page."
 	/>
 	<DataTable
+		text={t}
 		data={rows}
 		{columns}
 		searchable

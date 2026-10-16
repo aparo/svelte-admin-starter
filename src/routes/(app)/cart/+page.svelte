@@ -14,7 +14,9 @@
 	import Package from '@lucide/svelte/icons/package';
 	import Tag from '@lucide/svelte/icons/tag';
 
-	import { PageContainer, PageHeader, EmptyState } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import EmptyState from '$lib/core/components/shared/EmptyState.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
@@ -23,7 +25,7 @@
 	import { toast } from 'svelte-sonner';
 
 	import { demoProducts, type DemoProduct } from '$lib/data/products';
-	import { formatCurrency } from '$lib/core/utils/formatters';
+	import { formatCurrency } from '$lib/i18n/formatters';
 
 	// A cart line item is a product plus a quantity.
 	interface CartItem extends DemoProduct {
@@ -96,10 +98,6 @@
 		});
 	}
 </script>
-
-<svelte:head>
-	<title>Cart · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader title="Cart" description="Review your items and check out." />

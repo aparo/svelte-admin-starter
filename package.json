@@ -1,7 +1,7 @@
 {
 	"name": "svelte-admin-starter",
 	"description": "Production-grade SvelteKit + Svelte 5 + Tailwind v4 + shadcn-svelte admin dashboard starter — frontend-only, mock data, clone-and-go.",
-	"version": "1.4.2",
+	"version": "2.0.0",
 	"private": true,
 	"license": "MIT",
 	"type": "module",
@@ -58,7 +58,6 @@
 		"@fontsource-variable/geist": "^5.2.9",
 		"@fontsource-variable/geist-mono": "^5.2.8",
 		"clsx": "^2.1.1",
-		"date-fns": "^4.1.0",
 		"mode-watcher": "^1.1.0",
 		"svelte-sonner": "^1.0.7",
 		"tailwind-merge": "^3.4.0",

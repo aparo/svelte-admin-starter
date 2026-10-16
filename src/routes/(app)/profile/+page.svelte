@@ -6,7 +6,8 @@
 <script lang="ts">
 	import Camera from '@lucide/svelte/icons/camera';
 
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import * as Select from '$lib/core/components/ui/select';
@@ -18,7 +19,7 @@
 	import { toast } from 'svelte-sonner';
 
 	import { auth } from '$lib/auth';
-	import { initials } from '$lib/core/utils/formatters';
+	import { initials } from '$lib/i18n/formatters';
 
 	// `value` is typed `string` to satisfy the single-select binding (bits-ui).
 	const ROLE_OPTIONS: { value: string; label: string }[] = [
@@ -46,11 +47,8 @@
 	function changeAvatar() {
 		toast.info('Avatar upload is not available in this demo');
 	}
+	const instanceId = $props.id();
 </script>
-
-<svelte:head>
-	<title>Profile · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader
@@ -93,13 +91,18 @@
 				<Card.Content class="space-y-4">
 					<div class="grid gap-4 sm:grid-cols-2">
 						<div class="space-y-2">
-							<Label for="name">Name</Label>
-							<Input id="name" bind:value={name} placeholder="Your full name" autocomplete="name" />
+							<Label for={`${instanceId}-name`}>Name</Label>
+							<Input
+								id={`${instanceId}-name`}
+								bind:value={name}
+								placeholder="Your full name"
+								autocomplete="name"
+							/>
 						</div>
 						<div class="space-y-2">
-							<Label for="email">Email</Label>
+							<Label for={`${instanceId}-email`}>Email</Label>
 							<Input
-								id="email"
+								id={`${instanceId}-email`}
 								type="email"
 								bind:value={email}
 								placeholder="you@example.com"
@@ -109,9 +112,9 @@
 					</div>
 
 					<div class="space-y-2">
-						<Label for="role">Role</Label>
+						<Label for={`${instanceId}-role`}>Role</Label>
 						<Select.Root type="single" bind:value={role} disabled>
-							<Select.Trigger id="role" class="w-full">
+							<Select.Trigger id={`${instanceId}-role`} class="w-full">
 								{roleLabel}
 							</Select.Trigger>
 							<Select.Content>
@@ -128,9 +131,9 @@
 					</div>
 
 					<div class="space-y-2">
-						<Label for="bio">Bio</Label>
+						<Label for={`${instanceId}-bio`}>Bio</Label>
 						<Textarea
-							id="bio"
+							id={`${instanceId}-bio`}
 							bind:value={bio}
 							rows={4}
 							placeholder="Tell us a little about yourself"

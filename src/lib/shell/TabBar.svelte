@@ -1,19 +1,16 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import type { Pathname } from '$app/types';
 	import PortableTabBar from '$lib/core/shell/TabBar.svelte';
-	import { i18n, t } from '$lib/i18n';
+	import { i18n, translate as t } from '$lib/i18n';
 	import { tabs } from './tabs.svelte';
+	import { resolveAppUrl, toAppUrl } from './paths';
 
-	const currentUrl = $derived(`${page.url.pathname}${page.url.search}`);
+	const currentUrl = $derived(toAppUrl(page.url));
 
 	function navigate(url: string): Promise<void> {
-		const queryAt = url.indexOf('?');
-		const pathname = (queryAt === -1 ? url : url.slice(0, queryAt)) as Pathname;
-		const search = queryAt === -1 ? '' : url.slice(queryAt);
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		return goto(`${pathname}${search}`);
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolves stored path and query through $app/paths.
+		return goto(resolveAppUrl(url));
 	}
 </script>
 

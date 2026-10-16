@@ -1,7 +1,7 @@
 <!-- Admin sidebar: brand header, grouped nav with active highlighting, user footer dropdown. -->
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve -- variable nav URLs use resolveAppUrl's $app/paths boundary. */
 	import type { Pathname } from '$app/types';
-	/* eslint-disable svelte/no-navigation-without-resolve -- typed nav paths are already validated by SvelteKit. */
 	import { mergeProps } from 'bits-ui';
 	import * as Sidebar from '$lib/core/components/ui/sidebar';
 	import { useSidebar } from '$lib/core/components/ui/sidebar';
@@ -18,6 +18,8 @@
 	import { logoutDialog } from './logout-dialog.svelte';
 	import { config } from '$lib/config';
 	import { t } from '$lib/i18n';
+	import { resolveAppUrl, toAppPathname, toAppUrl } from './paths';
+	import { navGroupLabel, navTitle, translatedLabel } from './labels';
 	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
 	import UserIcon from '@lucide/svelte/icons/user';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
@@ -26,8 +28,11 @@
 
 	const sidebar = useSidebar();
 	const user = $derived(auth.user);
-	const pathname = $derived(page.url.pathname);
-	const homeTitle = findNavItem(config.app.homePath)?.item.title ?? 'Home';
+	const pathname = $derived(toAppPathname(page.url.pathname));
+	const homeTitle = $derived.by(() => {
+		const item = findNavItem(config.app.homePath)?.item;
+		return item ? navTitle(item) : translatedLabel('nav.home', 'Home');
+	});
 
 	function isActive(href: string): boolean {
 		return pathname === href || pathname.startsWith(href + '/');
@@ -47,7 +52,7 @@
 	// Right-click → open a second, independent tab for the same route.
 	async function openInNewTab(href: Pathname): Promise<void> {
 		if (!(await tabs.openNew(href))) return;
-		if (href !== page.url.pathname) await goto(href);
+		if (href !== toAppUrl(page.url)) await goto(resolveAppUrl(href));
 	}
 </script>
 
@@ -77,7 +82,7 @@
 	<Sidebar.Content>
 		{#each navGroups as group (group.label)}
 			<Sidebar.Group>
-				<Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
+				<Sidebar.GroupLabel>{navGroupLabel(group)}</Sidebar.GroupLabel>
 				<Sidebar.Menu>
 					{#each group.items as item (item.href)}
 						<Sidebar.MenuItem>
@@ -86,19 +91,19 @@
 									{#snippet child({ props: ctxProps })}
 										<Sidebar.MenuButton
 											isActive={isActive(item.href)}
-											tooltipContent={item.title}
+											tooltipContent={navTitle(item)}
 											class="relative pl-3 transition-colors data-active:text-sidebar-primary data-active:before:absolute data-active:before:inset-y-1.5 data-active:before:left-0 data-active:before:w-0.5 data-active:before:rounded-full data-active:before:bg-sidebar-primary data-active:before:content-['']"
 										>
 											{#snippet child({ props })}
 												<!-- mergeProps so the context-menu trigger props (oncontextmenu)
 												     compose with the button's class/data-active, not clobber them. -->
 												<a
-													href={item.href}
+													href={resolveAppUrl(item.href)}
 													onclick={handleNavClick}
 													{...mergeProps(props, ctxProps)}
 												>
 													<item.icon />
-													<span>{item.title}</span>
+													<span>{navTitle(item)}</span>
 												</a>
 											{/snippet}
 										</Sidebar.MenuButton>
@@ -141,7 +146,9 @@
 									</Avatar.Fallback>
 								</Avatar.Root>
 								<div class="grid flex-1 text-left text-sm leading-tight">
-									<span class="truncate font-semibold">{user?.name ?? 'Guest'}</span>
+									<span class="truncate font-semibold"
+										>{user?.name ?? translatedLabel('common.guest', 'Guest')}</span
+									>
 									<span
 										class="text-sidebar-foreground/80 dark:text-muted-foreground truncate text-xs capitalize"
 									>
@@ -169,7 +176,9 @@
 									</Avatar.Fallback>
 								</Avatar.Root>
 								<div class="grid flex-1 text-left text-sm leading-tight">
-									<span class="truncate font-semibold">{user?.name ?? 'Guest'}</span>
+									<span class="truncate font-semibold"
+										>{user?.name ?? translatedLabel('common.guest', 'Guest')}</span
+									>
 									<span class="text-muted-foreground truncate text-xs">{user?.email ?? ''}</span>
 								</div>
 							</div>
@@ -180,7 +189,7 @@
 								{#snippet child({ props })}
 									<a href={resolve('/profile')} onclick={handleNavClick} {...props}>
 										<UserIcon />
-										Profile
+										{t('common.profile')}
 									</a>
 								{/snippet}
 							</DropdownMenu.Item>
@@ -188,7 +197,7 @@
 								{#snippet child({ props })}
 									<a href={resolve('/settings')} onclick={handleNavClick} {...props}>
 										<SettingsIcon />
-										Settings
+										{t('common.settings')}
 									</a>
 								{/snippet}
 							</DropdownMenu.Item>
@@ -196,7 +205,7 @@
 						<DropdownMenu.Separator />
 						<DropdownMenu.Item variant="destructive" onSelect={() => (logoutDialog.open = true)}>
 							<LogOut />
-							Logout
+							{t('common.logout')}
 						</DropdownMenu.Item>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>

@@ -2,9 +2,12 @@
 // that reads the persisted value on the client and writes back on every change.
 // SSR-safe: on the server it falls back to `initial` and never touches storage.
 
+import { readStoredValue, writeStoredValue } from '../utils/local-storage';
+
 /**
  * Persist a reactive value in `localStorage` under `key`.
- * Assign to `.current` to update both the reactive state and storage.
+ * Requires a reactive context, such as component initialization or `$effect.root`.
+ * Its effect writes initially and tracks assignments and nested reactive changes.
  *
  * @example
  * const theme = useLocalStorage('admin-starter:theme', 'system');
@@ -12,27 +15,11 @@
  */
 export function useLocalStorage<T>(key: string, initial: T): { current: T } {
 	// Read any existing value synchronously so the first render is correct.
-	let value = $state<T>(read());
-
-	function read(): T {
-		if (typeof localStorage === 'undefined') return initial;
-		try {
-			const raw = localStorage.getItem(key);
-			return raw === null ? initial : (JSON.parse(raw) as T);
-		} catch {
-			// Corrupt or unreadable entry — fall back to the initial value.
-			return initial;
-		}
-	}
+	let value = $state<T>(readStoredValue(key, initial));
 
 	$effect(() => {
-		// Persist whenever the value changes (client only).
-		if (typeof localStorage === 'undefined') return;
-		try {
-			localStorage.setItem(key, JSON.stringify(value));
-		} catch {
-			// Ignore quota / serialization errors — storage is best-effort.
-		}
+		// JSON serialization also tracks reads of nested reactive properties.
+		writeStoredValue(key, value);
 	});
 
 	return {

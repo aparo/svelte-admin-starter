@@ -1,11 +1,4 @@
-<!--
-  Users — full CRUD over a local $state copy of the mock user directory.
-
-  Everything is client-side: the table renders a local array, and the
-  add/edit/delete flows mutate that array in place. No backend is involved.
-  Showcases the shared <DataTable> (search, sort, selection, custom cells,
-  per-row actions) plus a bulk toolbar (export CSV / delete selected).
--->
+<!-- Demo records are shared by app tabs; filters, selection and drawers belong to this instance. -->
 <script lang="ts">
 	import Plus from '@lucide/svelte/icons/plus';
 	import Download from '@lucide/svelte/icons/download';
@@ -13,235 +6,146 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Eye from '@lucide/svelte/icons/eye';
 	import { resolve } from '$app/paths';
-
-	import {
-		PageContainer,
-		PageHeader,
-		DataTable,
-		ConfirmDialog,
-		StatusBadge,
-		type Column,
-		type BadgeTone
-	} from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import DataTable, { type Column } from '$lib/core/components/shared/DataTable.svelte';
+	import StatusBadge from '$lib/core/components/shared/StatusBadge.svelte';
+	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
 	import { Button } from '$lib/core/components/ui/button';
-	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
-	import * as Sheet from '$lib/core/components/ui/sheet';
-	import * as Select from '$lib/core/components/ui/select';
-
-	import { demoUsers, type DemoUser } from '$lib/data/users';
-	import { userSchema, fieldError } from '$lib/core/utils/validators';
+	import UserEditor from '$lib/features/users/UserEditor.svelte';
+	import UserDetailsDrawer from '$lib/features/users/UserDetailsDrawer.svelte';
+	import { useUsersState, type UserDraft } from '$lib/features/users/state.svelte';
+	import { roleLabel, roleTone, statusLabel, statusTone } from '$lib/features/users/presentation';
+	import type { DemoUser } from '$lib/data/users';
 	import { exportToCsv } from '$lib/core/utils/csv';
-	import { formatDate, initials } from '$lib/core/utils/formatters';
+	import { formatDate, initials } from '$lib/i18n/formatters';
+	import { t, translate } from '$lib/i18n';
 	import { toast } from 'svelte-sonner';
-	import { z } from 'zod';
 
-	// --- Local, mutable copy of the mock data ------------------------------
-	let users = $state<DemoUser[]>(demoUsers.map((u) => ({ ...u })));
+	const directory = useUsersState();
 	let selected = $state<(string | number)[]>([]);
+	let search = $state('');
+	const selectedIds = $derived(new Set(selected));
+	const selectedUsers = $derived(directory.records.filter((user) => selectedIds.has(user.id)));
 
-	type Role = DemoUser['role'];
-	type Status = DemoUser['status'];
-
-	const ROLES: { value: Role; label: string }[] = [
-		{ value: 'admin', label: 'Admin' },
-		{ value: 'editor', label: 'Editor' },
-		{ value: 'viewer', label: 'Viewer' }
-	];
-	const STATUSES: { value: Status; label: string }[] = [
-		{ value: 'active', label: 'Active' },
-		{ value: 'invited', label: 'Invited' },
-		{ value: 'suspended', label: 'Suspended' }
-	];
-
-	// Map roles/statuses to the shared StatusBadge tones — one tint convention
-	// for the whole app lives in StatusBadge, pages only choose a semantic tone.
-	function roleTone(role: Role): BadgeTone {
-		return role === 'admin' ? 'brand' : role === 'editor' ? 'neutral' : 'outline';
-	}
-	function statusTone(status: Status): BadgeTone {
-		return status === 'active' ? 'success' : status === 'invited' ? 'warning' : 'danger';
-	}
-	function roleLabel(role: Role): string {
-		return ROLES.find((r) => r.value === role)?.label ?? role;
-	}
-	function statusLabel(status: Status): string {
-		return STATUSES.find((s) => s.value === status)?.label ?? status;
-	}
-
-	const columns: Column<DemoUser>[] = [
-		{ key: 'name', header: 'Name', sortable: true, searchable: true },
-		{ key: 'email', header: 'Email', searchable: true },
-		{ key: 'role', header: 'Role' },
-		{ key: 'status', header: 'Status' },
-		{ key: 'createdAt', header: 'Joined', sortable: true }
-	];
-
-	// --- Add / Edit dialog state -------------------------------------------
-	// `role`/`status` are kept as plain strings so they bind cleanly to the
-	// single <Select> (whose value is a `string`); they are narrowed on save.
-	let dialogOpen = $state(false);
-	let editingId = $state<string | null>(null);
-	let form = $state<{ name: string; email: string; role: string; status: string }>({
-		name: '',
-		email: '',
-		role: 'viewer',
-		status: 'active'
+	// Another tab can delete a selected record without changing this tab's query or drawers.
+	$effect(() => {
+		const available = new Set(directory.records.map((user) => user.id));
+		const next = selected.filter((id) => available.has(String(id)));
+		if (next.length !== selected.length) selected = next;
 	});
-	let errors = $state<z.ZodError | null>(null);
 
-	const dialogTitle = $derived(editingId ? 'Edit user' : 'Add user');
-	const roleTriggerLabel = $derived(roleLabel(form.role as Role));
-	const statusTriggerLabel = $derived(statusLabel(form.status as Status));
+	const columns = $derived<Column<DemoUser>[]>([
+		{ key: 'name', header: t('common.name'), sortable: true, searchable: true },
+		{ key: 'email', header: t('auth.email'), searchable: true },
+		{ key: 'role', header: t('users.role') },
+		{ key: 'status', header: t('users.status') },
+		{ key: 'createdAt', header: t('users.joined'), sortable: true }
+	]);
 
+	let dialogOpen = $state(false);
+	let editorSession = $state(0);
+	let editingId = $state<string>();
 	function openAdd() {
-		editingId = null;
-		form = { name: '', email: '', role: 'viewer', status: 'active' };
-		errors = null;
+		editingId = undefined;
+		editorSession += 1;
 		dialogOpen = true;
 	}
-
 	function openEdit(user: DemoUser) {
 		editingId = user.id;
-		form = { name: user.name, email: user.email, role: user.role, status: user.status };
-		errors = null;
+		editorSession += 1;
 		dialogOpen = true;
 	}
-
-	// --- View (read-only) drawer state -------------------------------------
-	let viewOpen = $state(false);
-	let viewingUser = $state<DemoUser | null>(null);
-
-	function openView(user: DemoUser) {
-		viewingUser = user;
-		viewOpen = true;
-	}
-	function editFromView() {
-		if (!viewingUser) return;
-		const u = viewingUser;
-		viewOpen = false;
-		openEdit(u);
-	}
-
-	function save() {
-		const result = userSchema.safeParse({
-			name: form.name,
-			email: form.email,
-			role: form.role
-		});
-		if (!result.success) {
-			errors = result.error;
-			return;
-		}
-		errors = null;
-		const status = form.status as Status;
-
+	function save(draft: UserDraft) {
 		if (editingId) {
-			users = users.map((u) =>
-				u.id === editingId
-					? {
-							...u,
-							name: result.data.name,
-							email: result.data.email,
-							role: result.data.role,
-							status
-						}
-					: u
-			);
-			toast.success('User updated');
+			if (!directory.update(editingId, draft)) {
+				toast.error(t('users.notFound'));
+				return;
+			}
+			toast.success(t('users.updated'));
 		} else {
-			const id = `usr_${Math.random().toString(36).slice(2, 8)}`;
-			users = [
-				{
-					id,
-					name: result.data.name,
-					email: result.data.email,
-					role: result.data.role,
-					status,
-					createdAt: new Date().toISOString().slice(0, 10)
-				},
-				...users
-			];
-			toast.success('User added');
+			directory.create(draft);
+			toast.success(t('users.created'));
 		}
 		dialogOpen = false;
 	}
 
-	// --- Delete (single) ----------------------------------------------------
-	let deleteOpen = $state(false);
-	let pendingDelete = $state<DemoUser | null>(null);
+	let viewOpen = $state(false);
+	let viewingId = $state<string>();
+	const viewingUser = $derived(directory.find(viewingId));
+	function openView(user: DemoUser) {
+		viewingId = user.id;
+		viewOpen = true;
+	}
+	function editFromView() {
+		if (!viewingUser) return;
+		viewOpen = false;
+		openEdit(viewingUser);
+	}
 
+	let deleteOpen = $state(false);
+	let pendingDeleteId = $state<string>();
+	const pendingDelete = $derived(directory.find(pendingDeleteId));
 	function requestDelete(user: DemoUser) {
-		pendingDelete = user;
+		pendingDeleteId = user.id;
 		deleteOpen = true;
 	}
 	function confirmDelete() {
-		if (!pendingDelete) return;
-		const id = pendingDelete.id;
-		users = users.filter((u) => u.id !== id);
-		selected = selected.filter((s) => s !== id);
-		toast.success('User deleted');
-		pendingDelete = null;
+		if (pendingDeleteId && directory.remove(pendingDeleteId)) toast.success(t('users.deleted'));
+		pendingDeleteId = undefined;
 	}
 
-	// --- Bulk actions -------------------------------------------------------
 	let bulkDeleteOpen = $state(false);
-
-	const selectedUsers = $derived(users.filter((u) => selected.includes(u.id)));
-
 	function exportCsv() {
-		const rows = selectedUsers.length > 0 ? selectedUsers : users;
+		const rows = selectedUsers.length > 0 ? selectedUsers : directory.records;
 		exportToCsv(rows, 'users.csv', [
-			{ key: 'name', header: 'Name' },
-			{ key: 'email', header: 'Email' },
-			{ key: 'role', header: 'Role' },
-			{ key: 'status', header: 'Status' },
-			{ key: 'createdAt', header: 'Joined' }
+			{ key: 'name', header: t('common.name') },
+			{ key: 'email', header: t('auth.email') },
+			{ key: 'role', header: t('users.role') },
+			{ key: 'status', header: t('users.status') },
+			{ key: 'createdAt', header: t('users.joined') }
 		]);
-		toast.success(`Exported ${rows.length} ${rows.length === 1 ? 'user' : 'users'} to CSV`);
+		toast.success(
+			t(rows.length === 1 ? 'users.exportedOne' : 'users.exportedMany', { count: rows.length })
+		);
 	}
-
 	function confirmBulkDelete() {
-		const ids = new Set(selected);
-		const count = ids.size;
-		users = users.filter((u) => !ids.has(u.id));
+		const count = directory.removeMany(selected);
 		selected = [];
-		toast.success(`Deleted ${count} ${count === 1 ? 'user' : 'users'}`);
+		if (count > 0) toast.success(t(count === 1 ? 'users.deleted' : 'users.deletedMany', { count }));
 	}
 </script>
 
-<svelte:head>
-	<title>Users · Admin Starter</title>
-</svelte:head>
-
 <PageContainer>
-	<PageHeader title="Users" description="Manage team members, their roles and access.">
+	<PageHeader title={t('users.title')} description={t('users.description')}>
 		{#snippet actions()}
 			<Button onclick={openAdd}>
 				<Plus class="size-4" />
-				Add user
+				{t('users.addUser')}
 			</Button>
 		{/snippet}
 	</PageHeader>
 
 	<DataTable
-		data={users}
+		data={directory.records}
+		text={translate}
 		{columns}
 		searchable
 		selectable
 		bind:selected
-		emptyTitle="No users"
-		emptyDescription="Add your first user to get started."
+		bind:search
+		emptyTitle={t('users.emptyTitle')}
+		emptyDescription={t('users.emptyDescription')}
 	>
 		{#snippet toolbar()}
 			<Button variant="outline" size="sm" onclick={exportCsv}>
 				<Download class="size-4" />
-				Export CSV
+				{t('users.exportCsv')}
 			</Button>
 			{#if selected.length > 0}
 				<Button variant="outline" size="sm" onclick={() => (bulkDeleteOpen = true)}>
-					<Trash2 class="size-4 text-red-500" />
-					Delete selected ({selected.length})
+					<Trash2 class="size-4 text-destructive" />
+					{t('users.deleteSelected', { count: selected.length })}
 				</Button>
 			{/if}
 		{/snippet}
@@ -279,8 +183,8 @@
 					variant="ghost"
 					size="icon"
 					class="text-muted-foreground hover:text-foreground size-8"
-					title="View"
-					aria-label={`View ${row.name}`}
+					title={t('users.view')}
+					aria-label={t('users.viewNamed', { name: row.name })}
 					onclick={() => openView(row)}
 				>
 					<Eye class="size-4" />
@@ -289,8 +193,8 @@
 					variant="ghost"
 					size="icon"
 					class="text-muted-foreground hover:text-foreground size-8"
-					title="Edit"
-					aria-label={`Edit ${row.name}`}
+					title={t('common.edit')}
+					aria-label={t('users.editNamed', { name: row.name })}
 					onclick={() => openEdit(row)}
 				>
 					<Pencil class="size-4" />
@@ -299,8 +203,8 @@
 					variant="ghost"
 					size="icon"
 					class="text-muted-foreground hover:text-destructive size-8"
-					title="Delete"
-					aria-label={`Delete ${row.name}`}
+					title={t('common.delete')}
+					aria-label={t('users.deleteNamed', { name: row.name })}
 					onclick={() => requestDelete(row)}
 				>
 					<Trash2 class="size-4" />
@@ -310,167 +214,31 @@
 	</DataTable>
 </PageContainer>
 
-<!-- Add / Edit dialog -->
-<Sheet.Root bind:open={dialogOpen}>
-	<Sheet.Content side="right" class="gap-0 sm:max-w-lg!">
-		<Sheet.Header class="border-b">
-			<Sheet.Title>{dialogTitle}</Sheet.Title>
-			<Sheet.Description>
-				{editingId ? 'Update the details for this user.' : 'Create a new user record.'}
-			</Sheet.Description>
-		</Sheet.Header>
+{#key editorSession}
+	<UserEditor
+		bind:open={dialogOpen}
+		user={directory.find(editingId)}
+		editing={Boolean(editingId)}
+		onSave={save}
+	/>
+{/key}
+<UserDetailsDrawer bind:open={viewOpen} user={viewingUser} onEdit={editFromView} />
 
-		<form
-			class="flex min-h-0 flex-1 flex-col"
-			onsubmit={(e) => {
-				e.preventDefault();
-				save();
-			}}
-		>
-			<div class="flex-1 space-y-4 overflow-y-auto p-4">
-				<div class="space-y-2">
-					<Label for="user-name">Name</Label>
-					<Input id="user-name" bind:value={form.name} placeholder="Jane Doe" autocomplete="off" />
-					{#if fieldError(errors, 'name')}
-						<p class="text-xs text-red-500">{fieldError(errors, 'name')}</p>
-					{/if}
-				</div>
-
-				<div class="space-y-2">
-					<Label for="user-email">Email</Label>
-					<Input
-						id="user-email"
-						type="email"
-						bind:value={form.email}
-						placeholder="jane@example.com"
-						autocomplete="off"
-					/>
-					{#if fieldError(errors, 'email')}
-						<p class="text-xs text-red-500">{fieldError(errors, 'email')}</p>
-					{/if}
-				</div>
-
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<div class="space-y-2">
-						<Label>Role</Label>
-						<Select.Root type="single" bind:value={form.role}>
-							<Select.Trigger class="w-full capitalize">{roleTriggerLabel}</Select.Trigger>
-							<Select.Content>
-								{#each ROLES as role (role.value)}
-									<Select.Item value={role.value} label={role.label}>{role.label}</Select.Item>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-					</div>
-
-					<div class="space-y-2">
-						<Label>Status</Label>
-						<Select.Root type="single" bind:value={form.status}>
-							<Select.Trigger class="w-full capitalize">{statusTriggerLabel}</Select.Trigger>
-							<Select.Content>
-								{#each STATUSES as status (status.value)}
-									<Select.Item value={status.value} label={status.label}>{status.label}</Select.Item
-									>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-					</div>
-				</div>
-			</div>
-
-			<Sheet.Footer class="flex-row justify-end border-t">
-				<Button type="button" variant="outline" onclick={() => (dialogOpen = false)}>Cancel</Button>
-				<Button type="submit">{editingId ? 'Save changes' : 'Add user'}</Button>
-			</Sheet.Footer>
-		</form>
-	</Sheet.Content>
-</Sheet.Root>
-
-<!-- View (read-only) drawer -->
-<Sheet.Root bind:open={viewOpen}>
-	<Sheet.Content side="right" class="gap-0 sm:max-w-lg!">
-		<Sheet.Header class="border-b">
-			<Sheet.Title>User details</Sheet.Title>
-			<Sheet.Description>Read-only overview of this team member.</Sheet.Description>
-		</Sheet.Header>
-
-		{#if viewingUser}
-			<div class="flex-1 space-y-6 overflow-y-auto p-4">
-				<!-- Identity -->
-				<div class="flex items-center gap-4">
-					<span
-						class="bg-muted text-muted-foreground flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-medium"
-						aria-hidden="true"
-					>
-						{initials(viewingUser.name)}
-					</span>
-					<div class="min-w-0 space-y-2">
-						<p class="truncate text-lg font-semibold">{viewingUser.name}</p>
-						<div class="flex flex-wrap gap-2">
-							<StatusBadge tone={roleTone(viewingUser.role)}
-								>{roleLabel(viewingUser.role)}</StatusBadge
-							>
-							<StatusBadge tone={statusTone(viewingUser.status)}>
-								{statusLabel(viewingUser.status)}
-							</StatusBadge>
-						</div>
-					</div>
-				</div>
-
-				<!-- Details -->
-				<dl class="divide-border bg-card divide-y rounded-lg border">
-					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Email</dt>
-						<dd class="truncate text-sm font-medium">{viewingUser.email}</dd>
-					</div>
-					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Role</dt>
-						<dd class="text-sm font-medium">{roleLabel(viewingUser.role)}</dd>
-					</div>
-					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Status</dt>
-						<dd class="text-sm font-medium">{statusLabel(viewingUser.status)}</dd>
-					</div>
-					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">Joined</dt>
-						<dd class="text-sm font-medium">{formatDate(viewingUser.createdAt)}</dd>
-					</div>
-					<div class="flex items-center justify-between gap-4 px-4 py-3">
-						<dt class="text-muted-foreground text-sm">User ID</dt>
-						<dd class="text-muted-foreground font-mono text-xs">{viewingUser.id}</dd>
-					</div>
-				</dl>
-			</div>
-
-			<Sheet.Footer class="flex-row justify-end border-t">
-				<Button variant="outline" onclick={() => (viewOpen = false)}>Close</Button>
-				<Button onclick={editFromView}>
-					<Pencil class="size-4" />
-					Edit
-				</Button>
-			</Sheet.Footer>
-		{/if}
-	</Sheet.Content>
-</Sheet.Root>
-
-<!-- Single delete confirmation -->
 <ConfirmDialog
 	bind:open={deleteOpen}
 	variant="destructive"
-	title="Delete user?"
+	title={t('users.deleteTitle')}
 	description={pendingDelete
-		? `${pendingDelete.name} will be permanently removed. This cannot be undone.`
-		: ''}
-	confirmText="Delete"
+		? t('users.deleteDescription', { name: pendingDelete.name })
+		: t('users.notFoundDescription')}
+	confirmText={t('common.delete')}
 	onConfirm={confirmDelete}
 />
-
-<!-- Bulk delete confirmation -->
 <ConfirmDialog
 	bind:open={bulkDeleteOpen}
 	variant="destructive"
-	title="Delete selected users?"
-	description={`${selected.length} ${selected.length === 1 ? 'user' : 'users'} will be permanently removed. This cannot be undone.`}
-	confirmText="Delete"
+	title={t('users.bulkDeleteTitle')}
+	description={t('users.bulkDeleteDescription')}
+	confirmText={t('common.delete')}
 	onConfirm={confirmBulkDelete}
 />

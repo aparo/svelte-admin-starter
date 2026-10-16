@@ -1,21 +1,15 @@
 // Reusable runes-based persisted state. Reads from localStorage on init and
-// writes back whenever `current` changes. SSR-safe via the `browser` guard.
+// writes only when `current` is assigned. Nested mutations do not write.
+// Requires no lifecycle context; unavailable storage falls back to `initial`.
 //
 // Usage:
 //   const theme = persisted('admin-starter:theme', 'system');
 //   theme.current = 'dark';   // automatically persisted
 
-export function persisted<T>(key: string, initial: T): { current: T } {
-	let value = $state<T>(initial);
+import { readStoredValue, writeStoredValue } from '../utils/local-storage';
 
-	if (typeof localStorage !== 'undefined') {
-		try {
-			const raw = localStorage.getItem(key);
-			if (raw !== null) value = JSON.parse(raw) as T;
-		} catch {
-			// Corrupt/unavailable storage — fall back to the initial value.
-		}
-	}
+export function persisted<T>(key: string, initial: T): { current: T } {
+	let value = $state<T>(readStoredValue(key, initial));
 
 	return {
 		get current(): T {
@@ -23,13 +17,7 @@ export function persisted<T>(key: string, initial: T): { current: T } {
 		},
 		set current(next: T) {
 			value = next;
-			if (typeof localStorage !== 'undefined') {
-				try {
-					localStorage.setItem(key, JSON.stringify(next));
-				} catch {
-					// Ignore quota/availability errors.
-				}
-			}
+			writeStoredValue(key, next);
 		}
 	};
 }

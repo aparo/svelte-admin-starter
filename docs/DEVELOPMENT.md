@@ -43,7 +43,7 @@
 | 表单增强        | `sveltekit-superforms` / `formsnap`             | `^2.0.1` / `^2.0.1` | 表单状态/绑定（可选使用）                                   |
 | 类名合并        | `clsx` / `tailwind-merge` / `tailwind-variants` | —                   | `cn()` 工具的底层依赖                                       |
 
-其它：`@internationalized/date`（calendar）、`embla-carousel-svelte`（carousel）、`paneforge`（resizable）、`vaul-svelte`（drawer）、`date-fns`、`tw-animate-css`。
+其它：`@internationalized/date`（calendar）、`embla-carousel-svelte`（carousel）、`paneforge`（resizable）、`vaul-svelte`（drawer）、`tw-animate-css`。
 
 TypeScript `strict: true`，并对 `.js`/`.svelte` 同样开启类型检查（`tsconfig.json` 中 `checkJs: true`）。
 
@@ -53,13 +53,13 @@ TypeScript `strict: true`，并对 `.js`/`.svelte` 同样开启类型检查（`t
 
 ### 前置要求
 
-- **Node.js**：要求 `^20.19.0 || >=22.12.0`（以项目声明及安装检查为准）。`package.json` 已声明该 `engines` 字段，且 `.npmrc` 设置了 `engine-strict=true`，因此不满足版本要求的环境会在 `npm install` 时被拦截。请使用 Node 20.19+ 或 22.12+（推荐最新 LTS）。
+- **Node.js**：要求 `^20.19.0 || >=22.12.0`（以项目声明及安装检查为准）。`package.json` 已声明该 `engines` 字段，且 `.npmrc` 设置了 `engine-strict=true`，因此不满足版本要求的环境会在 `npm ci` / `npm install` 时被拦截。请使用 Node 20.19+ 或 22.12+（推荐最新 LTS）。
 - **包管理器**：npm（仓库提供 `package-lock.json`）。
 
 ### 安装与启动
 
 ```bash
-npm install      # 安装依赖（postinstall 会自动跑 svelte-kit sync）
+npm ci           # 按 package-lock.json 安装；prepare 会运行 svelte-kit sync
 npm run dev      # 启动开发服务器（Vite），默认 http://localhost:5173
 ```
 
@@ -91,7 +91,7 @@ npm run dev      # 启动开发服务器（Vite），默认 http://localhost:517
 | `npm run verify`                        | PR、完整发布和 CI 共用的完整验证入口       |
 | `npm run format`                        | 格式化全仓库；小改动优先仅格式化受影响文件 |
 
-> `prepare` 是 npm 生命周期钩子，`npm install` 后自动执行 `svelte-kit sync`（生成 `.svelte-kit/` 下的类型与 `$lib`/`$app` 别名），通常无需手动调用。
+> `prepare` 是 npm 生命周期钩子，`npm ci` / `npm install` 后自动执行 `svelte-kit sync`（生成 `.svelte-kit/` 下的类型与 `$lib`/`$app` 别名），通常无需手动调用。
 
 格式化规则见 `.prettierrc`：使用 Tab 缩进、单引号、`trailingComma: none`、`printWidth: 100`，并启用 `prettier-plugin-svelte` 与 `prettier-plugin-tailwindcss`（后者会自动排序 Tailwind 类名）。
 
@@ -104,7 +104,7 @@ npm run dev      # 启动开发服务器（Vite），默认 http://localhost:517
 ```text
 src/
 ├── app.html                 # HTML 外壳模板（theme-color、favicon、%sveltekit.*%）
-├── app.css                  # Tailwind 入口 + 设计 token（:root / .dark 的 oklch CSS 变量）
+├── app.css                  # 仅导入 lib/core/theme.css（Tailwind 入口 + 设计 token）
 ├── app.d.ts                 # SvelteKit 全局类型声明
 │
 ├── routes/                  # 文件系统路由（见第 5 节）
@@ -119,7 +119,7 @@ src/
 │   │   ├── register/+page.svelte
 │   │   └── forgot-password/+page.svelte
 │   └── (app)/               # 应用 route group：受 mock 守卫保护，套 AppShell
-│       ├── +layout.svelte   # 守卫 + AppShell（见第 5 节）
+│       ├── +layout.svelte   # 客户端守卫 + 首屏骨架 + AppShell（见第 5 节）
 │       ├── +error.svelte    # shell 内错误边界（保留侧边栏 + 顶栏，见第 5 节）
 │       ├── dashboard/+page.svelte
 │       ├── users/
@@ -145,61 +145,25 @@ src/
 │           ├── appearance/+page.svelte
 │           └── notifications/+page.svelte
 │
-└── lib/                     # 可通过 $lib 别名导入的库代码
-    ├── index.ts             # $lib 根 barrel（说明各子 barrel 的入口）
-    ├── utils.ts             # cn() 类名合并 + shadcn 用到的类型工具（WithElementRef 等）
-    │
-    ├── components/
-    │   ├── ui/              # shadcn-svelte UI 原语（button/card/dialog/sidebar/... 各一个目录，
-    │   │                    #   每个目录含若干 .svelte + 一个 index.ts barrel）
-    │   └── shared/          # 业务侧可复用组件（在 ui 之上组合而成）
-    │       ├── index.ts     #   barrel：PageHeader/PageContainer/StatCard/DataTable/
-    │       │                #   EmptyState/ConfirmDialog/ThemeToggle/LanguageToggle/
-    │       │                #   Spinner/SearchInput/CommandMenu
-    │       └── *.svelte
-    │
-    ├── shell/               # 应用外壳（侧边栏 + 顶栏 + 面包屑 + 导航模型）
-    │   ├── index.ts         #   barrel：AppShell/AppSidebar/AppHeader/Breadcrumbs/
-    │   │                    #   NotificationsMenu + navGroups/findNavItem
-    │   ├── AppShell.svelte  #   Sidebar.Provider 包裹 AppSidebar 与 inset(header + main)
-    │   ├── AppSidebar.svelte#   按 navGroups 渲染侧边栏 + 用户菜单
-    │   ├── AppHeader.svelte #   顶栏：trigger/面包屑/搜索(⌘K)/通知/语言/主题/用户菜单
-    │   ├── Breadcrumbs.svelte
-    │   ├── NotificationsMenu.svelte
-    │   └── nav.ts           #   导航数据模型：NavGroup/NavItem + navGroups + findNavItem()
-    │
-    ├── auth/                # mock 鉴权（见第 8 节）
-    │   ├── auth.svelte.ts   #   AuthStore 单例（runes，localStorage 持久化）
-    │   ├── types.ts         #   User 接口
-    │   └── index.ts         #   barrel：export { auth }, type { User }
-    │
-    ├── i18n/                # 轻量国际化（见第 9 节）
-    │   ├── index.svelte.ts  #   实现：响应式 locale、t()、setLocale、initLocale
-    │   ├── index.ts         #   barrel（桥接 .svelte.ts 的目录导入）
-    │   └── locales/
-    │       ├── en.ts        #   英文字典（嵌套对象，dot-path 查找）
-    │       └── zh-CN.ts     #   简体中文字典（结构与 en.ts 完全一致）
-    │
-    ├── hooks/               # runes-based 复用 hooks
-    │   ├── is-mobile.svelte.ts
-    │   ├── use-debounce.svelte.ts
-    │   ├── use-local-storage.svelte.ts
-    │   ├── use-media-query.svelte.ts
-    │   └── use-pagination.svelte.ts
-    │
-    ├── stores/              # 全局响应式状态
-    │   ├── persisted.svelte.ts     # persisted<T>(key, initial)：localStorage 同步 store
-    │   └── notifications.svelte.ts # 通知列表状态
-    │
-    ├── utils/               # 纯函数工具
-    │   ├── formatters.ts    #   formatCurrency/formatNumber/initials/...（无运行时依赖）
-    │   ├── validators.ts    #   zod schema（loginSchema/userSchema）+ fieldError()
-    │   └── csv.ts           #   exportToCsv()
-    │
-    └── data/                # mock 数据（纯 .ts，不含图标）
-        ├── dashboard.ts     #   stats / revenueSeries / recentActivity / trafficByChannel
-        ├── products.ts
-        └── users.ts
+└── lib/                     # 可通过 $lib 别名导入
+    ├── core/                # portable export 边界，内部使用相对路径
+    │   ├── components/ui/   # vendored shadcn-svelte 原语
+    │   ├── components/shared/ # PageContainer / DataTable / ThemeToggle 等组合组件
+    │   ├── shell/           # Tabs / TabBar / KeepAliveOutlet / TAB_ROUTE
+    │   ├── hooks/           # usePagination / useLocalStorage 等 runes hooks
+    │   ├── stores/          # persisted()
+    │   ├── utils/           # formatters / validators / csv / local-storage
+    │   ├── theme.css        # Tailwind 入口、token、明暗主题与基础样式
+    │   └── utils.ts         # cn() 与 shadcn 类型工具
+    ├── components/shared/   # i18n/date-time/command/confirm 等应用集成；保留兼容 barrel
+    ├── shell/               # AppShell / AppSidebar / AppHeader / nav 与 SvelteKit 适配
+    ├── features/users/      # 每个 app layout 独立的演示用户状态与共享展示规则
+    ├── config/              # 品牌、默认主题、首页、mock auth 配置
+    ├── auth/                # mock auth store / provider / types
+    ├── i18n/                # typed t()、translate 桥接与 en / zh-CN 字典
+    ├── server/              # 仅服务端的数据访问接缝
+    ├── hooks/  stores/  utils/ # 兼容入口及应用专用 helper
+    └── data/                # dashboard / products / users 等只读 mock 种子
 
 templates/
 └── pages/                   # list/form/detail/dashboard/settings 的复制式页面骨架（不参与运行时）
@@ -208,10 +172,10 @@ templates/
 各层职责约定：
 
 - **`routes/`**：页面与布局，决定 URL 结构与 SSR/守卫行为。
-- **`lib/components/ui/`**：shadcn-svelte 原语，**以源码形式 vendored**（不是 npm 包）。可用 `npx shadcn-svelte@latest add <name>` 增量添加，或直接编辑。
-- **`lib/components/shared/`**：在 ui 之上封装的业务可复用组件，统一从 `$lib/components/shared` 导入。
+- **`lib/core/components/ui/`**：shadcn-svelte 原语，**以源码形式 vendored**（不是 npm 包）。可用 `npx shadcn-svelte@latest add <name>` 增量添加，或直接编辑。
+- **`lib/core/components/shared/`**：portable 组合组件；**`lib/components/shared/`** 放应用专用集成。运行时代码优先直接导入所需组件文件，兼容 barrel 保留给现有消费者。
 - **`lib/shell/`**：应用外壳与导航模型。新增导航项改 `nav.ts` 即可（见第 7 节）。
-- **`lib/hooks/` `lib/stores/` `lib/utils/` `lib/i18n/` `lib/auth/` `lib/data/`**：分别是 runes hooks、全局状态、纯工具、国际化、鉴权、mock 数据。
+- **`lib/core/hooks/` `lib/core/stores/` `lib/core/utils/`**：portable hooks、持久化容器与纯工具；auth、i18n、mock data 与 app shell 依赖留在 core 之外。
 
 > 别名（`$lib`/`$app`）由 SvelteKit 在 `svelte-kit sync` 时生成到 `.svelte-kit/tsconfig.json`；`tsconfig.json` 仅 `extends` 它。如需自定义别名，请在 `svelte.config.js` 的 `kit.alias` 中扩展（见文件内注释），不要手改生成文件。
 
@@ -233,6 +197,7 @@ templates/
 	import { Toaster } from '$lib/core/components/ui/sonner';
 	import { auth } from '$lib/auth';
 	import { initLocale } from '$lib/i18n';
+	import { config } from '$lib/config';
 
 	let { children } = $props();
 
@@ -242,23 +207,25 @@ templates/
 	});
 </script>
 
-<ModeWatcher />
+<ModeWatcher defaultMode={config.theme.defaultMode} />
 <Toaster richColors position="top-right" />
 
 {@render children()}
 ```
 
-根布局配置 `src/routes/+layout.ts`：`ssr = true`（首屏快速渲染），`prerender = false`（因为 mock 守卫在客户端解析）。
+根布局配置 `src/routes/+layout.ts`：`ssr = true`、`prerender = false`。受保护的 `(app)` 区域在 SSR 与客户端 session 初始化期间显示骨架；认证后的页面内容等到客户端守卫完成后才挂载。
 
 ### 首页重定向 `src/routes/+page.ts`
 
-索引路由只是入口，直接重定向到 dashboard：
+索引路由只是入口，重定向到配置的首页，并通过 `$app/paths` 应用部署 base：
 
 ```ts
 import { redirect } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
+import { config } from '$lib/config';
 
 export function load(): never {
-	throw redirect(307, '/dashboard');
+	throw redirect(307, resolve(config.app.homePath));
 }
 ```
 
@@ -266,12 +233,12 @@ export function load(): never {
 
 ### `(auth)` 分组
 
-`src/routes/(auth)/+layout.svelte` 提供一个居中卡片画布（顶部装饰渐变、右上角语言/主题切换、品牌标）。**已登录用户会被弹回 `/dashboard`**：
+`src/routes/(auth)/+layout.svelte` 提供一个居中卡片画布（顶部装饰渐变、右上角语言/主题切换、品牌标）。**已登录用户会被送回 `config.app.homePath`**：
 
 ```svelte
 onMount(() => {
   auth.init();
-  if (auth.isAuthenticated) goto('/dashboard');
+  if (auth.isAuthenticated) goto(resolve(config.app.homePath));
 });
 ```
 
@@ -279,50 +246,39 @@ onMount(() => {
 
 ### `(app)` 分组与 mock 守卫
 
-`src/routes/(app)/+layout.svelte` 是受保护区的入口：在客户端恢复 session，未登录跳 `/login`，否则把 children 套进 `AppShell`。完整源码如下：
+`src/routes/(app)/+layout.svelte` 在客户端恢复 session，未登录跳转到 `resolve(config.auth.afterLogout)`，已登录才挂载 `AppShell`。SSR 和初始化期间显示带 `role="status"` 的语义色骨架，减少空白首屏。守卫逻辑摘录如下；完整骨架、确认宿主与 users context 初始化见源码：
 
 ```svelte
-<!--
-  (app) route-group layout — mock auth guard + admin shell.
-  Restores the mock session on the client; redirects to /login when not
-  authenticated, otherwise renders the children inside the AppShell.
--->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth';
-	import { AppShell } from '$lib/shell';
+	import { config } from '$lib/config';
+	import { t } from '$lib/i18n';
+	import AppShell from '$lib/shell/AppShell.svelte';
 
 	let { children } = $props();
 	let ready = $state(false);
-
 	onMount(() => {
 		auth.init();
-		if (!auth.isAuthenticated) goto('/login');
+		if (!auth.isAuthenticated) void goto(resolve(config.auth.afterLogout));
 		else ready = true;
 	});
 </script>
 
 {#if ready}
-	<AppShell>{@render children()}</AppShell>
+	<AppShell {children} />
+{:else}
+	<div role="status" aria-label={t('common.loading')}>{t('common.loading')}</div>
 {/if}
 ```
 
-> 这是**纯客户端守卫**（在 `onMount` 中运行），因此 `prerender` 必须为 false。要接入真实后端时，应改为服务端守卫（见第 8 节）。
+这是 mock 客户端守卫，不执行服务端认证；真实后端接入沿用第 8 节的接缝。`AppShell` 组合 sidebar、header、TabBar 与 KeepAliveOutlet。正常 app 页的 document title 由 AppShell 使用活动 tab 标签和 `pageTitle()` 统一生成；`+error.svelte` 在错误状态下自行提供标题，普通 app 页不要另写 `<title>`。
 
-`AppShell` 的结构（`src/lib/shell/AppShell.svelte`）：
+Keep-alive 以 tab ID 保存组件实例和 `{ pathname, url, params, data, form }` 快照；进入错误页时隐藏缓存页并渲染 Kit 的错误 children，已加载页面继续挂载。动态页优先读取 LayoutChain 传入的可选 `params` prop（原生 Kit 渲染时可回退 `page.params`），或从 `$lib/core/shell/tab-route` 的 `TAB_ROUTE` context 读取该 tab 的路由状态。不要在缓存子树中直接依赖全局 `page.params` / `page.url` 来标识自己的记录。
 
-```svelte
-<Sidebar.Provider>
-	<AppSidebar />
-	<Sidebar.Inset>
-		<AppHeader />
-		<main class="flex flex-1 flex-col">
-			{@render children()}
-		</main>
-	</Sidebar.Inset>
-</Sidebar.Provider>
-```
+应用边界用 `$lib/shell/paths` 的 `toAppPathname` / `toAppUrl` 去除浏览器 URL 的 base；存储的 tab 路径保持应用相对，实际导航由 `resolve` / `resolveAppUrl` 加回 base。导航与 keep-alive 注册器一致忽略 route group 目录名。
 
 ### 错误边界（两层）
 
@@ -405,11 +361,24 @@ onMount(() => {
   const pathname = $derived(page.url.pathname);
   ```
 - **`goto` 来自 `$app/navigation`**：`import { goto } from '$app/navigation';`。
-- **共享组件从 barrel 导入**：`import { PageContainer, PageHeader, StatCard } from '$lib/components/shared';`。
+- **组合组件优先直接导入**：如 `import PageHeader from '$lib/core/components/shared/PageHeader.svelte';`；应用专用组件从 `src/lib/components/shared/` 导入。兼容 barrel 仍保留。
 
 ### 设计 token 优先
 
 颜色/圆角等一律使用 `src/lib/core/theme.css` 中定义的设计 token（CSS 变量 + 对应的 Tailwind 语义类），**不要硬编码颜色**。优先用 `bg-background` / `text-foreground` / `bg-primary` / `text-muted-foreground` / `border-border` / `bg-card` / `bg-accent` 等语义类；需要原始变量时用 `var(--primary)`（如 Dashboard 里手绘 SVG 图表的描边 `stroke="var(--primary)"`）。这样可天然适配 light/dark 两套主题。
+
+### 多实例 ID 与缓存页
+
+同一路由可以同时打开多个独立 tab。字段、错误说明、SVG gradient、列锚点等 DOM ID 用组件级 `$props.id()` 加局部后缀，并让 `for`、ARIA 引用、`url(#...)` 和 DOM 查询共用同一值；避免固定字符串或随机 ID：
+
+```svelte
+<script lang="ts">
+	const instanceId = $props.id();
+</script>
+
+<Label for={`${instanceId}-name`}>Name</Label>
+<Input id={`${instanceId}-name`} />
+```
 
 ### UI 文案使用英文
 
@@ -429,13 +398,10 @@ onMount(() => {
 <!-- src/routes/(app)/reports/+page.svelte -->
 <script lang="ts">
 	import Download from '@lucide/svelte/icons/download';
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 </script>
-
-<svelte:head>
-	<title>Reports · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader title="Reports" description="Generated reports and exports.">
@@ -451,7 +417,7 @@ onMount(() => {
 </PageContainer>
 ```
 
-`PageHeader` 的 props（来自 `PageHeader.svelte`）：`title: string`、`description?: string`、`actions?: Snippet`、`class?: string`。
+新增 app 页无需 `<title>`：AppShell 会使用导航标签或 `breadcrumb` 命名活动 tab。`PageHeader` 的 props（来自 `PageHeader.svelte`）：`title: string`、`description?: string`、`actions?: Snippet`、`class?: string`。
 `PageContainer` 的 props：`children: Snippet`、`class?: string`（统一 `max-w-7xl` + 响应式 padding + `space-y-6`）。
 
 > 动态路由（如 `users/[id]`）若想让叶子面包屑显示友好标签而非原始 id 段，可加一个 `+page.ts`，让其 `load` 返回 `{ breadcrumb: '...' }`（见 7.7）。
@@ -551,7 +517,7 @@ nav: { /* ... */, reports: 'Reports' }
 nav: { /* ... */, reports: '报表' }
 ```
 
-> 查找逻辑：先查当前 locale，未命中回退 `en`，再未命中则原样返回 key。所以漏翻译不会崩溃，但会显示英文或 key 本身。
+> 固定 key 由 `TranslationKey` 检查；字典通过共享 `Dictionary` 类型约束键结构。宽字符串回调使用 `translate()`，保留当前 locale → `en` → key 的运行时回退。
 
 ### 7.7 为动态路由覆写面包屑标签
 
@@ -568,7 +534,7 @@ export const load: PageLoad = ({ params }) => {
 };
 ```
 
-`Breadcrumbs.svelte` 读取 `page.data.breadcrumb`：当它是非空字符串时，用它替换**最后一个**面包屑的 label（仅当 trail 长度 > 1）。于是 `/users/u_123` 的面包屑会读作「Home › Management › Users › Olivia Martin」而不是原始 id。这就是上述 `users/[id]` 的现成示例。
+`Breadcrumbs.svelte` 和 tab title 共用 `routeLabelFor`，依次采用显式 override、`leafCrumb` 客户端标签、load 的 `breadcrumb`、导航标签或路径段。load 标签来自 `page.data.breadcrumb`：当它是非空字符串时，用它替换**最后一个**面包屑的 label（仅当 trail 长度 > 1）。于是 `/users/u_123` 的面包屑会显示用户名而不是原始 id。演示 Users 的编辑状态由 `(app)` layout context 中的 `createUsersState()` 创建，并在列表和详情之间共享；它不会写入模块级 mock 种子，也不会把一个服务端请求的修改泄漏给其它请求。
 
 ---
 
@@ -616,9 +582,9 @@ export interface User {
 
 2. **实现认证 `AuthProvider`**（`src/lib/auth/provider.ts`）：文件已内置 `apiAuthProvider`（打 `config.api.baseUrl` 的 `/auth/*` 端点）与 `mockAuthProvider`，底部导出 `authProvider` 按 `baseUrl` 是否配置自动二选一。把 `apiAuthProvider` 里的端点路径与请求/响应 JSON 形状改成你后端的契约即可。`auth.svelte.ts` 只消费 `authProvider`，无须改动；`auth.user` / `auth.isAuthenticated` 等对外 getter 契约不变，守卫、侧边栏、顶栏都不用动。
 
-3. **实现数据层 `db`**（`src/lib/server/db.ts`，**仅服务端**）：业务页面通过 `+page.server.ts` 的 `load` 调用 `db`（参考 `src/routes/(app)/tables/+page.server.ts`：`{ products: await db.products.list() }`）。把每个方法体换成真实数据库/API 查询、保持签名不变，页面就不用改。`products.list` 已示范「有 `baseUrl` 就 `fetch`，否则回退 mock」的形态。此文件在 `$lib/server/`，连同它 import 的任何 DB 凭据都**不会**进浏览器包。
+3. **实现数据层 `db`**（`src/lib/server/db.ts`，**仅服务端**）：在业务路由新增 `+page.server.ts`，通过 `load` 调用 `db`（如 `{ products: await db.products.list() }`；见 db.ts 顶部示例）。当前 `/tables/server` 仅模拟 DataTable 的外部分页回调，没有 server load。把每个方法体换成真实数据库/API 查询、保持签名不变，页面就不用改。`products.list` 已示范「有 `baseUrl` 就 `fetch`，否则回退 mock」的形态。此文件在 `$lib/server/`，连同它 import 的任何 DB 凭据都**不会**进浏览器包。
 
-4. **增加服务端守卫**：当前守卫是纯客户端的，会有「先渲染再跳转」的闪烁，且不安全。改为服务端校验更稳妥——在 `(app)/` 下新增 `+layout.server.ts`，在 `load` 中读取 cookie/session 并在未认证时 `throw redirect(302, '/login')`：
+4. **增加服务端守卫**：当前守卫是纯客户端的，认证前仅显示骨架；真实访问控制仍需要服务端校验——在 `(app)/` 下新增 `+layout.server.ts`，在 `load` 中读取 cookie/session 并在未认证时 `throw redirect(302, '/login')`：
 
    ```ts
    // src/routes/(app)/+layout.server.ts （示例）
@@ -640,14 +606,16 @@ export interface User {
 实现见 `src/lib/i18n/index.svelte.ts`（runes 模块），对外通过 `src/lib/i18n/index.ts` barrel 暴露：
 
 ```ts
-export { t, setLocale, initLocale, i18n, LOCALES } from './index.svelte';
-export type { Locale } from './index.svelte';
+export { t, translate, setLocale, initLocale, i18n, LOCALES } from './index.svelte';
+export type { Dictionary, Locale, TranslationKey, TranslationValues } from './types';
 ```
 
 - `Locale` 类型：`'en' | 'zh-CN'`。
 - `LOCALES`：`[{ value: 'en', label: 'English' }, { value: 'zh-CN', label: '简体中文' }]`，供语言切换 UI 遍历。
 - `i18n.locale`：当前 locale 的响应式只读 getter。
-- `t(key, vars?)`：翻译（dot-path + `{var}` 插值，回退 `en` → key）。
+- `t(key, vars?)`：接受字典导出的 `TranslationKey`，在编译期检查固定 key；运行时按当前语言 → `en` → key 回退并插值。
+- `translate(key: string, vars?)`：宽字符串桥接，供 portable core 的翻译回调或动态 metadata 使用；固定 UI 文案优先使用 typed `t()`。
+- `Dictionary`：由英文结构派生，要求其它 locale 提供相同的嵌套字符串键。
 - `setLocale(l)`：切换并持久化。
 - `initLocale()`：从持久化恢复（在根布局 `onMount` 调用）。
 
@@ -663,9 +631,8 @@ import { LOCALES, setLocale, i18n, type Locale } from '$lib/i18n';
 
 ### 新增一种语言（例如 `ja`）
 
-1. 新建字典 `src/lib/i18n/locales/ja.ts`，结构与 `en.ts` 完全一致（`export default { ... } as const;`）。
-2. 在 `index.svelte.ts` 中：
-   - 扩展类型：`export type Locale = 'en' | 'zh-CN' | 'ja';`
+1. 新建字典 `src/lib/i18n/locales/ja.ts`，结构与 `en.ts` 一致，并用 `satisfies Dictionary` 检查完整性。
+2. 在 `src/lib/i18n/types.ts` 扩展 `Locale` 为 `'en' | 'zh-CN' | 'ja'`；在 `index.svelte.ts` 中：
    - 导入并注册到 `dictionaries`：`import ja from './locales/ja'; const dictionaries = { en, 'zh-CN': zhCN, ja };`
    - 在 `LOCALES` 数组加入 `{ value: 'ja', label: '日本語' }`。
    - 更新 `isLocale()` 的判断，把 `'ja'` 纳入。

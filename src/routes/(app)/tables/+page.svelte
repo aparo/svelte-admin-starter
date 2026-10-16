@@ -1,13 +1,12 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve -- typed nav paths are already validated by SvelteKit. */
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import { navGroups } from '$lib/shell/nav';
 
 	const examples = navGroups.find((group) => group.label === 'Data Tables')?.items ?? [];
 </script>
-
-<svelte:head><title>Data Tables · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader

@@ -18,6 +18,7 @@
 	}
 
 	let { onCreated, createFn }: Props = $props();
+	const nameId = $props.id();
 	let open = $state(false);
 	let name = $state('');
 	let saving = $state(false);
@@ -29,6 +30,7 @@
 
 	async function createClient(event: SubmitEvent) {
 		event.preventDefault();
+		if (saving) return;
 		const value = name.trim();
 		if (!value) return toast.error(t('clients.nameRequired'));
 		saving = true;
@@ -66,8 +68,8 @@
 				<Dialog.Description>{t('clients.quickCreateHint')}</Dialog.Description>
 			</Dialog.Header>
 			<div class="space-y-2 py-4">
-				<Label>{t('common.name')} *</Label>
-				<Input bind:value={name} autocomplete="organization" required />
+				<Label for={nameId}>{t('common.name')} *</Label>
+				<Input id={nameId} bind:value={name} autocomplete="organization" required />
 			</div>
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={saving}>

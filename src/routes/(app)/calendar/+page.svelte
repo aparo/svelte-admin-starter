@@ -12,14 +12,15 @@
 	import Clock from '@lucide/svelte/icons/clock';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Badge } from '$lib/core/components/ui/badge';
 	import { Input } from '$lib/core/components/ui/input';
 	import { Label } from '$lib/core/components/ui/label';
 	import { cn } from '$lib/core/utils';
-	import { i18n, t } from '$lib/i18n';
+	import { i18n, t, type TranslationKey } from '$lib/i18n';
 	import { buildGrid, monthLabel, shiftMonth, today, weekdayLabels, ymd } from '$lib/calendar';
 
 	type Category = 'meeting' | 'review' | 'deadline' | 'personal';
@@ -33,7 +34,7 @@
 		time?: string;
 	}
 
-	const CATEGORIES: Record<Category, { labelKey: string; chip: string; dot: string }> = {
+	const CATEGORIES: Record<Category, { labelKey: TranslationKey; chip: string; dot: string }> = {
 		meeting: {
 			labelKey: 'calendar.categoryMeeting',
 			chip: 'bg-primary/10 text-primary',
@@ -155,19 +156,16 @@
 	function weekdayShort(d: Date): string {
 		return d.toLocaleString(i18n.locale, { weekday: 'short' });
 	}
+	const instanceId = $props.id();
 </script>
-
-<svelte:head>
-	<title>Calendar · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader title="Calendar" description="Plan your month and keep track of upcoming events.">
 		{#snippet actions()}
 			<div class="flex flex-wrap items-center gap-1.5">
-				<Label for="calendar-month-jump" class="sr-only">Jump to month</Label>
+				<Label for={`${instanceId}-calendar-month-jump`} class="sr-only">Jump to month</Label>
 				<Input
-					id="calendar-month-jump"
+					id={`${instanceId}-calendar-month-jump`}
 					type="month"
 					value={monthInput}
 					onchange={jumpToMonth}

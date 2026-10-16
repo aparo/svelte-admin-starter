@@ -6,7 +6,7 @@
 //  few UI defaults. Read it anywhere with `import { config } from '$lib/config'`.
 //
 //  Two things live elsewhere by design:
-//    • Design tokens (colors, fonts) → src/app.css
+//    • Design tokens (colors, fonts) → src/lib/core/theme.css
 //    • Auth / data backends (the "how", not the "what") → $lib/auth/provider.ts
 //      and $lib/server/db.ts
 // ============================================================================
@@ -37,7 +37,7 @@ export const config = {
 		tagline: 'Everything you need to ship an admin.'
 	},
 
-	/** Appearance defaults. The brand color is the `--primary` token in app.css. */
+	/** Appearance defaults. The brand color is `--primary` in src/lib/core/theme.css. */
 	theme: {
 		/** Initial color mode before the user picks one. */
 		defaultMode: 'system' as 'light' | 'dark' | 'system'

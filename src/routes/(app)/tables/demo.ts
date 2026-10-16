@@ -1,4 +1,4 @@
-import type { Column } from '$lib/components/shared';
+import type { Column } from '$lib/core/components/shared/DataTable.svelte';
 import type { DemoProduct } from '$lib/data/products';
 
 export const columns: Column<DemoProduct>[] = [

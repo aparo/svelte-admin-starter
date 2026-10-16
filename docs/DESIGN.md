@@ -118,7 +118,7 @@ token 在 `src/lib/core/theme.css` 中分两步声明：
 
 ### `.dark` class 机制
 
-主题切换基于在 `<html>` 上挂载/移除 `.dark` 类。`:root` 提供亮色取值，`.dark` 覆盖为暗色取值。`app.css` 顶部声明了自定义变体：
+主题切换基于在 `<html>` 上挂载/移除 `.dark` 类。`:root` 提供亮色取值，`.dark` 覆盖为暗色取值。`src/app.css` 只导入 `src/lib/core/theme.css`；token、Tailwind 入口与自定义变体均在后者声明：
 
 ```css
 /* src/lib/core/theme.css */
@@ -136,10 +136,11 @@ token 在 `src/lib/core/theme.css` 中分两步声明：
 <script lang="ts">
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
+	import { config } from '$lib/config';
 	// …
 </script>
 
-<ModeWatcher />
+<ModeWatcher defaultMode={config.theme.defaultMode} />
 <Toaster richColors position="top-right" />
 
 {@render children()}
@@ -149,10 +150,10 @@ token 在 `src/lib/core/theme.css` 中分两步声明：
 
 ### 用 `ThemeToggle` 快速切换
 
-`src/lib/components/shared/ThemeToggle.svelte` 是一个最小切换按钮，调用 `toggleMode()` 在亮/暗之间翻转，并用 `mode.current` 决定无障碍标签与图标淡入淡出：
+`src/lib/core/components/shared/ThemeToggle.svelte` 是一个最小切换按钮，调用 `toggleMode()` 在亮/暗之间翻转，并用 `mode.current` 决定无障碍标签与图标淡入淡出。可选 `lightLabel` / `darkLabel` 用于注入翻译，默认保留英文：
 
 ```svelte
-<!-- src/lib/components/shared/ThemeToggle.svelte -->
+<!-- ThemeToggle 的主要逻辑（省略可选 label props） -->
 <script lang="ts">
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
@@ -178,20 +179,18 @@ token 在 `src/lib/core/theme.css` 中分两步声明：
 
 ### 三态切换（Light / Dark / System）
 
-外观设置页 `src/routes/(app)/settings/appearance/+page.svelte` 演示了完整的三态控制。它用 `setMode(value)` 设置 `'light' | 'dark' | 'system'`，并自行持久化「System」意图（因为 `mode.current` 只暴露解析后的 `'light' | 'dark'`）：
+外观设置页 `src/routes/(app)/settings/appearance/+page.svelte` 演示了完整的三态控制。所有入口共用 `mode-watcher` 的状态与持久化：`userPrefersMode.current` 表示用户选择的 `'light' | 'dark' | 'system'`，`mode.current` 表示解析后的亮/暗外观。设置页与顶栏按钮会相互同步，不再维护第二个 theme-pref 存储键：
 
 ```svelte
 <!-- settings/appearance/+page.svelte（节选） -->
 <script lang="ts">
-	import { setMode, mode } from 'mode-watcher';
-	import { persisted } from '$lib/stores/persisted.svelte';
+	import { setMode, mode, userPrefersMode } from 'mode-watcher';
 
 	type ThemeMode = 'light' | 'dark' | 'system';
 
-	const selectedMode = persisted<ThemeMode>('admin-starter:theme-pref', 'system');
+	const selectedMode = $derived(userPrefersMode.current);
 
 	function selectMode(value: ThemeMode): void {
-		selectedMode.current = value;
 		setMode(value);
 	}
 
@@ -207,6 +206,7 @@ token 在 `src/lib/core/theme.css` 中分两步声明：
 | `toggleMode()`                           | `mode-watcher` | 在 light / dark 间翻转                             |
 | `setMode('light' \| 'dark' \| 'system')` | `mode-watcher` | 显式设定模式                                       |
 | `mode.current`                           | `mode-watcher` | 当前**解析后**模式（`'light'` / `'dark'`，响应式） |
+| `userPrefersMode.current`                | `mode-watcher` | 用户选择的 light / dark / system，供设置控件高亮   |
 
 ---
 
@@ -275,16 +275,12 @@ token 在 `src/lib/core/theme.css` 中分两步声明：
 
 ### 字体（Typeface）
 
-UI 字体为 **Geist**（Vercel 出品的几何无衬线字体），等宽字体为 **Geist Mono**，提供干净、现代的界面气质。两者在 `src/app.html` 通过 Google Fonts 加载（并 `preconnect` 预连接以减少加载延迟）：
+UI 字体为 **Geist**（Vercel 出品的几何无衬线字体），等宽字体为 **Geist Mono**。根布局通过 Fontsource 的变量字体包自托管加载，不请求 Google Fonts CDN：
 
-```html
-<!-- src/app.html -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-	href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap"
-	rel="stylesheet"
-/>
+```ts
+// src/routes/+layout.svelte
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 ```
 
 字体栈在 `src/lib/core/theme.css` 的 `@theme inline` 块中通过 `--font-sans` / `--font-mono` 声明（生成 `font-sans` / `font-mono` 工具类），并带完整的回退链（Geist → Inter → 系统字体）：
@@ -301,7 +297,7 @@ UI 字体为 **Geist**（Vercel 出品的几何无衬线字体），等宽字体
 
 `body` 默认应用 `font-sans antialiased`（见 `@layer base` 中 `body { @apply bg-background text-foreground font-sans antialiased; }`），因此全站正文即为 Geist；需要等宽（代码、数字、token 值）时显式加 `font-mono`。
 
-> **生产环境建议**：当前从 Google Fonts CDN 加载，开发期最省事。若要避免第三方请求、消除字体闪烁并提升隐私/可靠性，可改为通过 [`@fontsource`](https://fontsource.org/)（如 `@fontsource/geist-sans`、`@fontsource/geist-mono`）自托管字体，再在本地 `import` 即可，`--font-sans` / `--font-mono` 无需改动。
+> 更换字体时同步调整根布局的本地字体 import 与 `src/lib/core/theme.css` 的 `--font-sans` / `--font-mono`。
 
 ### 排版刻度
 
@@ -321,14 +317,14 @@ UI 字体为 **Geist**（Vercel 出品的几何无衬线字体），等宽字体
 
 常用排版刻度：
 
-| 场景                     | 类                                                      | 说明                                                             |
-| ------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------- |
-| 页面主标题               | `text-2xl font-semibold tracking-tight text-foreground` | 见 `PageHeader`                                                  |
-| 页面描述/副文案          | `text-sm text-muted-foreground`                         | 次要信息一律用 `text-muted-foreground`                           |
-| 正文/默认文字            | 继承 `body` 的 `text-foreground`                        | 见 `app.css` 的 `body { @apply bg-background text-foreground; }` |
-| 强调正文（如表格主字段） | `font-medium text-foreground`                           | 见 users 页姓名单元格                                            |
-| 小标签/字段说明          | `text-xs` / `text-xs font-medium`                       | 如徽章、预览标签                                                 |
-| 表单内联校验错误         | `text-xs text-red-500`                                  | 见 users 页 `fieldError` 提示                                    |
+| 场景                     | 类                                                      | 说明                                                                            |
+| ------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 页面主标题               | `text-2xl font-semibold tracking-tight text-foreground` | 见 `PageHeader`                                                                 |
+| 页面描述/副文案          | `text-sm text-muted-foreground`                         | 次要信息一律用 `text-muted-foreground`                                          |
+| 正文/默认文字            | 继承 `body` 的 `text-foreground`                        | 见 `src/lib/core/theme.css` 的 `body { @apply bg-background text-foreground; }` |
+| 强调正文（如表格主字段） | `font-medium text-foreground`                           | 见 users 页姓名单元格                                                           |
+| 小标签/字段说明          | `text-xs` / `text-xs font-medium`                       | 如徽章、预览标签                                                                |
+| 表单内联校验错误         | `text-xs text-red-500`                                  | 见 users 页 `fieldError` 提示                                                   |
 
 排版准则：
 
@@ -565,7 +561,7 @@ function statusClass(status: Status): string {
 }
 ```
 
-可选值为 shadcn 标准基色（`slate` / `gray` / `zinc` / `neutral` / `stone`）。注意：改它**只影响之后新拉取的组件**，不会回溯改写已有 token；要让现有界面跟上，仍需手动对齐 `app.css` 里的中性 token。
+可选值为 shadcn 标准基色（`slate` / `gray` / `zinc` / `neutral` / `stone`）。注意：改它**只影响之后新拉取的组件**，不会回溯改写已有 token；要让现有界面跟上，仍需手动对齐 `src/lib/core/theme.css` 里的中性 token。
 
 > 滚动条已是全局默认样式（见[第 10 节](#10-滚动条)），不再需要 `.custom-scrollbar` 之类的工具类；任意滚动容器自动获得一致外观。
 
@@ -583,4 +579,4 @@ function statusClass(status: Status): string {
 
 - **不要仅靠颜色传达信息**：状态徽章除了颜色还带文字标签（如 `Active`/`Suspended`），图标按钮带 `aria-label`（见 `ThemeToggle` 的 `aria-label={label}`）。新增组件请沿用这一约定。
 
-- **autofill 覆盖**：`app.css` 在 `@layer` 之外强制覆盖了浏览器自动填充的背景与文字色，且现在改用 token 变量（`-webkit-box-shadow: 0 0 0px 1000px var(--input) inset; -webkit-text-fill-color: var(--foreground);`，`caret-color: var(--foreground)`），因此**明暗主题安全**——自动填充态会跟随 `--input` / `--foreground` 自动变色，不会再在暗色下出现亮底填充。避免 Chrome 默认黄色填充破坏输入框配色。改输入框配色时无需再手动同步颜色，只要 token 正确即可。
+- **autofill 覆盖**：`src/lib/core/theme.css` 在 `@layer` 之外强制覆盖了浏览器自动填充的背景与文字色，且现在改用 token 变量（`-webkit-box-shadow: 0 0 0px 1000px var(--input) inset; -webkit-text-fill-color: var(--foreground);`，`caret-color: var(--foreground)`），因此**明暗主题安全**——自动填充态会跟随 `--input` / `--foreground` 自动变色，不会再在暗色下出现亮底填充。避免 Chrome 默认黄色填充破坏输入框配色。改输入框配色时无需再手动同步颜色，只要 token 正确即可。

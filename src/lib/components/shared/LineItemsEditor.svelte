@@ -17,6 +17,14 @@
 		myinvois_exemption_reason: string;
 		myinvois_unit_code: string;
 	}
+
+	/** Keep new keyed rows distinct from incoming rows and earlier local additions. */
+	export function nextLineItemId(
+		items: readonly Pick<EditableLine, 'id'>[],
+		previousId = 0
+	): number {
+		return items.reduce((highest, item) => Math.max(highest, item.id), previousId) + 1;
+	}
 </script>
 
 <script lang="ts">
@@ -29,6 +37,7 @@
 	import { Button } from '$lib/core/components/ui/button';
 	import { Checkbox } from '$lib/core/components/ui/checkbox';
 	import { t } from '$lib/i18n';
+	import { formatNumber } from '$lib/i18n/formatters';
 
 	export interface ServiceItem {
 		id: number;
@@ -65,9 +74,13 @@
 
 	let uid = $state(0);
 	const COUNTER_TOKEN = '{counter}';
+	function allocateId(): number {
+		uid = nextLineItemId(items, uid);
+		return uid;
+	}
 	function blankRow(): EditableLine {
 		return {
-			id: ++uid,
+			id: allocateId(),
 			description: '',
 			qty: '1',
 			unit_price: '0',
@@ -110,7 +123,7 @@
 		items = [
 			...items,
 			{
-				id: ++uid,
+				id: allocateId(),
 				description: catalogDesc(s),
 				qty: '1',
 				unit_price: String(s.default_unit_price),
@@ -132,7 +145,7 @@
 	const tax = $derived(items.reduce((s, r) => s + (r.taxable ? lineTotal(r) * taxRate : 0), 0));
 	const total = $derived(subtotal + tax);
 	const fmt = (n: number) =>
-		`${currency} ${n.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		`${currency} ${formatNumber(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 </script>
 
 <div class="space-y-3">
@@ -158,6 +171,7 @@
 									<Textarea
 										bind:value={row.description}
 										placeholder={t('common.description')}
+										aria-label={t('sales.item')}
 										rows={2}
 										class="min-h-16 resize-y"
 									/>
@@ -174,11 +188,22 @@
 									{/if}
 								</div>
 							{:else}
-								<Input bind:value={row.description} placeholder={t('common.description')} />
+								<Input
+									bind:value={row.description}
+									placeholder={t('common.description')}
+									aria-label={t('sales.item')}
+								/>
 							{/if}
 						</Table.Cell>
 						<Table.Cell>
-							<Input type="number" min="0" step="any" class="text-right" bind:value={row.qty} />
+							<Input
+								type="number"
+								min="0"
+								step="any"
+								class="text-right"
+								bind:value={row.qty}
+								aria-label={t('sales.qty')}
+							/>
 						</Table.Cell>
 						<Table.Cell>
 							<Input
@@ -187,6 +212,7 @@
 								step="any"
 								class="text-right"
 								bind:value={row.unit_price}
+								aria-label={t('sales.unitPrice')}
 							/>
 						</Table.Cell>
 						<Table.Cell>
@@ -197,6 +223,7 @@
 								step="any"
 								class="text-right"
 								bind:value={row.discount_percent}
+								aria-label={t('sales.discount')}
 							/>
 						</Table.Cell>
 						<Table.Cell class="text-center">

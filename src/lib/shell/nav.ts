@@ -1,6 +1,8 @@
 // Navigation model for the admin shell: grouped sidebar routes + lookup helper.
 import type { Component } from 'svelte';
 import type { Pathname } from '$app/types';
+import type { TranslationKey } from '$lib/i18n';
+import { toRouteId } from '$lib/core/shell/route-registry';
 import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 import Users from '@lucide/svelte/icons/users';
 import CalendarDays from '@lucide/svelte/icons/calendar-days';
@@ -28,6 +30,7 @@ import Settings from '@lucide/svelte/icons/settings';
 
 export interface NavItem {
 	title: string;
+	titleKey?: TranslationKey;
 	href: Pathname;
 	icon: Component;
 	badge?: string | number;
@@ -35,63 +38,117 @@ export interface NavItem {
 
 export interface NavGroup {
 	label: string;
+	labelKey?: TranslationKey;
 	items: NavItem[];
 }
 
 const configuredNavGroups: NavGroup[] = [
 	{
 		label: 'Overview',
-		items: [{ title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }]
+		labelKey: 'nav.groups.overview',
+		items: [
+			{ title: 'Dashboard', titleKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard }
+		]
 	},
 	{
 		label: 'Applications',
+		labelKey: 'nav.groups.applications',
 		items: [
-			{ title: 'Users', href: '/users', icon: Users },
-			{ title: 'Calendar', href: '/calendar', icon: CalendarDays },
-			{ title: 'Inbox', href: '/inbox', icon: Inbox },
-			{ title: 'Kanban', href: '/kanban', icon: SquareKanban },
-			{ title: 'Sales Orders', href: '/orders', icon: ShoppingBag },
-			{ title: 'Cart', href: '/cart', icon: ShoppingCart },
-			{ title: 'Pricing', href: '/pricing', icon: Tag },
-			{ title: 'Billing', href: '/billing', icon: CreditCard }
+			{ title: 'Users', titleKey: 'nav.users', href: '/users', icon: Users },
+			{ title: 'Calendar', titleKey: 'nav.calendar', href: '/calendar', icon: CalendarDays },
+			{ title: 'Inbox', titleKey: 'nav.inbox', href: '/inbox', icon: Inbox },
+			{ title: 'Kanban', titleKey: 'nav.kanban', href: '/kanban', icon: SquareKanban },
+			{ title: 'Sales Orders', titleKey: 'nav.orders', href: '/orders', icon: ShoppingBag },
+			{ title: 'Cart', titleKey: 'nav.cart', href: '/cart', icon: ShoppingCart },
+			{ title: 'Pricing', titleKey: 'nav.pricing', href: '/pricing', icon: Tag },
+			{ title: 'Billing', titleKey: 'nav.billing', href: '/billing', icon: CreditCard }
 		]
 	},
 	{
 		label: 'Component Gallery',
+		labelKey: 'nav.groups.components',
 		items: [
-			{ title: 'Components', href: '/components', icon: ComponentIcon },
-			{ title: 'Icons', href: '/icons', icon: Sparkles },
-			{ title: 'Charts', href: '/charts', icon: ChartLine }
+			{ title: 'Components', titleKey: 'nav.components', href: '/components', icon: ComponentIcon },
+			{ title: 'Icons', titleKey: 'nav.icons', href: '/icons', icon: Sparkles },
+			{ title: 'Charts', titleKey: 'nav.charts', href: '/charts', icon: ChartLine }
 		]
 	},
 	{
 		label: 'Data Tables',
+		labelKey: 'nav.groups.tables',
 		items: [
-			{ title: 'Basic', href: '/tables/basic', icon: List },
-			{ title: 'Pagination', href: '/tables/pagination', icon: ListTodo },
-			{ title: 'Search & Sort', href: '/tables/search', icon: Search },
-			{ title: 'Filters', href: '/tables/filters', icon: ListFilter },
-			{ title: 'Selection', href: '/tables/selection', icon: ListChecks },
-			{ title: 'Row Actions', href: '/tables/actions', icon: Settings2 },
-			{ title: 'Server-side', href: '/tables/server', icon: Database },
-			{ title: 'States', href: '/tables/states', icon: Loader }
+			{ title: 'Basic', titleKey: 'nav.tablesBasic', href: '/tables/basic', icon: List },
+			{
+				title: 'Pagination',
+				titleKey: 'nav.tablesPagination',
+				href: '/tables/pagination',
+				icon: ListTodo
+			},
+			{
+				title: 'Search & Sort',
+				titleKey: 'nav.tablesSearch',
+				href: '/tables/search',
+				icon: Search
+			},
+			{
+				title: 'Filters',
+				titleKey: 'nav.tablesFilters',
+				href: '/tables/filters',
+				icon: ListFilter
+			},
+			{
+				title: 'Selection',
+				titleKey: 'nav.tablesSelection',
+				href: '/tables/selection',
+				icon: ListChecks
+			},
+			{
+				title: 'Row Actions',
+				titleKey: 'nav.tablesActions',
+				href: '/tables/actions',
+				icon: Settings2
+			},
+			{
+				title: 'Server-side',
+				titleKey: 'nav.tablesServer',
+				href: '/tables/server',
+				icon: Database
+			},
+			{ title: 'States', titleKey: 'nav.tablesStates', href: '/tables/states', icon: Loader }
 		]
 	},
 	{
 		label: 'Page Templates',
+		labelKey: 'nav.groups.templates',
 		items: [
-			{ title: 'List', href: '/templates/list', icon: List },
-			{ title: 'Form', href: '/templates/form', icon: FormInput },
-			{ title: 'Detail', href: '/templates/detail', icon: FileText },
-			{ title: 'Dashboard', href: '/templates/dashboard', icon: LayoutDashboard },
-			{ title: 'Settings', href: '/templates/settings', icon: Settings2 }
+			{ title: 'List', titleKey: 'nav.templatesList', href: '/templates/list', icon: List },
+			{ title: 'Form', titleKey: 'nav.templatesForm', href: '/templates/form', icon: FormInput },
+			{
+				title: 'Detail',
+				titleKey: 'nav.templatesDetail',
+				href: '/templates/detail',
+				icon: FileText
+			},
+			{
+				title: 'Dashboard',
+				titleKey: 'nav.templatesDashboard',
+				href: '/templates/dashboard',
+				icon: LayoutDashboard
+			},
+			{
+				title: 'Settings',
+				titleKey: 'nav.templatesSettings',
+				href: '/templates/settings',
+				icon: Settings2
+			}
 		]
 	},
 	{
 		label: 'Account',
+		labelKey: 'nav.groups.account',
 		items: [
-			{ title: 'Profile', href: '/profile', icon: User },
-			{ title: 'Settings', href: '/settings', icon: Settings }
+			{ title: 'Profile', titleKey: 'nav.profile', href: '/profile', icon: User },
+			{ title: 'Settings', titleKey: 'nav.settings', href: '/settings', icon: Settings }
 		]
 	}
 ];
@@ -102,11 +159,15 @@ export function filterNavGroups(groups: NavGroup[], routes: ReadonlySet<string>)
 		.filter((group) => group.items.length > 0);
 }
 
-const appRoutes = new Set(
-	Object.keys(import.meta.glob('/src/routes/**/+page.svelte'))
-		.filter((file) => file.includes('/(app)/'))
-		.map((file) => file.slice('/src/routes/(app)'.length, -'/+page.svelte'.length))
-);
+export function appRoutePaths(files: Iterable<string>): Set<string> {
+	return new Set(
+		Array.from(files)
+			.filter((file) => file.includes('/(app)/'))
+			.map((file) => toRouteId(file, '/+page.svelte'))
+	);
+}
+
+const appRoutes = appRoutePaths(Object.keys(import.meta.glob('/src/routes/**/+page.svelte')));
 
 /** Only render configured destinations whose route still exists. */
 export const navGroups = filterNavGroups(configuredNavGroups, appRoutes);

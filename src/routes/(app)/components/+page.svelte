@@ -29,15 +29,13 @@
 	import { Slider } from '$lib/core/components/ui/slider';
 	import { Progress } from '$lib/core/components/ui/progress';
 	import { Skeleton } from '$lib/core/components/ui/skeleton';
-	import {
-		DatePicker,
-		DateRangePicker,
-		DateTimePicker,
-		PageContainer,
-		PageHeader,
-		PasswordInput,
-		TimePicker
-	} from '$lib/components/shared';
+	import DatePicker from '$lib/components/shared/DatePicker.svelte';
+	import DateRangePicker from '$lib/components/shared/DateRangePicker.svelte';
+	import DateTimePicker from '$lib/components/shared/DateTimePicker.svelte';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import PasswordInput from '$lib/core/components/shared/PasswordInput.svelte';
+	import TimePicker from '$lib/components/shared/TimePicker.svelte';
 	import type { DateRange } from 'bits-ui';
 	import { CalendarDate } from '@internationalized/date';
 	import { t } from '$lib/i18n';
@@ -83,11 +81,8 @@
 	const selectLabel = $derived(
 		fruits.find((f) => f.value === selectValue)?.label ?? 'Select a fruit'
 	);
+	const instanceId = $props.id();
 </script>
-
-<svelte:head>
-	<title>Components · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader
@@ -172,21 +167,32 @@
 			</Card.Header>
 			<Card.Content class="space-y-4">
 				<div class="grid gap-2">
-					<Label for="demo-email">Email</Label>
+					<Label for={`${instanceId}-demo-email`}>Email</Label>
 					<div class="relative">
 						<MailIcon
 							class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
 						/>
-						<Input id="demo-email" type="email" placeholder="you@example.com" class="pl-8" />
+						<Input
+							id={`${instanceId}-demo-email`}
+							type="email"
+							placeholder="you@example.com"
+							class="pl-8"
+						/>
 					</div>
 				</div>
 				<div class="grid gap-2">
-					<Label for="demo-disabled">Disabled</Label>
-					<Input id="demo-disabled" value="Cannot edit" disabled />
+					<Label for={`${instanceId}-demo-disabled`}>Disabled</Label>
+					<Input id={`${instanceId}-demo-disabled`} value="Cannot edit" disabled />
 				</div>
 				<div class="grid gap-2">
-					<Label for="demo-password">Password (with toggle)</Label>
-					<PasswordInput id="demo-password" value="secret123" placeholder="••••••••" />
+					<Label for={`${instanceId}-demo-password`}>Password (with toggle)</Label>
+					<PasswordInput
+						showLabel={t('auth.showPassword')}
+						hideLabel={t('auth.hidePassword')}
+						id={`${instanceId}-demo-password`}
+						value="secret123"
+						placeholder="••••••••"
+					/>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -199,23 +205,29 @@
 			</Card.Header>
 			<Card.Content class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
 				<div class="grid content-start gap-2">
-					<Label for="demo-date-picker">{t('dateTimePicker.date')}</Label>
-					<DatePicker id="demo-date-picker" bind:value={dateValue} />
+					<Label for={`${instanceId}-demo-date-picker`}>{t('dateTimePicker.date')}</Label>
+					<DatePicker id={`${instanceId}-demo-date-picker`} bind:value={dateValue} />
 					<code class="text-muted-foreground truncate text-xs">{dateValue || '—'}</code>
 				</div>
 				<div class="grid content-start gap-2">
-					<Label for="demo-date-range-picker">{t('dateTimePicker.dateRange')}</Label>
-					<DateRangePicker id="demo-date-range-picker" bind:value={dateRangeValue} />
+					<Label for={`${instanceId}-demo-date-range-picker`}>{t('dateTimePicker.dateRange')}</Label
+					>
+					<DateRangePicker
+						id={`${instanceId}-demo-date-range-picker`}
+						bind:value={dateRangeValue}
+					/>
 					<code class="text-muted-foreground truncate text-xs">{dateRangeString}</code>
 				</div>
 				<div class="grid content-start gap-2">
-					<Label for="demo-time-picker">{t('dateTimePicker.time')}</Label>
-					<TimePicker id="demo-time-picker" bind:value={timeValue} />
+					<Label for={`${instanceId}-demo-time-picker`}>{t('dateTimePicker.time')}</Label>
+					<TimePicker id={`${instanceId}-demo-time-picker`} bind:value={timeValue} />
 					<code class="text-muted-foreground truncate text-xs">{timeValue || '—'}</code>
 				</div>
 				<div class="grid content-start gap-2">
-					<Label for="demo-date-time-picker">{t('dateTimePicker.pickDateTime')}</Label>
-					<DateTimePicker id="demo-date-time-picker" bind:value={dateTimeValue} />
+					<Label for={`${instanceId}-demo-date-time-picker`}
+						>{t('dateTimePicker.pickDateTime')}</Label
+					>
+					<DateTimePicker id={`${instanceId}-demo-date-time-picker`} bind:value={dateTimeValue} />
 					<code class="text-muted-foreground truncate text-xs">{dateTimeValue || '—'}</code>
 				</div>
 			</Card.Content>
@@ -460,8 +472,8 @@
 							<Dialog.Description>Update your display name, then save.</Dialog.Description>
 						</Dialog.Header>
 						<div class="grid gap-2 py-2">
-							<Label for="dialog-name">Name</Label>
-							<Input id="dialog-name" value="Olivia Martin" />
+							<Label for={`${instanceId}-dialog-name`}>Name</Label>
+							<Input id={`${instanceId}-dialog-name`} value="Olivia Martin" />
 						</div>
 						<Dialog.Footer>
 							<Dialog.Close class={buttonVariants({ variant: 'outline' })}>Cancel</Dialog.Close>

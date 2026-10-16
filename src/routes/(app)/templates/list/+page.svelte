@@ -1,13 +1,12 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Download from '@lucide/svelte/icons/download';
-	import {
-		DataTable,
-		PageContainer,
-		PageHeader,
-		StatusBadge,
-		type Column
-	} from '$lib/components/shared';
+	import DataTable from '$lib/core/components/shared/DataTable.svelte';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import StatusBadge from '$lib/core/components/shared/StatusBadge.svelte';
+	import type { Column } from '$lib/core/components/shared/DataTable.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 
 	type Project = { id: number; name: string; owner: string; status: 'Active' | 'Draft' };
@@ -24,8 +23,6 @@
 	];
 </script>
 
-<svelte:head><title>List Template · Admin Starter</title></svelte:head>
-
 <PageContainer>
 	<PageHeader
 		title="List Template"
@@ -36,7 +33,7 @@
 			<Button><Plus class="size-4" />New project</Button>
 		{/snippet}
 	</PageHeader>
-	<DataTable data={projects} {columns} searchable>
+	<DataTable text={t} data={projects} {columns} searchable>
 		{#snippet cell(row, column)}
 			{#if column.key === 'name'}
 				<span class="font-medium">{row.name}</span>

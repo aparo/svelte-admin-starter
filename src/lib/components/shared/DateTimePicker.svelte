@@ -6,7 +6,7 @@
 	import { Input } from '$lib/core/components/ui/input';
 	import { cn } from '$lib/core/utils';
 	import { i18n, t } from '$lib/i18n';
-	import { getLocalTimeZone, today, type DateValue } from '@internationalized/date';
+	import { getLocalTimeZone, toCalendarDate, today, type DateValue } from '@internationalized/date';
 	import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
 	import ClockIcon from '@lucide/svelte/icons/clock-3';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
@@ -15,6 +15,7 @@
 		currentTimeValue,
 		dateValueToString,
 		formatDateTimeForDisplay,
+		isDateWithinBounds,
 		parseDateTimeValue,
 		parseDateValue,
 		parseTimeValue
@@ -28,9 +29,11 @@
 		placeholder?: string;
 		locale?: string;
 		hour12?: boolean;
+		/** Inclusive calendar-day bounds. Time components are ignored. */
 		minValue?: DateValue;
 		maxValue?: DateValue;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound value. */
 		required?: boolean;
 		clearable?: boolean;
 		class?: string;
@@ -67,7 +70,9 @@
 		value ? formatDateTimeForDisplay(value, resolvedLocale, hour12) : ''
 	);
 	const draftDateString = $derived(dateValueToString(draftDate));
-	const canApply = $derived(Boolean(draftDate && parseTimeValue(draftTime)));
+	const canApply = $derived(
+		isDateWithinBounds(draftDate, minValue, maxValue) && Boolean(parseTimeValue(draftTime))
+	);
 
 	$effect(() => {
 		if (!open) return;
@@ -82,6 +87,10 @@
 	}
 
 	function commit(nextValue: string): void {
+		if (nextValue) {
+			const parsed = parseDateTimeValue(nextValue);
+			if (!parsed || !isDateWithinBounds(parsed.date, minValue, maxValue)) return;
+		}
 		value = nextValue;
 		onValueChange?.(nextValue);
 		open = false;
@@ -133,8 +142,8 @@
 						type="date"
 						value={draftDateString}
 						onchange={updateDraftDate}
-						min={minValue?.toString()}
-						max={maxValue?.toString()}
+						min={minValue ? toCalendarDate(minValue).toString() : undefined}
+						max={maxValue ? toCalendarDate(maxValue).toString() : undefined}
 						class="ps-8"
 					/>
 				</label>

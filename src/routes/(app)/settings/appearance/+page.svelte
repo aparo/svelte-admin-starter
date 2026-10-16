@@ -7,8 +7,8 @@
 	import * as Card from '$lib/core/components/ui/card';
 	import { Label } from '$lib/core/components/ui/label';
 	import { Switch } from '$lib/core/components/ui/switch';
-	import { setMode, mode } from 'mode-watcher';
-	import { setLocale, LOCALES, i18n, type Locale } from '$lib/i18n';
+	import { setMode, mode, userPrefersMode } from 'mode-watcher';
+	import { setLocale, LOCALES, i18n, t } from '$lib/i18n';
 	import { persisted } from '$lib/core/stores/persisted.svelte';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
@@ -19,6 +19,7 @@
 	import Check from '@lucide/svelte/icons/check';
 
 	type ThemeMode = 'light' | 'dark' | 'system';
+	const densityId = $props.id();
 
 	interface ModeOption {
 		value: ThemeMode;
@@ -26,66 +27,74 @@
 		icon: Component;
 	}
 
-	const modeOptions: ModeOption[] = [
-		{ value: 'light', label: 'Light', icon: Sun },
-		{ value: 'dark', label: 'Dark', icon: Moon },
-		{ value: 'system', label: 'System', icon: Monitor }
-	];
+	const modeOptions = $derived<ModeOption[]>([
+		{ value: 'light', label: t('appearance.light'), icon: Sun },
+		{ value: 'dark', label: t('appearance.dark'), icon: Moon },
+		{ value: 'system', label: t('appearance.system'), icon: Monitor }
+	]);
 
-	// Track the user's selected preference locally. mode-watcher only exposes the
-	// resolved mode ('light'/'dark'), so we persist the "System" intent ourselves.
-	const selectedMode = persisted<ThemeMode>('admin-starter:theme-pref', 'system');
-
-	function selectMode(value: ThemeMode): void {
-		selectedMode.current = value;
-		setMode(value);
+	function handleModeKeydown(event: KeyboardEvent, value: ThemeMode): void {
+		const index = modeOptions.findIndex((option) => option.value === value);
+		let nextIndex: number;
+		switch (event.key) {
+			case 'ArrowRight':
+			case 'ArrowDown':
+				nextIndex = (index + 1) % modeOptions.length;
+				break;
+			case 'ArrowLeft':
+			case 'ArrowUp':
+				nextIndex = (index + modeOptions.length - 1) % modeOptions.length;
+				break;
+			case 'Home':
+				nextIndex = 0;
+				break;
+			case 'End':
+				nextIndex = modeOptions.length - 1;
+				break;
+			default:
+				return;
+		}
+		event.preventDefault();
+		setMode(modeOptions[nextIndex].value);
+		const button = event.currentTarget as HTMLButtonElement;
+		button.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[nextIndex]?.focus();
 	}
 
 	// Resolved appearance used to drive the live preview swatch.
 	const resolved = $derived(mode.current ?? 'light');
-
-	// Language switch, mirrored from the live i18n locale.
-	let language = $state<Locale>(i18n.locale);
-
-	function selectLanguage(value: Locale): void {
-		language = value;
-		setLocale(value);
-	}
 
 	// Interface density, persisted so it survives reloads in the demo.
 	const compact = persisted<boolean>('admin-starter:density-compact', false);
 
 	function onDensityChange(next: boolean): void {
 		compact.current = next;
-		toast.success(next ? 'Compact density enabled' : 'Comfortable density enabled');
+		toast.success(t('appearance.densitySaved'));
 	}
 </script>
 
-<svelte:head>
-	<title>Appearance · Admin Starter</title>
-</svelte:head>
-
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Theme</Card.Title>
+		<Card.Title>{t('common.theme')}</Card.Title>
 		<Card.Description>
-			Choose how the interface looks. System follows your device setting.
+			{t('appearance.themeDescription')}
 		</Card.Description>
 	</Card.Header>
 	<Card.Content class="space-y-6">
 		<!-- Segmented mode control. -->
 		<div
 			role="radiogroup"
-			aria-label="Theme mode"
+			aria-label={t('appearance.themeMode')}
 			class="bg-muted grid grid-cols-3 gap-1 rounded-lg p-1"
 		>
 			{#each modeOptions as option (option.value)}
-				{@const active = selectedMode.current === option.value}
+				{@const active = userPrefersMode.current === option.value}
 				<button
 					type="button"
 					role="radio"
 					aria-checked={active}
-					onclick={() => selectMode(option.value)}
+					tabindex={active ? 0 : -1}
+					onclick={() => setMode(option.value)}
+					onkeydown={(event) => handleModeKeydown(event, option.value)}
 					class={cn(
 						'flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
 						'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
@@ -102,7 +111,7 @@
 
 		<!-- Live preview swatch reflecting the currently resolved theme. -->
 		<div class="grid gap-2">
-			<Label class="text-muted-foreground text-xs font-normal">Preview</Label>
+			<Label class="text-muted-foreground text-xs font-normal">{t('appearance.preview')}</Label>
 			<div class="overflow-hidden rounded-lg border">
 				<div class="bg-background p-4">
 					<div class="flex items-center gap-3">
@@ -114,18 +123,18 @@
 						<span
 							class="bg-secondary text-secondary-foreground rounded-md px-2 py-1 text-xs font-medium"
 						>
-							{resolved === 'dark' ? 'Dark' : 'Light'}
+							{t(resolved === 'dark' ? 'appearance.dark' : 'appearance.light')}
 						</span>
 					</div>
 					<div class="mt-4 flex flex-wrap gap-2">
 						<span class="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-xs">
-							Primary
+							{t('appearance.primary')}
 						</span>
 						<span class="border-border text-foreground rounded-md border px-3 py-1.5 text-xs">
-							Outline
+							{t('appearance.outline')}
 						</span>
 						<span class="bg-muted text-muted-foreground rounded-md px-3 py-1.5 text-xs">
-							Muted
+							{t('appearance.muted')}
 						</span>
 					</div>
 				</div>
@@ -136,16 +145,16 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Language</Card.Title>
-		<Card.Description>Select the display language for the interface.</Card.Description>
+		<Card.Title>{t('common.language')}</Card.Title>
+		<Card.Description>{t('appearance.languageDescription')}</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<div class="grid gap-2 sm:grid-cols-2">
 			{#each LOCALES as locale (locale.value)}
-				{@const active = language === locale.value}
+				{@const active = i18n.locale === locale.value}
 				<button
 					type="button"
-					onclick={() => selectLanguage(locale.value)}
+					onclick={() => setLocale(locale.value)}
 					aria-pressed={active}
 					class={cn(
 						'flex items-center justify-between rounded-lg border px-4 py-3 text-sm transition-colors',
@@ -166,16 +175,23 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Density</Card.Title>
-		<Card.Description>Adjust the spacing of interface elements.</Card.Description>
+		<Card.Title>{t('appearance.density')}</Card.Title>
+		<Card.Description>{t('appearance.densityDescription')}</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<div class="flex items-center justify-between gap-4">
 			<div class="space-y-0.5">
-				<Label>Compact mode</Label>
-				<p class="text-muted-foreground text-sm">Reduce padding to fit more content on screen.</p>
+				<Label for={densityId}>{t('appearance.compactMode')}</Label>
+				<p id={`${densityId}-description`} class="text-muted-foreground text-sm">
+					{t('appearance.compactDescription')}
+				</p>
 			</div>
-			<Switch checked={compact.current} onCheckedChange={onDensityChange} />
+			<Switch
+				id={densityId}
+				checked={compact.current}
+				onCheckedChange={onDensityChange}
+				aria-label={t('appearance.compactMode')}
+			/>
 		</div>
 	</Card.Content>
 </Card.Root>

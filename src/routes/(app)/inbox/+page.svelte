@@ -7,6 +7,7 @@
   message marks it read; the star toggle and quick reply mutate local state only.
 -->
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import Reply from '@lucide/svelte/icons/reply';
 	import Forward from '@lucide/svelte/icons/forward';
 	import Archive from '@lucide/svelte/icons/archive';
@@ -17,13 +18,16 @@
 	import PenSquare from '@lucide/svelte/icons/pen-square';
 	import Mail from '@lucide/svelte/icons/mail';
 
-	import { PageContainer, PageHeader, SearchInput, EmptyState } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import SearchInput from '$lib/core/components/shared/SearchInput.svelte';
+	import EmptyState from '$lib/core/components/shared/EmptyState.svelte';
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Separator } from '$lib/core/components/ui/separator';
 	import { Textarea } from '$lib/core/components/ui/textarea';
 	import * as Resizable from '$lib/core/components/ui/resizable';
-	import { initials } from '$lib/core/utils/formatters';
+	import { initials } from '$lib/i18n/formatters';
 	import { cn } from '$lib/core/utils';
 
 	type Label = 'work' | 'personal' | 'updates';
@@ -247,10 +251,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Inbox · Admin Starter</title>
-</svelte:head>
-
 <PageContainer class="flex h-full min-h-0 flex-col">
 	<PageHeader
 		title="Inbox"
@@ -276,7 +276,11 @@
 							{unreadCount} unread
 						</span>
 					</div>
-					<SearchInput bind:value={search} placeholder="Search messages..." />
+					<SearchInput
+						clearLabel={t('common.clearSearch')}
+						bind:value={search}
+						placeholder={t('common.searchMessages')}
+					/>
 					<div class="flex items-center gap-1">
 						<Button
 							variant={filter === 'all' ? 'secondary' : 'ghost'}

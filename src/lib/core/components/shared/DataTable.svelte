@@ -36,6 +36,7 @@
 
 	export type DataTableTextKey =
 		| 'common.searchPlaceholder'
+		| 'common.clearSearch'
 		| 'common.actions'
 		| 'table.selectAll'
 		| 'table.selectRow'
@@ -54,6 +55,8 @@
 	export interface DataTableText {
 		(key: DataTableTextKey, params?: Record<string, string | number>): string;
 	}
+
+	const collator = new Intl.Collator(undefined, { numeric: true });
 </script>
 
 <script lang="ts" generics="T extends { id: string | number }">
@@ -69,13 +72,14 @@
 	import { Checkbox } from '../ui/checkbox';
 	import { Skeleton } from '../ui/skeleton';
 	import { buttonVariants } from '../ui/button';
-	import { usePagination } from '../../hooks/use-pagination.svelte';
+	import { getPaginationState } from '../../hooks/use-pagination.svelte';
 	import { cn } from '../../utils';
 	import EmptyState from './EmptyState.svelte';
 	import SearchInput from './SearchInput.svelte';
 
 	const fallbackText: Record<DataTableTextKey, string> = {
 		'common.searchPlaceholder': 'Search...',
+		'common.clearSearch': 'Clear search',
 		'common.actions': 'Actions',
 		'table.selectAll': 'Select all rows on this page',
 		'table.selectRow': 'Select row',
@@ -152,13 +156,7 @@
 
 	let sortKey = $state<string | null>(null);
 	let sortDir = $state<'asc' | 'desc'>('asc');
-
-	// `pageSize` seeds the paginator; keep it in sync if the prop later changes.
-	// svelte-ignore state_referenced_locally
-	const pagination = usePagination({ pageSize });
-	$effect(() => {
-		pagination.setPageSize(server?.pageSize ?? pageSize);
-	});
+	let localPage = $state(1);
 
 	const serverSearchEnabled = $derived(Boolean(server?.onSearchChange));
 	let searchEffectReady = false;
@@ -210,49 +208,51 @@
 			const av = valueOf(a, column);
 			const bv = valueOf(b, column);
 			if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * factor;
-			return String(av).localeCompare(String(bv), undefined, { numeric: true }) * factor;
+			return collator.compare(String(av), String(bv)) * factor;
 		});
 	});
 
-	// Keep the paginator's total in sync with the filtered/sorted row count.
-	$effect(() => {
-		pagination.setTotal(server?.total ?? sorted.length);
-	});
-
-	$effect(() => {
-		if (server) pagination.setPage(server.page);
-	});
-
-	// Reset to the first page whenever the search query changes.
-	$effect(() => {
-		// Bare reference registers `search` as a reactive dependency of this effect.
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		search;
-		pagination.setPage(1);
-	});
-
-	// --- Pagination slice --------------------------------------------------
-	// Derive bounds from page/pageSize directly so behaviour is independent of
-	// the hook's `start`/`end` index convention.
-	const activePage = $derived(server?.page ?? pagination.page);
-	const activePageSize = $derived(server?.pageSize ?? pagination.pageSize);
-	const totalRows = $derived(server?.total ?? sorted.length);
-	const sliceStart = $derived((activePage - 1) * activePageSize);
-	const sliceEnd = $derived(
-		Math.min(sliceStart + (server ? data.length : activePageSize), totalRows)
+	// A single snapshot supplies bounds, page numbers and controls, including SSR.
+	const pagination = $derived(
+		getPaginationState(
+			server?.page ?? localPage,
+			server?.pageSize ?? pageSize,
+			server?.total ?? sorted.length
+		)
 	);
-	const pageRows = $derived(server ? data : sorted.slice(sliceStart, sliceEnd));
-	const hasPrev = $derived(activePage > 1);
-	const hasNext = $derived(activePage * activePageSize < totalRows);
+	let previousSearch = untrack(() => search);
+	let previousPageSize = untrack(() => pageSize);
+	$effect(() => {
+		const query = search;
+		const size = pagination.pageSize;
+		const page = pagination.page;
+		if (!server) {
+			// Persist clamps so growing the data again cannot revive an old page.
+			localPage = query !== previousSearch || size !== previousPageSize ? 1 : page;
+		}
+		previousSearch = query;
+		previousPageSize = size;
+	});
+
+	const pageRows = $derived(server ? data : sorted.slice(pagination.offset, pagination.end));
+	const rangeStart = $derived(pageRows.length === 0 ? 0 : pagination.start);
+	const rangeEnd = $derived(
+		pageRows.length === 0
+			? 0
+			: server
+				? Math.min(pagination.offset + data.length, pagination.total)
+				: pagination.end
+	);
 	const initialLoading = $derived(loading && data.length === 0);
 
 	const columnCount = $derived(columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0));
 
+	const selectedIds = $derived(new Set(selected));
 	const allOnPageSelected = $derived(
-		pageRows.length > 0 && pageRows.every((row) => selected.includes(row.id))
+		pageRows.length > 0 && pageRows.every((row) => selectedIds.has(row.id))
 	);
 	const someOnPageSelected = $derived(
-		pageRows.some((row) => selected.includes(row.id)) && !allOnPageSelected
+		pageRows.some((row) => selectedIds.has(row.id)) && !allOnPageSelected
 	);
 
 	function toggleSort(column: Column<T>) {
@@ -266,30 +266,31 @@
 		}
 		sortDir = nextDirection;
 		if (server?.onSortChange) server.onSortChange(column.key, nextDirection);
-		else pagination.setPage(1);
+		else if (!server) localPage = 1;
 	}
 
 	function changePage(next: number) {
-		if (loading || next === activePage) return;
-		if (server) server.onPageChange(next);
-		else pagination.setPage(next);
+		const page = getPaginationState(next, pagination.pageSize, pagination.total).page;
+		if (loading || page === pagination.page) return;
+		if (server) server.onPageChange(page);
+		else localPage = page;
 	}
 
 	function toggleRow(row: T, checked: boolean) {
 		if (checked) {
-			if (!selected.includes(row.id)) selected = [...selected, row.id];
+			if (!selectedIds.has(row.id)) selected = [...selected, row.id];
 		} else {
 			selected = selected.filter((id) => id !== row.id);
 		}
 	}
 
 	function toggleAllOnPage(checked: boolean) {
-		const pageIds = pageRows.map((r) => r.id);
+		const pageIds = new Set(pageRows.map((r) => r.id));
 		if (checked) {
 			const merged = new Set([...selected, ...pageIds]);
 			selected = [...merged];
 		} else {
-			selected = selected.filter((id) => !pageIds.includes(id));
+			selected = selected.filter((id) => !pageIds.has(id));
 		}
 	}
 
@@ -308,7 +309,11 @@
 			{/if}
 			{#if searchable}
 				<div class="w-full sm:w-64">
-					<SearchInput bind:value={search} placeholder={text('common.searchPlaceholder')} />
+					<SearchInput
+						bind:value={search}
+						placeholder={text('common.searchPlaceholder')}
+						clearLabel={text('common.clearSearch')}
+					/>
 				</div>
 			{/if}
 		</div>
@@ -331,6 +336,13 @@
 						{/if}
 						{#each columns as column (column.key)}
 							<Table.Head
+								aria-sort={column.sortable
+									? sortKey === column.key
+										? sortDir === 'asc'
+											? 'ascending'
+											: 'descending'
+										: 'none'
+									: undefined}
 								class={cn(
 									'text-primary-foreground/80 text-xs font-medium tracking-wide uppercase',
 									alignClass(column.align),
@@ -377,7 +389,7 @@
 				</Table.Header>
 				<Table.Body>
 					{#if initialLoading}
-						{#each Array(Math.min(activePageSize, 5)) as _, i (i)}
+						{#each Array(Math.min(pagination.pageSize, 5)) as _, i (i)}
 							<Table.Row>
 								{#if selectable}
 									<Table.Cell><Skeleton class="size-4 rounded" /></Table.Cell>
@@ -413,12 +425,12 @@
 						{#each pageRows as row (row.id)}
 							<Table.Row
 								class="group/row"
-								data-state={selected.includes(row.id) ? 'selected' : undefined}
+								data-state={selectedIds.has(row.id) ? 'selected' : undefined}
 							>
 								{#if selectable}
 									<Table.Cell class="w-10">
 										<Checkbox
-											checked={selected.includes(row.id)}
+											checked={selectedIds.has(row.id)}
 											onCheckedChange={(v) => toggleRow(row, v === true)}
 											aria-label={text('table.selectRow')}
 										/>
@@ -452,24 +464,25 @@
 		</div>
 	</div>
 
-	{#if totalRows > 0}
+	{#if pagination.total > 0}
 		<div class="flex flex-col items-center justify-between gap-3 sm:flex-row">
 			<p class="text-sm whitespace-nowrap text-muted-foreground">
 				{#if selectable && selected.length > 0}
 					{selected.length} {text('table.selected')} ·
 				{/if}
 				{text('table.showing')}
-				<span class="font-medium text-foreground">{totalRows === 0 ? 0 : sliceStart + 1}</span
-				>–<span class="font-medium text-foreground">{sliceEnd}</span>
+				<span class="font-medium text-foreground">{rangeStart}</span>–<span
+					class="font-medium text-foreground">{rangeEnd}</span
+				>
 				{text('table.of')}
-				<span class="font-medium text-foreground">{totalRows}</span>
+				<span class="font-medium text-foreground">{pagination.total}</span>
 			</p>
 
-			{#if Math.ceil(totalRows / activePageSize) > 1}
+			{#if pagination.totalPages > 1}
 				<Pagination.Root
-					count={totalRows}
-					perPage={activePageSize}
-					page={activePage}
+					count={pagination.total}
+					perPage={pagination.pageSize}
+					page={pagination.page}
 					onPageChange={changePage}
 					class="mx-0 w-auto justify-end"
 				>
@@ -477,8 +490,8 @@
 						<Pagination.Item>
 							<button
 								type="button"
-								onclick={() => changePage(activePage - 1)}
-								disabled={loading || !hasPrev}
+								onclick={() => changePage(pagination.page - 1)}
+								disabled={loading || !pagination.hasPrev}
 								aria-label={text('table.prevPage')}
 								class={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
 							>
@@ -496,10 +509,10 @@
 										onclick={() => changePage(p)}
 										aria-label={text('table.goToPage', { n: p })}
 										disabled={loading}
-										aria-current={p === activePage ? 'page' : undefined}
+										aria-current={p === pagination.page ? 'page' : undefined}
 										class={cn(
 											buttonVariants({
-												variant: p === activePage ? 'outline' : 'ghost',
+												variant: p === pagination.page ? 'outline' : 'ghost',
 												size: 'icon'
 											})
 										)}
@@ -513,8 +526,8 @@
 						<Pagination.Item>
 							<button
 								type="button"
-								onclick={() => changePage(activePage + 1)}
-								disabled={loading || !hasNext}
+								onclick={() => changePage(pagination.page + 1)}
+								disabled={loading || !pagination.hasNext}
 								aria-label={text('table.nextPage')}
 								class={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
 							>

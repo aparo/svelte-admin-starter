@@ -13,9 +13,9 @@ Frontend only — no backend. Auth and data are mocked so you can clone it and s
 - **Polished app shell** — collapsible sidebar (built on shadcn `sidebar`), sticky header with breadcrumbs, command palette (⌘K), notifications, theme & language switchers, user menu.
 - **Reusable building blocks** — `PageHeader`, `PageContainer`, `StatCard`, `StatusBadge`, a generic `DataTable` (search / sort / pagination / selection), `EmptyState`, `ConfirmDialog`, `SearchInput`, `CommandMenu`, `ThemeToggle`, `LanguageToggle`, `Spinner`.
 - **Refined design system** — "Linear/Vercel" aesthetic: Geist typeface, a single indigo accent, OKLCH tokens, soft elevation, themed scrollbars (no layout shift).
-- **Mock auth** — login / register / forgot-password flows with a client-side route guard, ready to swap for a real backend.
+- **Mock auth** — login / register / forgot-password flows with a client-side route guard and an accessible loading skeleton while the session restores.
 - **Light i18n** — runes-based, English + 简体中文, locale persisted to `localStorage`.
-- **Dark mode** — semantic OKLCH design tokens via `mode-watcher`; no hardcoded colors.
+- **Dark mode** — semantic OKLCH design tokens and one shared light/dark/system preference via `mode-watcher`.
 - **20+ example pages** — Dashboard, Users (full CRUD with a slide-out drawer + a `/users/[id]` detail page), Tables, Forms, Charts, Calendar, Inbox (resizable mail), a drag-and-drop Kanban board, Sales Orders, Cart, Pricing, Billing, a Components showcase, Profile, Settings — plus status-aware 404 / error pages.
 - **Typed & verified** — strict TypeScript, `svelte-check` clean, production build passes.
 
@@ -35,11 +35,14 @@ Frontend only — no backend. Auth and data are mocked so you can clone it and s
 ## 🚀 Quick start
 
 ```bash
-npm install
+npm ci
 npm run dev        # http://localhost:5173
 ```
 
 Then sign in with `admin@example.com` / `password`.
+
+Use Node `^20.19.0 || >=22.12.0`; `npm ci` installs the committed lockfile without changing dependency versions.
+SSR is enabled globally. Protected app routes render the loading skeleton until the client restores the mock session, then show the shell or redirect to login.
 
 ### Scripts
 
@@ -49,8 +52,9 @@ npm run build      # production build
 npm run preview    # preview the production build
 npm run check      # type-check with svelte-check
 npm run lint       # prettier --check + eslint
-npm test           # focused portable-core tests
+npm test           # regression tests
 npm run check:export # validate the downstream export contract
+npm run verify     # complete CI validation sequence
 npm run format     # prettier --write
 ```
 
@@ -78,7 +82,7 @@ src/
     │   ├── components/
     │   │   ├── ui/         # 47 shadcn-svelte primitives
     │   │   └── shared/     # portable composite components
-	│   ├── shell/            # portable tabs, keep-alive UI, route registry
+    │   ├── shell/          # portable tabs, keep-alive UI, route registry
     │   ├── hooks/  stores/  utils/
     │   ├── theme.css       # design tokens (OKLCH) + dark theme
     │   └── utils.ts        # cn() + shadcn type helpers
@@ -87,6 +91,7 @@ src/
     ├── shell/              # AppShell, AppSidebar, AppHeader, nav config
     ├── auth/               # mock auth store + types
     ├── i18n/               # light i18n (en, zh-CN)
+    ├── features/users/     # per-app-instance demo user state and shared presentation
     └── data/
 templates/
 └── pages/                  # copy-on-create list, form, detail, dashboard, settings scaffolds

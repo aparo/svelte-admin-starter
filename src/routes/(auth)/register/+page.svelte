@@ -10,133 +10,151 @@
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
 	import { Label } from '$lib/core/components/ui/label';
-	import { PasswordInput, Spinner } from '$lib/components/shared';
+	import PasswordInput from '$lib/core/components/shared/PasswordInput.svelte';
+	import Spinner from '$lib/core/components/shared/Spinner.svelte';
 	import { auth } from '$lib/auth';
-	import { emailSchema, fieldError } from '$lib/core/utils/validators';
+	import { emailSchema } from '$lib/core/utils/validators';
 	import { config } from '$lib/config';
+	import { t } from '$lib/i18n';
+	import { pageTitle } from '$lib/utils/page-title';
 
+	const formId = $props.id();
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
 	let confirm = $state('');
-	let submitting = $state(false);
 
 	let errors = $state<{ name?: string; email?: string; password?: string; confirm?: string }>({});
 	let formError = $state('');
 
-	function validate(): boolean {
+	function validate(): { name: string; email: string; password: string } | undefined {
 		const next: typeof errors = {};
-		if (!name.trim()) next.name = 'Name is required';
+		if (!name.trim()) next.name = t('auth.errors.nameRequired');
 
 		const emailResult = emailSchema.safeParse(email);
-		if (!emailResult.success) next.email = fieldError(emailResult.error, '');
+		if (!emailResult.success) {
+			next.email = t(email.trim() ? 'auth.errors.emailInvalid' : 'auth.errors.emailRequired');
+		}
 
-		if (password.length < 8) next.password = 'Password must be at least 8 characters';
-		if (confirm !== password) next.confirm = 'Passwords do not match';
+		if (password.length < config.auth.minPasswordLength) {
+			next.password = t('auth.errors.passwordTooShort', { min: config.auth.minPasswordLength });
+		}
+		if (confirm !== password) next.confirm = t('auth.errors.passwordMismatch');
 
 		errors = next;
-		return Object.keys(next).length === 0;
+		if (Object.keys(next).length > 0 || !emailResult.success) return;
+		return { name: name.trim(), email: emailResult.data, password };
 	}
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		if (auth.loading) return;
 		formError = '';
-		if (!validate()) return;
+		const parsed = validate();
+		if (!parsed) return;
 
-		submitting = true;
-		const result = await auth.register(name, email, password);
-		submitting = false;
+		const result = await auth.register(parsed.name, parsed.email, parsed.password);
 
 		if (result.ok) {
-			toast.success('Account created. Welcome aboard!');
-			goto(resolve(config.app.homePath));
+			toast.success(t('auth.registered'));
+			void goto(resolve(config.app.homePath));
 		} else {
-			formError = result.error ?? 'Unable to create account. Please try again.';
+			formError = result.error;
 			toast.error(formError);
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Create account · Admin Starter</title>
+	<title>{pageTitle(t('auth.createAccount'))}</title>
 </svelte:head>
 
 <Card.Root class="shadow-sm">
 	<Card.Header class="space-y-1 text-center">
-		<Card.Title class="text-xl">Create your account</Card.Title>
-		<Card.Description>Get started with the admin starter</Card.Description>
+		<Card.Title class="text-xl">{t('auth.createYourAccount')}</Card.Title>
+		<Card.Description>{t('auth.getStarted')}</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
-		<form class="space-y-4" onsubmit={handleSubmit} novalidate>
+		<form class="space-y-4" onsubmit={handleSubmit} aria-busy={auth.loading} novalidate>
 			<div class="space-y-2">
-				<Label for="name">Full name</Label>
+				<Label for={`${formId}-name`}>{t('auth.fullName')}</Label>
 				<Input
-					id="name"
+					id={`${formId}-name`}
 					type="text"
 					autocomplete="name"
-					placeholder="Jane Doe"
+					placeholder={t('auth.namePlaceholder')}
 					bind:value={name}
 					aria-invalid={errors.name ? 'true' : undefined}
+					aria-describedby={errors.name ? `${formId}-name-error` : undefined}
 				/>
 				{#if errors.name}
-					<p class="text-xs text-red-500">{errors.name}</p>
+					<p id={`${formId}-name-error`} class="text-xs text-destructive">{errors.name}</p>
 				{/if}
 			</div>
 
 			<div class="space-y-2">
-				<Label for="email">Email</Label>
+				<Label for={`${formId}-email`}>{t('auth.email')}</Label>
 				<Input
-					id="email"
+					id={`${formId}-email`}
 					type="email"
 					autocomplete="email"
 					placeholder="you@example.com"
 					bind:value={email}
 					aria-invalid={errors.email ? 'true' : undefined}
+					aria-describedby={errors.email ? `${formId}-email-error` : undefined}
 				/>
 				{#if errors.email}
-					<p class="text-xs text-red-500">{errors.email}</p>
+					<p id={`${formId}-email-error`} class="text-xs text-destructive">{errors.email}</p>
 				{/if}
 			</div>
 
 			<div class="space-y-2">
-				<Label for="password">Password</Label>
+				<Label for={`${formId}-password`}>{t('auth.password')}</Label>
 				<PasswordInput
-					id="password"
+					id={`${formId}-password`}
 					autocomplete="new-password"
-					placeholder="At least 8 characters"
+					placeholder={t('auth.passwordPlaceholder', { min: config.auth.minPasswordLength })}
 					bind:value={password}
+					showLabel={t('auth.showPassword')}
+					hideLabel={t('auth.hidePassword')}
 					aria-invalid={errors.password ? 'true' : undefined}
+					aria-describedby={errors.password ? `${formId}-password-error` : undefined}
 				/>
 				{#if errors.password}
-					<p class="text-xs text-red-500">{errors.password}</p>
+					<p id={`${formId}-password-error`} class="text-xs text-destructive">{errors.password}</p>
 				{/if}
 			</div>
 
 			<div class="space-y-2">
-				<Label for="confirm">Confirm password</Label>
+				<Label for={`${formId}-confirm`}>{t('auth.confirmPassword')}</Label>
 				<PasswordInput
-					id="confirm"
+					id={`${formId}-confirm`}
 					autocomplete="new-password"
-					placeholder="Re-enter your password"
+					placeholder={t('auth.confirmPlaceholder')}
 					bind:value={confirm}
+					showLabel={t('auth.showPassword')}
+					hideLabel={t('auth.hidePassword')}
 					aria-invalid={errors.confirm ? 'true' : undefined}
+					aria-describedby={errors.confirm ? `${formId}-confirm-error` : undefined}
 				/>
 				{#if errors.confirm}
-					<p class="text-xs text-red-500">{errors.confirm}</p>
+					<p id={`${formId}-confirm-error`} class="text-xs text-destructive">{errors.confirm}</p>
 				{/if}
 			</div>
 
 			{#if formError}
-				<p class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-red-500">{formError}</p>
+				<p role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+					{formError}
+				</p>
 			{/if}
 
-			<Button type="submit" class="w-full" disabled={submitting}>
-				{#if submitting}
+			<Button type="submit" class="w-full" disabled={auth.loading}>
+				{#if auth.loading}
 					<Spinner class="size-4 text-primary-foreground" />
-					Creating account…
+					{t('auth.creatingAccount')}
 				{:else}
-					Create account
+					{t('auth.createAccount')}
 				{/if}
 			</Button>
 		</form>
@@ -144,12 +162,12 @@
 
 	<Card.Footer class="justify-center">
 		<p class="text-sm text-muted-foreground">
-			Already have an account?
+			{t('auth.haveAccount')}
 			<a
 				href={resolve('/login')}
 				class="font-medium text-foreground underline-offset-4 hover:underline"
 			>
-				Sign in
+				{t('auth.signIn')}
 			</a>
 		</p>
 	</Card.Footer>

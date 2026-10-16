@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Component } from 'svelte';
-import { filterNavGroups, findNavItem, type NavGroup } from './nav';
+import { appRoutePaths, filterNavGroups, findNavItem, type NavGroup } from './nav';
 
 const Icon = (() => undefined) as unknown as Component;
 
@@ -28,5 +28,20 @@ describe('findNavItem', () => {
 		expect(filterNavGroups(groups, new Set(['/dashboard']))).toEqual([
 			{ label: 'Examples', items: [{ title: 'Keep', href: '/dashboard', icon: Icon }] }
 		]);
+	});
+
+	it('keeps navigation destinations nested inside route groups', () => {
+		const paths = appRoutePaths([
+			'/src/routes/(app)/(account)/settings/+page.svelte',
+			'/src/routes/(app)/(work)/users/+page.svelte',
+			'/src/routes/(auth)/login/+page.svelte'
+		]);
+		expect([...paths]).toEqual(['/settings', '/users']);
+		expect(
+			filterNavGroups(
+				[{ label: 'Account', items: [{ title: 'Settings', href: '/settings', icon: Icon }] }],
+				paths
+			)
+		).toHaveLength(1);
 	});
 });

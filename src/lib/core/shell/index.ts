@@ -5,6 +5,7 @@ export { leafCrumb } from './breadcrumb.svelte';
 export { logoutDialog } from './logout-dialog.svelte';
 export { createRouteRegistry, assertSupportedLayouts, toRouteId } from './route-registry';
 export { TAB_ACTIVITY, type TabActivity } from './tab-activity';
+export { TAB_ROUTE, type TabRoute } from './tab-route';
 export {
 	Tabs,
 	TAB_SOFT_LIMIT,

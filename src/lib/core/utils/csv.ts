@@ -20,11 +20,24 @@ export function downloadBlob(content: BlobPart, filename: string, mime = 'text/p
 	setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-/** Escape a single CSV cell, quoting when it contains special characters. */
-function escapeCell(value: unknown): string {
+export interface CsvOptions {
+	/**
+	 * Prefix formula-like string cells with a tab inside quotes (default: true).
+	 * Set false for general CSV consumers that require the original text.
+	 */
+	spreadsheetSafe?: boolean;
+}
+
+/** Escape CSV syntax and optionally protect spreadsheet-oriented string cells. */
+function escapeCell(value: unknown, spreadsheetSafe: boolean): string {
 	if (value === null || value === undefined) return '';
-	const str = String(value);
-	if (/[",\n\r]/.test(str)) {
+	let str = String(value);
+	// Include leading whitespace, control characters and full-width formula prefixes.
+	// Only text is modified: numeric values such as negative amounts stay numeric.
+	const protect =
+		spreadsheetSafe && typeof value === 'string' && /^\s*[=+\-@＝＋－＠\t\r\n]/u.test(str);
+	if (protect) str = `\t${str}`;
+	if (protect || /[",\n\r]/.test(str)) {
 		return `"${str.replace(/"/g, '""')}"`;
 	}
 	return str;
@@ -36,11 +49,19 @@ function escapeCell(value: unknown): string {
  * - When `columns` is provided, only those keys are exported, in order, using
  *   the supplied headers.
  * - Otherwise every key found in the first row is used, with the key as header.
+ * - Formula-like strings (including headers) receive a tab prefix inside quotes
+ *   by default, following OWASP's Excel-oriented mitigation. This changes text;
+ *   pass `{ spreadsheetSafe: false }` as the fourth argument for raw CSV data.
+ *   Spreadsheet import/save behavior varies: no CSV sanitization is universally
+ *   safe across applications and later re-imports. Quoting alone is not protection.
+ *
+ * @see https://community.owasp.org/attacks/CSV_Injection
  */
 export function exportToCsv<T extends object>(
 	rows: T[],
 	filename: string,
-	columns?: { key: keyof T; header: string }[]
+	columns?: { key: keyof T; header: string }[],
+	{ spreadsheetSafe = true }: CsvOptions = {}
 ): void {
 	const cols: { key: keyof T; header: string }[] =
 		columns ??
@@ -48,8 +69,10 @@ export function exportToCsv<T extends object>(
 			? (Object.keys(rows[0]!) as (keyof T)[]).map((key) => ({ key, header: String(key) }))
 			: []);
 
-	const headerLine = cols.map((c) => escapeCell(c.header)).join(',');
-	const bodyLines = rows.map((row) => cols.map((c) => escapeCell(row[c.key])).join(','));
+	const headerLine = cols.map((c) => escapeCell(c.header, spreadsheetSafe)).join(',');
+	const bodyLines = rows.map((row) =>
+		cols.map((c) => escapeCell(row[c.key], spreadsheetSafe)).join(',')
+	);
 	// Prepend a BOM so Excel detects UTF-8 correctly.
 	const csv = '﻿' + [headerLine, ...bodyLines].join('\r\n');
 

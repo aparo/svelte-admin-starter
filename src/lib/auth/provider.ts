@@ -9,15 +9,11 @@
 //  `authProvider` export at the bottom. No pages or components need to change.
 // ============================================================================
 
-import type { User } from './types';
+import { isUser, type User } from './types';
 import { config } from '$lib/config';
+import { t } from '$lib/i18n';
 
-export interface AuthResult {
-	ok: boolean;
-	error?: string;
-	/** The authenticated user — present when `ok` is true. */
-	user?: User;
-}
+export type AuthResult = { ok: true; user: User } | { ok: false; error: string };
 
 export interface AuthProvider {
 	login(email: string, password: string): Promise<AuthResult>;
@@ -77,19 +73,25 @@ function delay(ms: number): Promise<void> {
 export const mockAuthProvider: AuthProvider = {
 	async login(email, password) {
 		await delay(400);
-		if (!email.trim()) return { ok: false, error: 'Email is required.' };
+		if (!email.trim()) return { ok: false, error: t('auth.errors.emailRequired') };
 		if (password.length < MIN_PASSWORD_LENGTH) {
-			return { ok: false, error: 'Password must be at least 8 characters.' };
+			return {
+				ok: false,
+				error: t('auth.errors.passwordTooShort', { min: MIN_PASSWORD_LENGTH })
+			};
 		}
 		return { ok: true, user: buildUser(email) };
 	},
 
 	async register(name, email, password) {
 		await delay(400);
-		if (!name.trim()) return { ok: false, error: 'Name is required.' };
-		if (!email.trim()) return { ok: false, error: 'Email is required.' };
+		if (!name.trim()) return { ok: false, error: t('auth.errors.nameRequired') };
+		if (!email.trim()) return { ok: false, error: t('auth.errors.emailRequired') };
 		if (password.length < MIN_PASSWORD_LENGTH) {
-			return { ok: false, error: 'Password must be at least 8 characters.' };
+			return {
+				ok: false,
+				error: t('auth.errors.passwordTooShort', { min: MIN_PASSWORD_LENGTH })
+			};
 		}
 		return { ok: true, user: buildUser(email, name) };
 	},
@@ -102,7 +104,20 @@ export const mockAuthProvider: AuthProvider = {
 // ---------------------------------------------------------------------------
 //  Real backend implementation. Wired to `config.api.baseUrl`; flesh out the
 //  request/response shape to match your API.
+//  For cookie authentication across origins, configure credentials: 'include'
+//  together with the backend's CORS and cookie policy.
 // ---------------------------------------------------------------------------
+
+async function readUserResponse(response: Response): Promise<AuthResult> {
+	try {
+		const user: unknown = await response.json();
+		return isUser(user)
+			? { ok: true, user }
+			: { ok: false, error: t('auth.errors.invalidResponse') };
+	} catch {
+		return { ok: false, error: t('auth.errors.invalidResponse') };
+	}
+}
 
 const apiAuthProvider: AuthProvider = {
 	async login(email, password) {
@@ -111,8 +126,17 @@ const apiAuthProvider: AuthProvider = {
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ email, password })
 		});
-		if (!res.ok) return { ok: false, error: 'Invalid email or password.' };
-		return { ok: true, user: (await res.json()) as User };
+		if (!res.ok) {
+			return {
+				ok: false,
+				error: t(
+					res.status === 401 || res.status === 403
+						? 'auth.errors.invalidCredentials'
+						: 'auth.errors.loginFailed'
+				)
+			};
+		}
+		return readUserResponse(res);
 	},
 
 	async register(name, email, password) {
@@ -121,8 +145,8 @@ const apiAuthProvider: AuthProvider = {
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ name, email, password })
 		});
-		if (!res.ok) return { ok: false, error: 'Registration failed.' };
-		return { ok: true, user: (await res.json()) as User };
+		if (!res.ok) return { ok: false, error: t('auth.errors.registerFailed') };
+		return readUserResponse(res);
 	},
 
 	async logout() {

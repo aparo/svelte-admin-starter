@@ -1,7 +1,7 @@
 <!--
   User detail — a tabbed entity-detail template for a single team member.
 
-  Resolves the user from the route param against the mock directory; renders a
+  Resolves the user from this tab’s route params against the shared demo directory; renders a
   centered EmptyState when no match is found. A profile header (avatar, name,
   role + status badges, actions) sits above three tabs: Overview (KPIs + a
   detail definition list), Activity (a vertical timeline), and Security (mock
@@ -21,57 +21,75 @@
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import Monitor from '@lucide/svelte/icons/monitor';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
-	import type { Component } from 'svelte';
+	import { untrack, type Component } from 'svelte';
 
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 
-	import { PageContainer, StatCard, StatusBadge, EmptyState } from '$lib/components/shared';
-	import type { BadgeTone } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import StatCard from '$lib/core/components/shared/StatCard.svelte';
+	import StatusBadge from '$lib/core/components/shared/StatusBadge.svelte';
+	import EmptyState from '$lib/core/components/shared/EmptyState.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import * as Tabs from '$lib/core/components/ui/tabs';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Switch } from '$lib/core/components/ui/switch';
+	import { Label } from '$lib/core/components/ui/label';
 	import { Separator } from '$lib/core/components/ui/separator';
 
-	import { demoUsers, type DemoUser } from '$lib/data/users';
-	import { formatDate, initials } from '$lib/core/utils/formatters';
+	import { useUsersState, type UserDraft } from '$lib/features/users/state.svelte';
+	import UserEditor from '$lib/features/users/UserEditor.svelte';
+	import { roleLabel, roleTone, statusLabel, statusTone } from '$lib/features/users/presentation';
+	import { formatDate, initials } from '$lib/i18n/formatters';
+	import { t, type TranslationKey } from '$lib/i18n';
+	import { leafCrumb } from '$lib/shell/breadcrumb.svelte';
+	import { tabs as appTabs } from '$lib/shell/tabs.svelte';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
 
-	type Role = DemoUser['role'];
-	type Status = DemoUser['status'];
+	let { params }: { params?: Record<string, string> } = $props();
+	const fieldId = $props.id();
+	const directory = useUsersState();
+	const id = $derived((params ?? page.params).id);
+	const user = $derived(directory.find(id));
 
-	// Resolve the user from the route param. `page.params.id` is a string.
-	const user = $derived<DemoUser | undefined>(demoUsers.find((u) => u.id === page.params.id));
+	// Publish this route's current name without subscribing to global tab mutations.
+	// Duplicate instances share a label, so closing one does not clear another's label.
+	$effect(() => {
+		if (!id) return;
+		const pathname = `/users/${id}`;
+		const label = user?.name ?? t('users.notFound');
+		untrack(() => {
+			leafCrumb.set(pathname, label);
+			appTabs.rename(pathname, label);
+		});
+	});
 
-	const ROLE_LABELS: Record<Role, string> = {
-		admin: 'Admin',
-		editor: 'Editor',
-		viewer: 'Viewer'
-	};
-	const STATUS_LABELS: Record<Status, string> = {
-		active: 'Active',
-		invited: 'Invited',
-		suspended: 'Suspended'
-	};
-
-	// Map roles/statuses to the shared StatusBadge tones, matching the Users table.
-	function roleTone(role: Role): BadgeTone {
-		return role === 'admin' ? 'brand' : role === 'editor' ? 'neutral' : 'outline';
+	let editorOpen = $state(false);
+	let editorSession = $state(0);
+	function openEditor() {
+		editorSession += 1;
+		editorOpen = true;
 	}
-	function statusTone(status: Status): BadgeTone {
-		return status === 'active' ? 'success' : status === 'invited' ? 'warning' : 'danger';
+	function save(draft: UserDraft) {
+		if (!user || !directory.update(user.id, draft)) {
+			toast.error(t('users.notFound'));
+			return;
+		}
+		toast.success(t('users.updated'));
+		editorOpen = false;
 	}
-
-	const pageTitle = $derived(
-		user ? `${user.name} · Admin Starter` : 'User not found · Admin Starter'
-	);
 
 	// --- Invented (mock) profile metadata, derived from the user record ------
 	// Stable, deterministic picks so each profile renders consistently.
-	const DEPARTMENTS = ['Engineering', 'Design', 'Marketing', 'Operations', 'Support'];
+	const DEPARTMENTS = [
+		'users.departments.engineering',
+		'users.departments.design',
+		'users.departments.marketing',
+		'users.departments.operations',
+		'users.departments.support'
+	] as const;
 	const LOCATIONS = [
 		{ city: 'San Francisco, US', tz: 'UTC−08:00 (PST)' },
 		{ city: 'London, UK', tz: 'UTC+00:00 (GMT)' },
@@ -91,7 +109,7 @@
 		const li = hashIndex(id, LOCATIONS.length);
 		const seed = hashIndex(id, 997);
 		return {
-			department: DEPARTMENTS[hashIndex(id, DEPARTMENTS.length)],
+			department: t(DEPARTMENTS[hashIndex(id, DEPARTMENTS.length)]),
 			location: LOCATIONS[li].city,
 			timezone: LOCATIONS[li].tz,
 			projects: 4 + (seed % 18),
@@ -108,24 +126,44 @@
 		tone: 'brand' | 'success' | 'muted';
 	}
 
-	const activity: ActivityEntry[] = [
-		{ icon: LogIn, text: 'Signed in from a new device', time: '2 hours ago', tone: 'brand' },
+	const activity = $derived<ActivityEntry[]>([
+		{
+			icon: LogIn,
+			text: t('users.activityText.signedIn'),
+			time: t('users.time.hoursAgo', { count: 2 }),
+			tone: 'brand'
+		},
 		{
 			icon: CircleCheck,
-			text: 'Completed task “Refine onboarding flow”',
-			time: '6 hours ago',
+			text: t('users.activityText.completedTask'),
+			time: t('users.time.hoursAgo', { count: 6 }),
 			tone: 'success'
 		},
 		{
 			icon: MessageCircle,
-			text: 'Commented on “Q3 roadmap review”',
-			time: 'Yesterday',
+			text: t('users.activityText.commented'),
+			time: t('users.time.yesterday'),
 			tone: 'muted'
 		},
-		{ icon: Upload, text: 'Uploaded 3 files to “Brand assets”', time: '2 days ago', tone: 'muted' },
-		{ icon: Folder, text: 'Created project “Mobile redesign”', time: '5 days ago', tone: 'brand' },
-		{ icon: Settings, text: 'Updated notification preferences', time: 'Last week', tone: 'muted' }
-	];
+		{
+			icon: Upload,
+			text: t('users.activityText.uploaded'),
+			time: t('users.time.daysAgo', { count: 2 }),
+			tone: 'muted'
+		},
+		{
+			icon: Folder,
+			text: t('users.activityText.createdProject'),
+			time: t('users.time.daysAgo', { count: 5 }),
+			tone: 'brand'
+		},
+		{
+			icon: Settings,
+			text: t('users.activityText.updatedPreferences'),
+			time: t('users.time.lastWeek'),
+			tone: 'muted'
+		}
+	]);
 
 	function dotClass(tone: ActivityEntry['tone']): string {
 		return tone === 'brand'
@@ -140,7 +178,8 @@
 		icon: Component;
 		device: string;
 		location: string;
-		time: string;
+		time: TranslationKey;
+		count?: number;
 		current: boolean;
 	}
 
@@ -151,60 +190,59 @@
 			icon: Monitor,
 			device: 'MacBook Pro · Chrome',
 			location: 'San Francisco, US',
-			time: 'Active now',
+			time: 'users.time.activeNow',
 			current: true
 		},
 		{
 			icon: Smartphone,
 			device: 'iPhone 15 · Safari',
 			location: 'San Francisco, US',
-			time: '3 hours ago',
+			time: 'users.time.hoursAgo',
+			count: 3,
 			current: false
 		},
 		{
 			icon: Monitor,
 			device: 'Windows · Edge',
 			location: 'London, UK',
-			time: '4 days ago',
+			time: 'users.time.daysAgo',
+			count: 4,
 			current: false
 		}
 	]);
 
 	function notImplemented(label: string) {
-		toast.info(`${label} is not available in this demo.`);
+		toast.info(t('users.demoUnavailable', { action: label }));
 	}
 
 	function revokeSession(index: number) {
 		const s = sessions[index];
+		if (!s) return;
 		sessions.splice(index, 1);
-		toast.success('Session revoked', { description: `${s.device} was signed out.` });
+		toast.success(t('users.sessionRevoked'), {
+			description: t('users.deviceSignedOut', { device: s.device })
+		});
 	}
 
 	function onTwoFactorChange(checked: boolean) {
 		twoFactor = checked;
-		toast.success(
-			checked ? 'Two-factor authentication enabled' : 'Two-factor authentication disabled'
-		);
+		toast.success(t(checked ? 'users.twoFactorEnabled' : 'users.twoFactorDisabled'));
 	}
 </script>
-
-<svelte:head>
-	<title>{pageTitle}</title>
-</svelte:head>
 
 <PageContainer>
 	{#if !user}
 		<div class="flex min-h-[60vh] items-center justify-center">
 			<EmptyState
 				icon={UserX}
-				title="User not found"
-				description="We couldn't find a user matching this link. They may have been removed."
+				title={t('users.notFound')}
+				description={t('users.notFoundDescription')}
 				class="w-full max-w-md"
 			>
 				{#snippet action()}
-					<Button href="/users" variant="outline">
+					<Button href={resolve('/users')} variant="outline">
 						<ArrowLeft class="size-4" />
-						Back to users
+						{t('users.back')}
 					</Button>
 				{/snippet}
 			</EmptyState>
@@ -216,7 +254,7 @@
 			class="text-muted-foreground hover:text-foreground -mb-2 inline-flex w-fit items-center gap-1.5 text-sm font-medium transition-colors"
 		>
 			<ArrowLeft class="size-4" aria-hidden="true" />
-			Back to users
+			{t('users.back')}
 		</a>
 
 		<!-- Profile header -->
@@ -240,20 +278,20 @@
 					<div class="min-w-0 space-y-2">
 						<h1 class="truncate text-2xl font-semibold tracking-tight">{user.name}</h1>
 						<div class="flex flex-wrap items-center gap-2">
-							<StatusBadge tone={roleTone(user.role)}>{ROLE_LABELS[user.role]}</StatusBadge>
-							<StatusBadge tone={statusTone(user.status)}>{STATUS_LABELS[user.status]}</StatusBadge>
+							<StatusBadge tone={roleTone(user.role)}>{roleLabel(user.role)}</StatusBadge>
+							<StatusBadge tone={statusTone(user.status)}>{statusLabel(user.status)}</StatusBadge>
 							<span class="text-muted-foreground truncate text-sm">{user.email}</span>
 						</div>
 					</div>
 				</div>
 				<div class="flex shrink-0 items-center gap-2">
-					<Button variant="outline" onclick={() => notImplemented('Editing')}>
+					<Button variant="outline" onclick={openEditor}>
 						<Pencil class="size-4" />
-						Edit
+						{t('common.edit')}
 					</Button>
-					<Button variant="ghost" onclick={() => notImplemented('Messaging')}>
+					<Button variant="ghost" onclick={() => notImplemented(t('users.messaging'))}>
 						<MessageSquare class="size-4" />
-						Send message
+						{t('users.sendMessage')}
 					</Button>
 				</div>
 			</div>
@@ -262,74 +300,79 @@
 		<!-- Tabs -->
 		<Tabs.Root value="overview" class="gap-6">
 			<Tabs.List>
-				<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
-				<Tabs.Trigger value="activity">Activity</Tabs.Trigger>
-				<Tabs.Trigger value="security">Security</Tabs.Trigger>
+				<Tabs.Trigger value="overview">{t('users.overview')}</Tabs.Trigger>
+				<Tabs.Trigger value="activity">{t('users.activity')}</Tabs.Trigger>
+				<Tabs.Trigger value="security">{t('users.security')}</Tabs.Trigger>
 			</Tabs.List>
 
 			<!-- Overview -->
 			<Tabs.Content value="overview" class="space-y-6">
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-					<StatCard title="Projects" value={profile.projects} icon={Folder} hint="active" />
 					<StatCard
-						title="Tasks done"
+						title={t('users.projects')}
+						value={profile.projects}
+						icon={Folder}
+						hint={t('users.active')}
+					/>
+					<StatCard
+						title={t('users.tasksDone')}
 						value={profile.tasksDone}
 						icon={CircleCheck}
 						change={12}
 						trend="up"
-						hint="this quarter"
+						hint={t('users.thisQuarter')}
 					/>
 					<StatCard
-						title="Comments"
+						title={t('users.comments')}
 						value={profile.comments}
 						icon={MessageCircle}
-						hint="all time"
+						hint={t('users.allTime')}
 					/>
 				</div>
 
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Details</Card.Title>
-						<Card.Description>Profile information for this team member.</Card.Description>
+						<Card.Title>{t('users.detailsTitle')}</Card.Title>
+						<Card.Description>{t('users.profileDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content>
 						<dl class="divide-border divide-y">
 							<div class="flex items-center justify-between gap-4 py-3 first:pt-0">
-								<dt class="text-muted-foreground text-sm">Email</dt>
+								<dt class="text-muted-foreground text-sm">{t('auth.email')}</dt>
 								<dd class="truncate text-sm font-medium">{user.email}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Role</dt>
+								<dt class="text-muted-foreground text-sm">{t('users.role')}</dt>
 								<dd>
-									<StatusBadge tone={roleTone(user.role)}>{ROLE_LABELS[user.role]}</StatusBadge>
+									<StatusBadge tone={roleTone(user.role)}>{roleLabel(user.role)}</StatusBadge>
 								</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Status</dt>
+								<dt class="text-muted-foreground text-sm">{t('users.status')}</dt>
 								<dd>
 									<StatusBadge tone={statusTone(user.status)}
-										>{STATUS_LABELS[user.status]}</StatusBadge
+										>{statusLabel(user.status)}</StatusBadge
 									>
 								</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Department</dt>
+								<dt class="text-muted-foreground text-sm">{t('users.department')}</dt>
 								<dd class="text-sm font-medium">{profile.department}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Location</dt>
+								<dt class="text-muted-foreground text-sm">{t('users.location')}</dt>
 								<dd class="text-sm font-medium">{profile.location}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Timezone</dt>
+								<dt class="text-muted-foreground text-sm">{t('users.timezone')}</dt>
 								<dd class="text-sm font-medium tabular-nums">{profile.timezone}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3">
-								<dt class="text-muted-foreground text-sm">Joined</dt>
+								<dt class="text-muted-foreground text-sm">{t('users.joined')}</dt>
 								<dd class="text-sm font-medium tabular-nums">{formatDate(user.createdAt)}</dd>
 							</div>
 							<div class="flex items-center justify-between gap-4 py-3 last:pb-0">
-								<dt class="text-muted-foreground text-sm">User ID</dt>
+								<dt class="text-muted-foreground text-sm">{t('users.id')}</dt>
 								<dd class="text-muted-foreground font-mono text-xs">{user.id}</dd>
 							</div>
 						</dl>
@@ -341,8 +384,8 @@
 			<Tabs.Content value="activity" class="space-y-6">
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Recent activity</Card.Title>
-						<Card.Description>A timeline of this user's latest actions.</Card.Description>
+						<Card.Title>{t('users.recentActivity')}</Card.Title>
+						<Card.Description>{t('users.activityDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content>
 						<ol class="relative space-y-6">
@@ -376,8 +419,8 @@
 			<Tabs.Content value="security" class="space-y-6">
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Security</Card.Title>
-						<Card.Description>Authentication and active sessions.</Card.Description>
+						<Card.Title>{t('users.security')}</Card.Title>
+						<Card.Description>{t('users.securityDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-1">
 						<!-- Two-factor -->
@@ -385,11 +428,20 @@
 							<div class="space-y-0.5">
 								<div class="flex items-center gap-2">
 									<ShieldCheck class="text-muted-foreground size-4" aria-hidden="true" />
-									<p class="text-sm font-medium">Two-factor authentication</p>
+									<Label for={`${fieldId}-two-factor`} class="text-sm font-medium"
+										>{t('users.twoFactor')}</Label
+									>
 								</div>
-								<p class="text-muted-foreground text-sm">Require a verification code at sign-in.</p>
+								<p class="text-muted-foreground text-sm">
+									{t('users.twoFactorDescription')}
+								</p>
 							</div>
-							<Switch checked={twoFactor} onCheckedChange={onTwoFactorChange} />
+							<Switch
+								id={`${fieldId}-two-factor`}
+								checked={twoFactor}
+								onCheckedChange={onTwoFactorChange}
+								aria-label={t('users.twoFactor')}
+							/>
 						</div>
 
 						<Separator />
@@ -397,17 +449,17 @@
 						<!-- Last password change -->
 						<div class="flex items-center justify-between gap-4 py-2">
 							<div class="space-y-0.5">
-								<p class="text-sm font-medium">Password</p>
+								<p class="text-sm font-medium">{t('auth.password')}</p>
 								<p class="text-muted-foreground text-sm">
-									Last changed {formatDate('2024-09-14')}.
+									{t('users.passwordChanged', { date: formatDate('2024-09-14') })}
 								</p>
 							</div>
 							<Button
 								variant="outline"
 								size="sm"
-								onclick={() => notImplemented('Resetting passwords')}
+								onclick={() => notImplemented(t('users.resettingPasswords'))}
 							>
-								Reset password
+								{t('users.resetPassword')}
 							</Button>
 						</div>
 					</Card.Content>
@@ -415,12 +467,12 @@
 
 				<Card.Root>
 					<Card.Header>
-						<Card.Title>Active sessions</Card.Title>
-						<Card.Description>Devices currently signed in to this account.</Card.Description>
+						<Card.Title>{t('users.activeSessions')}</Card.Title>
+						<Card.Description>{t('users.sessionsDescription')}</Card.Description>
 					</Card.Header>
 					<Card.Content>
 						{#if sessions.length === 0}
-							<p class="text-muted-foreground py-4 text-center text-sm">No active sessions.</p>
+							<p class="text-muted-foreground py-4 text-center text-sm">{t('users.noSessions')}</p>
 						{:else}
 							<ul class="divide-border divide-y">
 								{#each sessions as session, i (session.device)}
@@ -435,11 +487,11 @@
 											<div class="flex items-center gap-2">
 												<p class="truncate text-sm font-medium">{session.device}</p>
 												{#if session.current}
-													<StatusBadge tone="success">This device</StatusBadge>
+													<StatusBadge tone="success">{t('users.thisDevice')}</StatusBadge>
 												{/if}
 											</div>
 											<p class="text-muted-foreground truncate text-xs">
-												{session.location} · {session.time}
+												{session.location} · {t(session.time, { count: session.count ?? 0 })}
 											</p>
 										</div>
 										<Button
@@ -449,7 +501,7 @@
 											disabled={session.current}
 											onclick={() => revokeSession(i)}
 										>
-											Revoke
+											{t('users.revoke')}
 										</Button>
 									</li>
 								{/each}
@@ -461,3 +513,7 @@
 		</Tabs.Root>
 	{/if}
 </PageContainer>
+
+{#key editorSession}
+	<UserEditor bind:open={editorOpen} {user} editing onSave={save} />
+{/key}

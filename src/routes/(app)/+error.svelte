@@ -5,25 +5,28 @@
 -->
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { Button } from '$lib/core/components/ui/button';
-	import { PageContainer } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import House from '@lucide/svelte/icons/house';
 	import { config } from '$lib/config';
+	import { t } from '$lib/i18n';
+	import { pageTitle } from '$lib/utils/page-title';
 
 	const headline = $derived(
 		page.status === 404
-			? 'Page not found'
+			? t('error.notFoundTitle')
 			: page.status >= 500
-				? 'Something went wrong'
-				: 'Unexpected error'
+				? t('error.serverTitle')
+				: t('error.unexpectedTitle')
 	);
 
 	const description = $derived(
 		page.status === 404
-			? "This page doesn't exist or may have been moved."
-			: (page.error?.message ?? 'An unexpected error occurred while loading this page.')
+			? t('error.notFoundDescriptionApp')
+			: (page.error?.message ?? t('error.unexpectedDescriptionApp'))
 	);
 
 	function reload() {
@@ -32,7 +35,7 @@
 </script>
 
 <svelte:head>
-	<title>{page.status} · Admin Starter</title>
+	<title>{pageTitle(page.status)}</title>
 </svelte:head>
 
 <PageContainer>
@@ -44,7 +47,9 @@
 		</div>
 
 		<div class="space-y-1.5">
-			<p class="text-muted-foreground text-sm font-medium tabular-nums">Error {page.status}</p>
+			<p class="text-muted-foreground text-sm font-medium tabular-nums">
+				{t('error.status', { status: page.status })}
+			</p>
 			<h1 class="text-2xl font-semibold tracking-tight">{headline}</h1>
 			<p class="text-muted-foreground mx-auto max-w-md text-sm">{description}</p>
 		</div>
@@ -52,11 +57,11 @@
 		<div class="flex flex-wrap items-center justify-center gap-2">
 			<Button onclick={reload}>
 				<RotateCcw class="size-4" aria-hidden="true" />
-				Try again
+				{t('common.retry')}
 			</Button>
-			<Button href={config.app.homePath} variant="outline">
+			<Button href={resolve(config.app.homePath)} variant="outline">
 				<House class="size-4" aria-hidden="true" />
-				Back home
+				{t('error.backHome')}
 			</Button>
 		</div>
 	</div>

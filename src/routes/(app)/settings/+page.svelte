@@ -16,7 +16,7 @@
 	import { auth } from '$lib/auth';
 	import { logoutDialog } from '$lib/shell';
 	import { setLocale, LOCALES, i18n, type Locale } from '$lib/i18n';
-	import { initials } from '$lib/core/utils/formatters';
+	import { initials } from '$lib/i18n/formatters';
 	import Save from '@lucide/svelte/icons/save';
 
 	// A small, static list of common timezones for the mock Select.
@@ -59,11 +59,8 @@
 			description: 'Your general settings have been updated.'
 		});
 	}
+	const instanceId = $props.id();
 </script>
-
-<svelte:head>
-	<title>General Settings · Admin Starter</title>
-</svelte:head>
 
 <form onsubmit={saveGeneral} class="space-y-6">
 	<Card.Root>
@@ -75,14 +72,14 @@
 		</Card.Header>
 		<Card.Content class="space-y-5">
 			<div class="grid gap-2">
-				<Label for="org-name">Organization name</Label>
-				<Input id="org-name" bind:value={orgName} placeholder="Acme Inc." />
+				<Label for={`${instanceId}-org-name`}>Organization name</Label>
+				<Input id={`${instanceId}-org-name`} bind:value={orgName} placeholder="Acme Inc." />
 			</div>
 
 			<div class="grid gap-2">
-				<Label for="support-email">Support email</Label>
+				<Label for={`${instanceId}-support-email`}>Support email</Label>
 				<Input
-					id="support-email"
+					id={`${instanceId}-support-email`}
 					type="email"
 					bind:value={supportEmail}
 					placeholder="support@example.com"
@@ -94,9 +91,9 @@
 
 			<div class="grid gap-5 sm:grid-cols-2">
 				<div class="grid gap-2">
-					<Label for="timezone">Timezone</Label>
+					<Label for={`${instanceId}-timezone`}>Timezone</Label>
 					<Select.Root type="single" bind:value={timezone}>
-						<Select.Trigger id="timezone" class="w-full">
+						<Select.Trigger id={`${instanceId}-timezone`} class="w-full">
 							{timezoneLabel}
 						</Select.Trigger>
 						<Select.Content>
@@ -110,9 +107,9 @@
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="language">Language</Label>
+					<Label for={`${instanceId}-language`}>Language</Label>
 					<Select.Root type="single" value={language} onValueChange={onLanguageChange}>
-						<Select.Trigger id="language" class="w-full">
+						<Select.Trigger id={`${instanceId}-language`} class="w-full">
 							{languageLabel}
 						</Select.Trigger>
 						<Select.Content>

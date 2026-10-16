@@ -112,10 +112,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Notifications · Admin Starter</title>
-</svelte:head>
-
 {#each groups as group (group.id)}
 	<Card.Root>
 		<Card.Header>

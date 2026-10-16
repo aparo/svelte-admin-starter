@@ -1,5 +1,5 @@
-// Supplies a friendly breadcrumb label (the user's name) for /users/[id], so the
-// trail reads "… › Users › Olivia Martin" instead of the raw id segment.
+// Initial breadcrumb fallback from seed data. The mounted detail page publishes
+// the current session's name (including new, edited or deleted users).
 import { demoUsers } from '$lib/data/users';
 import type { PageLoad } from './$types';
 

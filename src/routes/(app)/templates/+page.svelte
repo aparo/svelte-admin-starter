@@ -5,7 +5,8 @@
 	import FormInput from '@lucide/svelte/icons/form-input';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 
 	const templates = [
@@ -41,8 +42,6 @@
 		}
 	] as const;
 </script>
-
-<svelte:head><title>Page Templates · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader

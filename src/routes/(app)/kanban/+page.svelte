@@ -13,14 +13,17 @@
 
 	import { toast } from 'svelte-sonner';
 
-	import { PageContainer, PageHeader, StatusBadge, type BadgeTone } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import StatusBadge from '$lib/core/components/shared/StatusBadge.svelte';
+	import type { BadgeTone } from '$lib/core/components/shared/StatusBadge.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Badge } from '$lib/core/components/ui/badge';
 	import * as Tabs from '$lib/core/components/ui/tabs';
 	import { cn } from '$lib/core/utils';
-	import { initials } from '$lib/core/utils/formatters';
+	import { initials } from '$lib/i18n/formatters';
 	import { moveTask, type Column, type Priority, type Task } from './board';
 
 	// Map a task priority to a shared StatusBadge tone (see StatusBadge).
@@ -197,7 +200,7 @@
 	function jumpToColumn(columnId: string): void {
 		activeColumnId = columnId;
 		document
-			.getElementById(`kanban-${columnId}`)
+			.getElementById(`${instanceId}-kanban-${columnId}`)
 			?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 	}
 
@@ -273,11 +276,8 @@
 	function addToBoard(): void {
 		addTask(columns[0].id);
 	}
+	const instanceId = $props.id();
 </script>
-
-<svelte:head>
-	<title>Kanban · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader title="Kanban" description="Plan and track work across stages.">
@@ -313,7 +313,7 @@
 			{@const insertBeforeId =
 				dropTarget?.columnId === column.id ? dropTasks[dropTarget.index]?.id : undefined}
 			<section
-				id="kanban-{column.id}"
+				id={`${instanceId}-kanban-${column.id}`}
 				class={cn(
 					'flex w-72 shrink-0 flex-col rounded-lg border border-border bg-muted/40 transition-all',
 					activeColumnId === column.id && 'border-primary/50 bg-primary/10 shadow-sm',

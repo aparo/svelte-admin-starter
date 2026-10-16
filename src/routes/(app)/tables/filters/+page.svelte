@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-	import { DataTable, PageContainer, PageHeader } from '$lib/components/shared';
+	import DataTable from '$lib/core/components/shared/DataTable.svelte';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import * as Select from '$lib/core/components/ui/select';
 	import { demoProducts } from '$lib/data/products';
@@ -19,14 +22,12 @@
 	);
 </script>
 
-<svelte:head><title>Filtered Data Table · Admin Starter</title></svelte:head>
-
 <PageContainer>
 	<PageHeader
 		title="Filters"
 		description="Application-owned filters combined with built-in text search."
 	/>
-	<DataTable data={rows} {columns} searchable pageSize={8}>
+	<DataTable text={t} data={rows} {columns} searchable pageSize={8}>
 		{#snippet toolbar()}
 			<Select.Root type="single" bind:value={category}
 				><Select.Trigger size="sm" class="w-40"

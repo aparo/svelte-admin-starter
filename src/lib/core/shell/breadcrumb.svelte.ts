@@ -12,6 +12,10 @@ class LeafCrumbs {
 	set(pathname: string, label: string): void {
 		this.#labels.set(pathname, label);
 	}
+
+	clear(): void {
+		this.#labels.clear();
+	}
 }
 
 export const leafCrumb = new LeafCrumbs();

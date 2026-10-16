@@ -1,0 +1,41 @@
+import { translate as t } from '$lib/i18n';
+import { leafCrumb } from './breadcrumb.svelte';
+import { findNavItem, type NavGroup, type NavItem } from './nav';
+
+export function translatedLabel(
+	key: string | undefined,
+	fallback: string,
+	values?: Record<string, string | number>
+): string {
+	if (!key) return fallback;
+	const translated = t(key, values);
+	return translated === key ? fallback : translated;
+}
+
+export function navTitle(item: Pick<NavItem, 'title' | 'titleKey'>): string {
+	return translatedLabel(item.titleKey, item.title);
+}
+
+export function navGroupLabel(group: Pick<NavGroup, 'label' | 'labelKey'>): string {
+	return translatedLabel(group.labelKey, group.label);
+}
+
+export function titleCase(segment: string): string {
+	return segment
+		.split('-')
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(' ');
+}
+
+/** Shared leaf label for breadcrumbs and tabs, including page-supplied names. */
+export function routeLabelFor(pathname: string, data?: unknown, override?: string): string {
+	if (override) return override;
+	const clientLabel = leafCrumb.get(pathname);
+	if (clientLabel) return clientLabel;
+	const breadcrumb = (data as { breadcrumb?: unknown } | undefined)?.breadcrumb;
+	if (typeof breadcrumb === 'string' && breadcrumb.trim()) return breadcrumb;
+	const match = findNavItem(pathname);
+	if (match?.item.href === pathname) return navTitle(match.item);
+	const segment = pathname.split('/').filter(Boolean).pop();
+	return segment ? titleCase(segment) : translatedLabel('nav.untitled', 'Untitled');
+}

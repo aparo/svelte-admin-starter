@@ -10,17 +10,19 @@
 	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth';
 	import { config } from '$lib/config';
-	import { ThemeToggle, LanguageToggle } from '$lib/components/shared';
+	import { t } from '$lib/i18n';
+	import ThemeToggle from '$lib/core/components/shared/ThemeToggle.svelte';
+	import LanguageToggle from '$lib/components/shared/LanguageToggle.svelte';
 	import Check from '@lucide/svelte/icons/check';
 
 	let { children } = $props();
 
-	const highlights = [
-		'Svelte 5 runes + SvelteKit 2',
-		'Tailwind v4 + shadcn-svelte UI',
-		'Dark mode, i18n & ⌘K command palette',
-		'Responsive, accessible and fully typed'
-	];
+	const highlights = $derived([
+		t('auth.highlightStack'),
+		t('auth.highlightUI'),
+		t('auth.highlightFeatures'),
+		t('auth.highlightQuality')
+	]);
 
 	onMount(() => {
 		auth.init();
@@ -61,8 +63,7 @@
 					{config.app.tagline}
 				</h1>
 				<p class="text-primary-foreground/80 text-base leading-relaxed">
-					A polished SvelteKit starter — auth, dashboard, tables, forms and charts, fully wired and
-					ready to extend.
+					{t('auth.brandDescription')}
 				</p>
 			</div>
 			<ul class="space-y-3">
@@ -89,7 +90,10 @@
 		<!-- Corner controls -->
 		<div class="absolute top-4 right-4 z-10 flex items-center gap-1">
 			<LanguageToggle />
-			<ThemeToggle />
+			<ThemeToggle
+				lightLabel={t('common.switchToLightTheme')}
+				darkLabel={t('common.switchToDarkTheme')}
+			/>
 		</div>
 
 		<div class="w-full max-w-sm space-y-6">
@@ -107,7 +111,7 @@
 		</div>
 
 		<p class="text-muted-foreground absolute inset-x-0 bottom-4 text-center text-xs">
-			A SvelteKit admin starter template.
+			{t('auth.footer')}
 		</p>
 	</main>
 </div>

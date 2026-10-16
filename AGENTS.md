@@ -18,7 +18,7 @@ For substantial work, track remaining steps and verification; skip formal planni
 
 ## Task guidance
 
-Canonical skills live in `.agents/skills/`; `.claude/skills/` contains discovery adapters only. Use `ui-manager` for new routes or substantial page restructuring, and `git-release` for version/tag/release work. Small styling or copy edits need no page-creation workflow. Read only references relevant to the task; inspect live source when documentation differs.
+Use this `AGENTS.md` as the shared repository guide. Canonical skills live in `.agents/skills/`. Use `ui-manager` for new routes or substantial page restructuring, and `git-release` for version/tag/release work. Small styling or copy edits need no page-creation workflow. Read only references relevant to the task; inspect live source when documentation differs.
 
 ## Validation
 
