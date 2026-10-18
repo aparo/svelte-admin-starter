@@ -303,7 +303,7 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ### SearchInput
 
-`src/lib/core/components/shared/SearchInput.svelte` — 带前置搜索图标的文本框，以及仅在有值时出现的尾部清除（x）按钮。`value` 可绑定。
+`src/lib/core/components/shared/SearchInput.svelte` — 带前置搜索图标的文本框，以及仅在有值时出现的尾部清除（x）按钮。`value` 可绑定。清空后自动将焦点送回输入框，支持键盘和鼠标连续搜索。
 
 | prop          | 类型     | 默认值        | bindable | 说明                          |
 | ------------- | -------- | ------------- | -------- | ----------------------------- |
@@ -476,6 +476,8 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 ### DataTable
 
 `src/lib/core/components/shared/DataTable.svelte` — 支持客户端数据或外部 server 分页回调的数据表，组件本身不执行后端访问。应用兼容入口保留原有 API。
+
+服务端表格的 `server` 参数支持可选 `sortKey: string | null` 和 `sortDirection: 'asc' | 'desc'`。提供 `sortKey` 即采用受控排序：表头箭头、`aria-sort` 和下次排序方向都读取调用方状态，`onSortChange` 仅发出请求；返回新数据时由调用方更新排序状态。`sortKey: null` 表示清除排序。省略这两个字段的旧调用保持内部排序指示行为；组件始终不会自行重排服务端传入的数据。
 
 **特性：**
 
@@ -794,7 +796,7 @@ export function findNavItem(pathname: string): { group: NavGroup; item: NavItem 
 | **AppSidebar**        | `AppSidebar.svelte`        | 品牌头、按 `navGroups` 分组的导航（基于 `page.url.pathname` 高亮当前项）、底部用户下拉（Profile / Settings / Logout，调用 `auth`）。`Sidebar.Root collapsible="icon"` 支持折叠为图标条。**无 props**。                 |
 | **AppHeader**         | `AppHeader.svelte`         | 内嵌于 `Sidebar.Inset` 的 sticky 顶栏：`Sidebar.Trigger`、`Breadcrumbs`、搜索按钮（打开 `CommandMenu`，⌘K）、`NotificationsMenu`、`LanguageToggle`、`ThemeToggle`、用户头像下拉菜单。文案走 `t()` i18n。**无 props**。 |
 | **Breadcrumbs**       | `Breadcrumbs.svelte`       | 由当前路径 + `findNavItem` 推导面包屑：`Home → 组标签 → 导航项 → 余下路径段`（路径段做 title-case）。无匹配时直接按路径段构建。**无 props**。                                                                          |
-| **NotificationsMenu** | `NotificationsMenu.svelte` | 带未读角标的铃铛下拉，列出 `notifications` store 的条目；按类型（info/success/warning）配图标与颜色；支持单条 `markRead` 与 `markAllRead`。**无 props**。                                                              |
+| **NotificationsMenu** | `NotificationsMenu.svelte` | 带未读角标的铃铛 Popover，使用原生按钮支持 Tab / Shift+Tab 和 Escape，列出当前会话通知条目；按类型（info/success/warning）配图标与颜色；支持单条 `markRead` 与 `markAllRead`。**无 props**。                           |
 
 ---
 
@@ -924,7 +926,7 @@ sidebarOpen.current = false; // 自动持久化
 
 ### notifications — `src/lib/stores/notifications.svelte.ts`
 
-内存版通知 store（mock 单例），已注入若干演示条目供顶栏铃铛展示。直接 import 单例 `notifications`。
+内存版通知 store，由 `(app)/+layout.svelte` 通过 `createNotificationsState()` 创建并提供 context。同一登录会话内共享，退出后重新登录会创建独立状态；构造时复制种子，不修改模块级数据。组件在初始化期间调用 `useNotificationsState()` 获取当前会话。
 
 ```ts
 export interface AppNotification {
@@ -936,14 +938,16 @@ export interface AppNotification {
 	type: 'info' | 'success' | 'warning';
 }
 
-export const notifications; // 单例
+export function createNotificationsState(initial?: readonly AppNotification[]): NotificationsStore;
+export function useNotificationsState(): NotificationsStore;
 ```
 
-可用成员：`notifications.items`（只读数组）、`notifications.unread`（未读数）、`markRead(id)`、`markAllRead()`、`remove(id)`。
+可用成员：`notifications.items`（条目数组）、`notifications.unread`（未读数）、`markRead(id)`、`markAllRead()`、`remove(id)`。
 
 ```ts
-import { notifications } from '$lib/stores/notifications.svelte';
+import { useNotificationsState } from '$lib/stores/notifications.svelte';
 
+const notifications = useNotificationsState();
 const unread = $derived(notifications.unread);
 notifications.markAllRead();
 ```

@@ -19,10 +19,12 @@
 	import { config } from '$lib/config';
 	import { t } from '$lib/i18n';
 	import { USERS_STATE, createUsersState } from '$lib/features/users/state.svelte';
+	import { NOTIFICATIONS_STATE, createNotificationsState } from '$lib/stores/notifications.svelte';
 
 	let { children } = $props();
 	let ready = $state(false);
 	setContext(USERS_STATE, createUsersState());
+	setContext(NOTIFICATIONS_STATE, createNotificationsState());
 
 	onMount(() => {
 		leafCrumb.clear();

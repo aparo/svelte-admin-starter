@@ -29,6 +29,9 @@
 		page: number;
 		pageSize: number;
 		total: number;
+		/** Supply sortKey (including null) to control the displayed/next sort from the server. */
+		sortKey?: string | null;
+		sortDirection?: 'asc' | 'desc';
 		onPageChange: (page: number) => void;
 		onSearchChange?: (search: string) => void;
 		onSortChange?: (key: string, direction: 'asc' | 'desc') => void;
@@ -154,8 +157,11 @@
 		server
 	}: Props = $props();
 
-	let sortKey = $state<string | null>(null);
-	let sortDir = $state<'asc' | 'desc'>('asc');
+	let localSortKey = $state<string | null>(null);
+	let localSortDir = $state<'asc' | 'desc'>('asc');
+	const controlledSort = $derived(server?.sortKey !== undefined);
+	const sortKey = $derived(controlledSort ? server!.sortKey : localSortKey);
+	const sortDir = $derived(controlledSort ? (server!.sortDirection ?? 'asc') : localSortDir);
 	let localPage = $state(1);
 
 	const serverSearchEnabled = $derived(Boolean(server?.onSearchChange));
@@ -257,14 +263,11 @@
 
 	function toggleSort(column: Column<T>) {
 		if (!column.sortable) return;
-		let nextDirection: 'asc' | 'desc';
-		if (sortKey === column.key) {
-			nextDirection = sortDir === 'asc' ? 'desc' : 'asc';
-		} else {
-			sortKey = column.key;
-			nextDirection = 'asc';
+		const nextDirection = sortKey === column.key && sortDir === 'asc' ? 'desc' : 'asc';
+		if (!controlledSort) {
+			localSortKey = column.key;
+			localSortDir = nextDirection;
 		}
-		sortDir = nextDirection;
 		if (server?.onSortChange) server.onSortChange(column.key, nextDirection);
 		else if (!server) localPage = 1;
 	}

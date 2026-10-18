@@ -42,6 +42,8 @@
 			page,
 			pageSize: 5,
 			total: matches.length,
+			sortKey,
+			sortDirection,
 			onPageChange: (next) => (page = next),
 			onSearchChange: (next) => {
 				search = next;

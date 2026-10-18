@@ -1,16 +1,21 @@
-<!-- Bell button with unread badge and a dropdown listing app notifications. -->
+<!-- Bell button with unread badge and a keyboard-accessible popover listing app notifications. -->
 <script lang="ts">
-	import * as DropdownMenu from '$lib/core/components/ui/dropdown-menu';
+	import * as Popover from '$lib/core/components/ui/popover';
+	import { Separator } from '$lib/core/components/ui/separator';
+	import { t } from '$lib/i18n';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Badge } from '$lib/core/components/ui/badge';
 	import { cn } from '$lib/core/utils';
-	import { notifications, type AppNotification } from '$lib/stores/notifications.svelte';
+	import { useNotificationsState, type AppNotification } from '$lib/stores/notifications.svelte';
 	import Bell from '@lucide/svelte/icons/bell';
 	import Info from '@lucide/svelte/icons/info';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import CheckCheck from '@lucide/svelte/icons/check-check';
 
+	const notifications = useNotificationsState();
+	const instanceId = $props.id();
+	let panel = $state<HTMLDivElement | null>(null);
 	const items = $derived(notifications.items);
 	const unread = $derived(notifications.unread);
 
@@ -31,13 +36,24 @@
 	}
 </script>
 
-<DropdownMenu.Root>
-	<DropdownMenu.Trigger>
+<Popover.Root>
+	<Popover.Trigger>
 		{#snippet child({ props })}
-			<Button {...props} variant="ghost" size="icon" class="relative" aria-label="Notifications">
-				<Bell />
+			<Button
+				{...props}
+				variant="ghost"
+				size="icon"
+				class="relative"
+				aria-label={t('notifications.title')}
+				aria-describedby={`${instanceId}-unread`}
+			>
+				<Bell aria-hidden="true" />
+				<span id={`${instanceId}-unread`} class="sr-only"
+					>{t('notifications.unreadCount', { count: unread })}</span
+				>
 				{#if unread > 0}
 					<Badge
+						aria-hidden="true"
 						class="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full p-0 px-1 text-[10px] font-semibold leading-none tabular-nums"
 					>
 						<span class="translate-y-px">{unread > 9 ? '9+' : unread}</span>
@@ -45,45 +61,66 @@
 				{/if}
 			</Button>
 		{/snippet}
-	</DropdownMenu.Trigger>
-	<DropdownMenu.Content align="end" class="w-80 p-0">
+	</Popover.Trigger>
+	<Popover.Content
+		bind:ref={panel}
+		onOpenAutoFocus={(event) => {
+			event.preventDefault();
+			(panel?.querySelector<HTMLButtonElement>('button') ?? panel)?.focus();
+		}}
+		align="end"
+		role="dialog"
+		aria-labelledby={`${instanceId}-title`}
+		class="w-80 max-w-[calc(100vw-2rem)] p-0"
+	>
 		<div class="flex items-center justify-between px-3 py-2">
-			<span class="text-sm font-semibold">Notifications</span>
-			{#if unread > 0}
+			<h2 id={`${instanceId}-title`} class="text-sm font-semibold">{t('notifications.title')}</h2>
+			{#if items.length > 0}
 				<button
 					type="button"
-					class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs transition-colors"
-					onclick={() => notifications.markAllRead()}
+					class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-sm text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-disabled:opacity-50"
+					aria-disabled={unread === 0}
+					onclick={() => {
+						if (unread > 0) notifications.markAllRead();
+					}}
 				>
-					<CheckCheck class="size-3.5" />
-					Mark all read
+					<CheckCheck class="size-3.5" aria-hidden="true" />
+					{t('notifications.markAllRead')}
 				</button>
 			{/if}
 		</div>
-		<DropdownMenu.Separator class="my-0" />
+		<Separator />
 		{#if items.length === 0}
-			<div class="text-muted-foreground px-3 py-8 text-center text-sm">You're all caught up</div>
+			<div class="text-muted-foreground px-3 py-8 text-center text-sm">
+				{t('notifications.empty')}
+			</div>
 		{:else}
-			<div class="max-h-80 overflow-y-auto">
+			<ul class="max-h-80 overflow-y-auto">
 				{#each items as n (n.id)}
 					{@const Icon = iconFor(n)}
-					<button
-						type="button"
-						class="hover:bg-accent flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors"
-						onclick={() => notifications.markRead(n.id)}
-					>
-						<Icon class={cn('mt-0.5 size-4 shrink-0', typeColor[n.type])} />
-						<div class="grid flex-1 gap-0.5">
-							<span class="text-sm leading-tight font-medium">{n.title}</span>
-							<span class="text-muted-foreground line-clamp-2 text-xs">{n.body}</span>
-							<span class="text-muted-foreground text-[11px]">{n.time}</span>
-						</div>
-						{#if !n.read}
-							<span class="bg-primary mt-1.5 size-2 shrink-0 rounded-full"></span>
-						{/if}
-					</button>
+					<li>
+						<button
+							type="button"
+							class="hover:bg-accent flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+							onclick={() => notifications.markRead(n.id)}
+						>
+							<Icon class={cn('mt-0.5 size-4 shrink-0', typeColor[n.type])} aria-hidden="true" />
+							<div class="grid flex-1 gap-0.5">
+								<span class="text-sm leading-tight font-medium">{n.title}</span>
+								<span class="text-muted-foreground line-clamp-2 text-xs">{n.body}</span>
+								<span class="text-muted-foreground text-[11px]">{n.time}</span>
+							</div>
+							{#if !n.read}
+								<span class="bg-primary mt-1.5 size-2 shrink-0 rounded-full" aria-hidden="true"
+								></span>
+							{/if}
+							<span class="sr-only"
+								>{t(n.read ? 'notifications.read' : 'notifications.unread')}</span
+							>
+						</button>
+					</li>
 				{/each}
-			</div>
+			</ul>
 		{/if}
-	</DropdownMenu.Content>
-</DropdownMenu.Root>
+	</Popover.Content>
+</Popover.Root>

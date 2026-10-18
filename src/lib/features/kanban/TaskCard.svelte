@@ -30,6 +30,7 @@
 	}
 	let { id, task, column, columns, index, dragging, onDragStart, onDragEnd, onMove }: Props =
 		$props();
+	let menu = $state<HTMLDivElement | null>(null);
 	const priorityIcons = { low: SignalLow, medium: SignalMedium, high: SignalHigh };
 	const PriorityIcon = $derived(priorityIcons[task.priority]);
 
@@ -80,7 +81,14 @@
 						</Button>
 					{/snippet}
 				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end">
+				<DropdownMenu.Content
+					bind:ref={menu}
+					align="end"
+					onOpenAutoFocus={(event) => {
+						event.preventDefault();
+						menu?.querySelector<HTMLElement>('[role="menuitem"]:not([data-disabled])')?.focus();
+					}}
+				>
 					<DropdownMenu.Group>
 						<DropdownMenu.Label>{t('kanban.moveTo')}</DropdownMenu.Label>
 						{#each columns.filter((target) => target.id !== column.id) as target (target.id)}

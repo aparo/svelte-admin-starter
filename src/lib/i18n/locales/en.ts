@@ -117,6 +117,14 @@ export default {
 		confirmTitle: 'Confirm download?',
 		confirmDesc: 'The file will open or download in a new window.'
 	},
+	notifications: {
+		title: 'Notifications',
+		unreadCount: '{count} unread notifications',
+		markAllRead: 'Mark all read',
+		empty: "You're all caught up",
+		read: 'Read',
+		unread: 'Unread'
+	},
 	calendar: {
 		keyboardHelp:
 			'Use arrow keys to move by day or week, Home and End for the week edges, Page Up and Page Down for months, and Enter or Space to select.',

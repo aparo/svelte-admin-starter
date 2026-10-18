@@ -118,6 +118,14 @@ export default {
 		confirmTitle: '确认下载文件？',
 		confirmDesc: '文件将会在新窗口中打开或下载。'
 	},
+	notifications: {
+		title: '通知',
+		unreadCount: '{count} 条未读通知',
+		markAllRead: '全部标为已读',
+		empty: '暂无通知',
+		read: '已读',
+		unread: '未读'
+	},
 	calendar: {
 		keyboardHelp:
 			'使用方向键按天或周移动，Home 和 End 跳到周首或周末，Page Up 和 Page Down 切换月份，按 Enter 或空格选择日期。',

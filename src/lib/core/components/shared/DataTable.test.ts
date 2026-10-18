@@ -150,3 +150,51 @@ describe('DataTable', () => {
 		).toContain('aria-label="Remove query"');
 	});
 });
+
+describe('controlled server sorting', () => {
+	it.each([
+		['asc', 'ascending'],
+		['desc', 'descending']
+	] as const)(
+		'renders %s from the server without reordering server-provided rows',
+		(direction, ariaSort) => {
+			const body = render(NameTable, {
+				props: {
+					data: [
+						{ id: 1, name: 'Zulu' },
+						{ id: 2, name: 'Alpha' }
+					],
+					columns,
+					server: {
+						page: 1,
+						pageSize: 10,
+						total: 2,
+						sortKey: 'name',
+						sortDirection: direction,
+						onPageChange: () => {}
+					}
+				}
+			}).body;
+			expect(body).toContain(`aria-sort="${ariaSort}"`);
+			expect(body.indexOf('Zulu')).toBeLessThan(body.indexOf('Alpha'));
+		}
+	);
+	it('accepts an explicit cleared sort', () => {
+		const body = render(NameTable, {
+			props: {
+				data: [],
+				columns,
+				server: {
+					page: 1,
+					pageSize: 10,
+					total: 0,
+					sortKey: null,
+					sortDirection: 'desc',
+					onPageChange: () => {}
+				}
+			}
+		}).body;
+		expect(body).toContain('aria-sort="none"');
+		expect(body).not.toContain('aria-sort="descending"');
+	});
+});
