@@ -29,10 +29,13 @@
 		/** Announces a required field. Parent forms must validate the bound value. */
 		required?: boolean;
 		clearable?: boolean;
+		/** Commit calendar selections immediately instead of requiring Apply. */
+		commitOnSelect?: boolean;
 		class?: string;
 		onValueChange?: (value: string) => void;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -47,10 +50,12 @@
 		disabled = false,
 		required = false,
 		clearable = true,
+		commitOnSelect = false,
 		class: className,
 		onValueChange,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 
 	let draftValue = $state<DateValue | undefined>();
@@ -82,6 +87,7 @@
 			{required}
 			aria-label={ariaLabel}
 			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
 		/>
 
 		<Popover.Content class="w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden p-0" align="start">
@@ -103,6 +109,9 @@
 				locale={resolvedLocale}
 				captionLayout="dropdown"
 				class="mx-auto w-fit"
+				onValueChange={(nextValue) => {
+					if (commitOnSelect) commit(dateValueToString(nextValue));
+				}}
 			/>
 			<div class="flex items-center justify-between gap-2 border-t p-3">
 				{#if clearable}
@@ -117,13 +126,15 @@
 					<Button variant="ghost" size="sm" onclick={() => (open = false)}>
 						{t('common.cancel')}
 					</Button>
-					<Button
-						size="sm"
-						disabled={!canApply}
-						onclick={() => commit(dateValueToString(draftValue))}
-					>
-						{t('dateTimePicker.apply')}
-					</Button>
+					{#if !commitOnSelect}
+						<Button
+							size="sm"
+							disabled={!canApply}
+							onclick={() => commit(dateValueToString(draftValue))}
+						>
+							{t('dateTimePicker.apply')}
+						</Button>
+					{/if}
 				</div>
 			</div>
 		</Popover.Content>

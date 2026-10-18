@@ -347,6 +347,12 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ---
 
+### PreferenceRow
+
+`src/lib/core/components/shared/PreferenceRow.svelte` 组合偏好名称、可选说明与开关。接收 `label`、`description`、可绑定的 `checked`、`disabled`、`onCheckedChange` 和 `class`，自动生成每个实例独立的 ID 并关联标签与说明。通知设置使用此组件；翻译和保存逻辑留在调用页面。
+
+---
+
 ### DatePicker / TimePicker / DateTimePicker
 
 日期时间表单组件组合现有的 `Popover`、`Calendar`、`Input` 和 `Button` 原语，并自动跟随主题与中英文 locale。单值组件使用可直接提交和序列化的本地时间字符串，不在组件内部做时区转换：
@@ -360,7 +366,7 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 共同 props 包括可双向绑定的 `value` 与 `open`，以及 `id`、`name`、`placeholder`、`locale`、`disabled`、`required`、`clearable`、`class`、`onValueChange` 和 aria 属性。`DatePicker` / `DateTimePicker` 另支持 `minValue`、`maxValue`；`TimePicker` / `DateTimePicker` 支持 `hour12`。
 
-四种选择器共用内部 `PickerTrigger.svelte`，集中维护触发按钮、图标、占位符与无障碍属性。各自保留弹层内容和提交语义：日期、时间与日期时间通过 Apply 提交草稿，日期范围即时更新；Cancel / Close 不应被统一为同一种状态操作。
+四种选择器共用内部 `PickerTrigger.svelte`，集中维护触发按钮、图标、占位符与无障碍属性，包括 `aria-describedby`，可直接接收 `FormField` 的 control 属性。各自保留弹层内容和提交语义：日期、时间与日期时间默认通过 Apply 提交草稿，日期范围即时更新；`DatePicker` 可设置 `commitOnSelect` 以选中即提交并关闭，Forms 页面使用此模式。Cancel / Close 不应被统一为同一种状态操作。
 
 `DatePicker` / `DateTimePicker` 的确认操作会检查包含边界当天的日期范围；`DateTimePicker` 的 min/max 只限制日期，边界中的时间部分不限制当天的时刻。合法可选秒会规范为分钟精度。`required` 用 `aria-required` 向辅助技术声明必填；隐藏提交字段不参与浏览器 required 校验，父表单必须校验绑定值（范围组件也需校验起止日期）。外部传入的值不会被静默改写为边界值。
 

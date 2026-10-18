@@ -7,6 +7,8 @@
 		disabled?: boolean;
 		onCheckedChange?: (checked: boolean) => void;
 		'aria-label'?: string;
+		'aria-labelledby'?: string;
+		'aria-describedby'?: string;
 		class?: string;
 	}
 
@@ -16,6 +18,8 @@
 		disabled = false,
 		onCheckedChange,
 		'aria-label': ariaLabel = 'Toggle switch',
+		'aria-labelledby': ariaLabelledby,
+		'aria-describedby': ariaDescribedby,
 		class: className
 	}: Props = $props();
 
@@ -40,6 +44,8 @@
 	{id}
 	aria-checked={checked}
 	aria-label={ariaLabel}
+	aria-labelledby={ariaLabelledby}
+	aria-describedby={ariaDescribedby}
 	{disabled}
 	class={cn(
 		'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors',

@@ -28,6 +28,7 @@
 		onValueChange?: (value: string) => void;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -44,7 +45,8 @@
 		class: className,
 		onValueChange,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 
 	let draftHour = $state(12);
@@ -181,6 +183,7 @@
 			{required}
 			aria-label={ariaLabel}
 			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
 		/>
 
 		<Popover.Content class="w-80 p-0" align="start">

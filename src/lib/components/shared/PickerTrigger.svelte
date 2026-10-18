@@ -14,6 +14,7 @@
 		required?: boolean;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -24,7 +25,8 @@
 		disabled = false,
 		required = false,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 </script>
 
@@ -42,6 +44,7 @@
 			aria-label={ariaLabel ?? placeholder}
 			aria-required={required}
 			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
 		>
 			<Icon class="size-4" aria-hidden="true" />
 			<span class="min-w-0 flex-1 truncate">{displayValue || placeholder}</span>

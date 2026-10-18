@@ -9,5 +9,6 @@ export { default as Spinner } from './Spinner.svelte';
 export { default as SearchInput } from './SearchInput.svelte';
 export { default as PasswordInput } from './PasswordInput.svelte';
 export { default as FormField, type FormFieldControlProps } from './FormField.svelte';
+export { default as PreferenceRow } from './PreferenceRow.svelte';
 
 export type { Column, DataTableText, DataTableTextKey, ServerTableState } from './DataTable.svelte';

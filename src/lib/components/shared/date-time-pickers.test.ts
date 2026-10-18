@@ -24,7 +24,8 @@ describe.each(pickers)('$name trigger', ({ component, placeholder }) => {
 				open: true,
 				required: true,
 				'aria-label': 'Choose appointment',
-				'aria-invalid': true
+				'aria-invalid': true,
+				'aria-describedby': 'appointment-help appointment-error'
 			}
 		}).body;
 		const trigger = body.match(/<button\b[^>]*>/)?.[0];
@@ -33,6 +34,7 @@ describe.each(pickers)('$name trigger', ({ component, placeholder }) => {
 		expect(trigger).toContain('aria-label="Choose appointment"');
 		expect(trigger).toContain('aria-required="true"');
 		expect(trigger).toContain('aria-invalid="true"');
+		expect(trigger).toContain('aria-describedby="appointment-help appointment-error"');
 		expect(trigger).toContain('aria-haspopup="dialog"');
 		expect(trigger).toContain('aria-expanded="true"');
 	});
@@ -45,6 +47,7 @@ describe.each(pickers)('$name trigger', ({ component, placeholder }) => {
 		expect(body).toContain(`>${placeholder}</span>`);
 		expect(body).toContain('aria-expanded="false"');
 		expect(body).not.toContain('type="hidden"');
+		expect(body.match(/<button\b[^>]*>/)?.[0]).not.toContain('aria-describedby');
 	});
 
 	it('preserves custom placeholder and disabled form controls', () => {

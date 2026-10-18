@@ -34,6 +34,7 @@
 		onValueChange?: (value: DateRange | undefined) => void;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -52,7 +53,8 @@
 		class: className,
 		onValueChange,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 
 	const resolvedLocale = $derived(locale ?? i18n.locale);
@@ -90,6 +92,7 @@
 			{required}
 			aria-label={ariaLabel}
 			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
 		/>
 
 		<Popover.Content class="w-auto max-w-[calc(100vw-2rem)] overflow-hidden p-0" align="start">

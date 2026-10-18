@@ -1,6 +1,17 @@
+import kanban from '../../features/kanban/locales/en';
+import cart from '../../features/cart/locales/en';
+import profile from '../../features/profile/locales/en';
+import projectForm from '../../features/project-form/locales/en';
+import { settingsForm, notificationSettings } from '../../features/settings/locales/en';
 // English dictionary. Keys define the typed app translation API.
 
 export default {
+	kanban,
+	cart,
+	profile,
+	projectForm,
+	settingsForm,
+	notificationSettings,
 	inbox: {
 		title: 'Inbox',
 		description: 'Read, triage and reply to your messages — all in one place.',
@@ -107,6 +118,19 @@ export default {
 		confirmDesc: 'The file will open or download in a new window.'
 	},
 	calendar: {
+		title: 'Calendar',
+		description: 'Plan your month and keep track of upcoming events.',
+		jumpToMonth: 'Jump to month',
+		previousMonth: 'Previous month',
+		nextMonth: 'Next month',
+		today: 'Today',
+		newEvent: 'New event',
+		monthEvents: '{count} events this month',
+		more: '+{count} more',
+		upcoming: 'Upcoming',
+		nextEvents: 'Your next {count} events',
+		noUpcoming: 'No upcoming events.',
+		viewAll: 'View all events',
 		categoryMeeting: 'Meeting',
 		categoryReview: 'Review',
 		categoryDeadline: 'Deadline',

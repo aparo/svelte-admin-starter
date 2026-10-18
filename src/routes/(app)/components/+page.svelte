@@ -5,6 +5,7 @@
   talks to a backend.
 -->
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Alert from '$lib/core/components/ui/alert';
 	import * as Select from '$lib/core/components/ui/select';
@@ -569,7 +570,7 @@
 						</Breadcrumb.Item>
 						<Breadcrumb.Separator />
 						<Breadcrumb.Item>
-							<Breadcrumb.Link href="/components">Components</Breadcrumb.Link>
+							<Breadcrumb.Link href={resolve('/components')}>Components</Breadcrumb.Link>
 						</Breadcrumb.Item>
 						<Breadcrumb.Separator />
 						<Breadcrumb.Item>

@@ -1,7 +1,18 @@
+import kanban from '../../features/kanban/locales/zh-CN';
+import cart from '../../features/cart/locales/zh-CN';
+import profile from '../../features/profile/locales/zh-CN';
+import projectForm from '../../features/project-form/locales/zh-CN';
+import { settingsForm, notificationSettings } from '../../features/settings/locales/zh-CN';
 // Simplified Chinese dictionary. Must match the English keys.
 import type { Dictionary } from '../types';
 
 export default {
+	kanban,
+	cart,
+	profile,
+	projectForm,
+	settingsForm,
+	notificationSettings,
 	inbox: {
 		title: '收件箱',
 		description: '集中阅读、整理和回复邮件。',
@@ -108,6 +119,19 @@ export default {
 		confirmDesc: '文件将会在新窗口中打开或下载。'
 	},
 	calendar: {
+		title: '日历',
+		description: '安排月度计划，关注即将到来的活动。',
+		jumpToMonth: '跳转到月份',
+		previousMonth: '上个月',
+		nextMonth: '下个月',
+		today: '今天',
+		newEvent: '新建活动',
+		monthEvents: '本月 {count} 个活动',
+		more: '另有 {count} 个',
+		upcoming: '即将到来',
+		nextEvents: '接下来的 {count} 个活动',
+		noUpcoming: '暂无即将到来的活动。',
+		viewAll: '查看全部活动',
 		categoryMeeting: '会议',
 		categoryReview: '评审 / 审核',
 		categoryDeadline: '截止日',
