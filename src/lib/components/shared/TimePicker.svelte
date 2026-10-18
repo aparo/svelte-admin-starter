@@ -1,6 +1,7 @@
 <!-- TimePicker — a clock-face time selector with 12/24-hour support. -->
 <script lang="ts">
 	import * as Popover from '$lib/core/components/ui/popover';
+	import PickerTrigger from './PickerTrigger.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import { cn } from '$lib/core/utils';
 	import { i18n, t } from '$lib/i18n';
@@ -171,26 +172,16 @@
 
 <div class={cn('w-full', className)} data-slot="time-picker">
 	<Popover.Root bind:open>
-		<Popover.Trigger {disabled}>
-			{#snippet child({ props })}
-				<Button
-					{...props}
-					{id}
-					variant="outline"
-					class={cn(
-						'w-full justify-start text-left font-normal',
-						!value && 'text-muted-foreground'
-					)}
-					{disabled}
-					aria-label={ariaLabel ?? resolvedPlaceholder}
-					aria-required={required}
-					aria-invalid={ariaInvalid}
-				>
-					<ClockIcon class="size-4" aria-hidden="true" />
-					<span class="min-w-0 flex-1 truncate">{displayValue || resolvedPlaceholder}</span>
-				</Button>
-			{/snippet}
-		</Popover.Trigger>
+		<PickerTrigger
+			{id}
+			icon={ClockIcon}
+			{displayValue}
+			placeholder={resolvedPlaceholder}
+			{disabled}
+			{required}
+			aria-label={ariaLabel}
+			aria-invalid={ariaInvalid}
+		/>
 
 		<Popover.Content class="w-80 p-0" align="start">
 			<div class="p-4 pb-3">

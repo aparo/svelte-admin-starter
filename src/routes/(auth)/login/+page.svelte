@@ -10,7 +10,7 @@
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
 	import PasswordInput from '$lib/core/components/shared/PasswordInput.svelte';
 	import Spinner from '$lib/core/components/shared/Spinner.svelte';
 	import { auth } from '$lib/auth';
@@ -19,7 +19,6 @@
 	import { t } from '$lib/i18n';
 	import { pageTitle } from '$lib/utils/page-title';
 
-	const formId = $props.id();
 	let email = $state(config.auth.demo.email);
 	let password = $state(config.auth.demo.password);
 
@@ -91,46 +90,38 @@
 		</button>
 
 		<form class="space-y-4" onsubmit={handleSubmit} aria-busy={auth.loading} novalidate>
-			<div class="space-y-2">
-				<Label for={`${formId}-email`}>{t('auth.email')}</Label>
-				<Input
-					id={`${formId}-email`}
-					type="email"
-					autocomplete="email"
-					placeholder="you@example.com"
-					bind:value={email}
-					aria-invalid={errors.email ? 'true' : undefined}
-					aria-describedby={errors.email ? `${formId}-email-error` : undefined}
-				/>
-				{#if errors.email}
-					<p id={`${formId}-email-error`} class="text-xs text-destructive">{errors.email}</p>
-				{/if}
-			</div>
+			<FormField label={t('auth.email')} error={errors.email}>
+				{#snippet children(control)}
+					<Input
+						{...control}
+						type="email"
+						autocomplete="email"
+						placeholder="you@example.com"
+						bind:value={email}
+					/>
+				{/snippet}
+			</FormField>
 
-			<div class="space-y-2">
-				<div class="flex items-center justify-between">
-					<Label for={`${formId}-password`}>{t('auth.password')}</Label>
+			<FormField label={t('auth.password')} error={errors.password}>
+				{#snippet labelAction()}
 					<a
 						href={resolve('/forgot-password')}
 						class="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
 					>
 						{t('auth.forgotPassword')}
 					</a>
-				</div>
-				<PasswordInput
-					id={`${formId}-password`}
-					autocomplete="current-password"
-					placeholder="••••••••"
-					bind:value={password}
-					showLabel={t('auth.showPassword')}
-					hideLabel={t('auth.hidePassword')}
-					aria-invalid={errors.password ? 'true' : undefined}
-					aria-describedby={errors.password ? `${formId}-password-error` : undefined}
-				/>
-				{#if errors.password}
-					<p id={`${formId}-password-error`} class="text-xs text-destructive">{errors.password}</p>
-				{/if}
-			</div>
+				{/snippet}
+				{#snippet children(control)}
+					<PasswordInput
+						{...control}
+						autocomplete="current-password"
+						placeholder="••••••••"
+						bind:value={password}
+						showLabel={t('auth.showPassword')}
+						hideLabel={t('auth.hidePassword')}
+					/>
+				{/snippet}
+			</FormField>
 
 			{#if formError}
 				<p role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">

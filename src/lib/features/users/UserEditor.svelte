@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
-	import { z } from 'zod';
+	import type { z } from 'zod';
 	import * as Sheet from '$lib/core/components/ui/sheet';
 	import * as Select from '$lib/core/components/ui/select';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
 	import { fieldError } from '$lib/core/utils/validators';
 	import type { DemoUser } from '$lib/data/users';
 	import { t } from '$lib/i18n';
 	import { USER_ROLES, USER_STATUSES, roleLabel, statusLabel } from './presentation';
+	import { createUserSchema } from './schema';
 	import type { UserDraft } from './state.svelte';
 
 	interface Props {
@@ -21,7 +22,6 @@
 	}
 
 	let { open = $bindable(true), user, editing = false, onSave }: Props = $props();
-	const fieldId = $props.id();
 	const initial = untrack(() => user);
 	let form = $state<{ name: string; email: string; role: string; status: string }>({
 		name: initial?.name ?? '',
@@ -34,17 +34,7 @@
 
 	function save() {
 		if (missing) return;
-		const schema = z.object({
-			name: z.string().trim().min(1, t('validation.nameRequired')),
-			email: z
-				.string()
-				.trim()
-				.min(1, t('validation.emailRequired'))
-				.email(t('validation.emailInvalid')),
-			role: z.enum(['admin', 'editor', 'viewer'], { error: t('validation.roleInvalid') }),
-			status: z.enum(['active', 'invited', 'suspended'], { error: t('validation.statusInvalid') })
-		});
-		const result = schema.safeParse(form);
+		const result = createUserSchema(t).safeParse(form);
 		if (!result.success) {
 			errors = result.error;
 			return;
@@ -81,93 +71,60 @@
 				{#if missing}<p role="status" class="text-sm text-destructive">
 						{t('users.removedWhileEditing')}
 					</p>{/if}
-				<div class="space-y-2">
-					<Label for={`${fieldId}-name`}>{t('common.name')}</Label>
-					<Input
-						id={`${fieldId}-name`}
-						bind:value={form.name}
-						placeholder={t('users.namePlaceholder')}
-						autocomplete="off"
-						aria-invalid={Boolean(fieldError(errors, 'name'))}
-						aria-describedby={fieldError(errors, 'name') ? `${fieldId}-name-error` : undefined}
-					/>
-					{#if fieldError(errors, 'name')}<p
-							id={`${fieldId}-name-error`}
-							class="text-xs text-destructive"
-						>
-							{fieldError(errors, 'name')}
-						</p>{/if}
-				</div>
-				<div class="space-y-2">
-					<Label for={`${fieldId}-email`}>{t('auth.email')}</Label>
-					<Input
-						id={`${fieldId}-email`}
-						type="email"
-						bind:value={form.email}
-						placeholder={t('users.emailPlaceholder')}
-						autocomplete="off"
-						aria-invalid={Boolean(fieldError(errors, 'email'))}
-						aria-describedby={fieldError(errors, 'email') ? `${fieldId}-email-error` : undefined}
-					/>
-					{#if fieldError(errors, 'email')}<p
-							id={`${fieldId}-email-error`}
-							class="text-xs text-destructive"
-						>
-							{fieldError(errors, 'email')}
-						</p>{/if}
-				</div>
+				<FormField label={t('common.name')} error={fieldError(errors, 'name')}>
+					{#snippet children(control)}
+						<Input
+							{...control}
+							bind:value={form.name}
+							placeholder={t('users.namePlaceholder')}
+							autocomplete="off"
+						/>
+					{/snippet}
+				</FormField>
+				<FormField label={t('auth.email')} error={fieldError(errors, 'email')}>
+					{#snippet children(control)}
+						<Input
+							{...control}
+							type="email"
+							bind:value={form.email}
+							placeholder={t('users.emailPlaceholder')}
+							autocomplete="off"
+						/>
+					{/snippet}
+				</FormField>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<div class="space-y-2">
-						<Label for={`${fieldId}-role`}>{t('users.role')}</Label>
-						<Select.Root type="single" bind:value={form.role}>
-							<Select.Trigger
-								id={`${fieldId}-role`}
-								class="w-full"
-								aria-invalid={Boolean(fieldError(errors, 'role'))}
-								aria-describedby={fieldError(errors, 'role') ? `${fieldId}-role-error` : undefined}
-								>{roleLabel(form.role as DemoUser['role'])}</Select.Trigger
-							>
-							<Select.Content>
-								{#each Object.entries(USER_ROLES) as [value, presentation] (value)}
-									<Select.Item {value} label={t(presentation.label)}
-										>{t(presentation.label)}</Select.Item
-									>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-						{#if fieldError(errors, 'role')}<p
-								id={`${fieldId}-role-error`}
-								class="text-xs text-destructive"
-							>
-								{fieldError(errors, 'role')}
-							</p>{/if}
-					</div>
-					<div class="space-y-2">
-						<Label for={`${fieldId}-status`}>{t('users.status')}</Label>
-						<Select.Root type="single" bind:value={form.status}>
-							<Select.Trigger
-								id={`${fieldId}-status`}
-								class="w-full"
-								aria-invalid={Boolean(fieldError(errors, 'status'))}
-								aria-describedby={fieldError(errors, 'status')
-									? `${fieldId}-status-error`
-									: undefined}>{statusLabel(form.status as DemoUser['status'])}</Select.Trigger
-							>
-							<Select.Content>
-								{#each Object.entries(USER_STATUSES) as [value, presentation] (value)}
-									<Select.Item {value} label={t(presentation.label)}
-										>{t(presentation.label)}</Select.Item
-									>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-						{#if fieldError(errors, 'status')}<p
-								id={`${fieldId}-status-error`}
-								class="text-xs text-destructive"
-							>
-								{fieldError(errors, 'status')}
-							</p>{/if}
-					</div>
+					<FormField label={t('users.role')} error={fieldError(errors, 'role')}>
+						{#snippet children(control)}
+							<Select.Root type="single" bind:value={form.role}>
+								<Select.Trigger {...control} class="w-full"
+									>{roleLabel(form.role as DemoUser['role'])}</Select.Trigger
+								>
+								<Select.Content>
+									{#each Object.entries(USER_ROLES) as [value, presentation] (value)}
+										<Select.Item {value} label={t(presentation.label)}
+											>{t(presentation.label)}</Select.Item
+										>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						{/snippet}
+					</FormField>
+					<FormField label={t('users.status')} error={fieldError(errors, 'status')}>
+						{#snippet children(control)}
+							<Select.Root type="single" bind:value={form.status}>
+								<Select.Trigger {...control} class="w-full"
+									>{statusLabel(form.status as DemoUser['status'])}</Select.Trigger
+								>
+								<Select.Content>
+									{#each Object.entries(USER_STATUSES) as [value, presentation] (value)}
+										<Select.Item {value} label={t(presentation.label)}
+											>{t(presentation.label)}</Select.Item
+										>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						{/snippet}
+					</FormField>
 				</div>
 			</div>
 			<Sheet.Footer class="flex-row justify-end border-t">

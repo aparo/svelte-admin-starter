@@ -9,13 +9,12 @@
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
 	import Spinner from '$lib/core/components/shared/Spinner.svelte';
 	import { emailSchema } from '$lib/core/utils/validators';
 	import { t } from '$lib/i18n';
 	import { pageTitle } from '$lib/utils/page-title';
 
-	const formId = $props.id();
 	let email = $state('');
 	let submitting = $state(false);
 	let submitted = $state(false);
@@ -72,21 +71,17 @@
 
 		<Card.Content>
 			<form class="space-y-4" onsubmit={handleSubmit} aria-busy={submitting} novalidate>
-				<div class="space-y-2">
-					<Label for={`${formId}-email`}>{t('auth.email')}</Label>
-					<Input
-						id={`${formId}-email`}
-						type="email"
-						autocomplete="email"
-						placeholder="you@example.com"
-						bind:value={email}
-						aria-invalid={error ? 'true' : undefined}
-						aria-describedby={error ? `${formId}-email-error` : undefined}
-					/>
-					{#if error}
-						<p id={`${formId}-email-error`} class="text-xs text-destructive">{error}</p>
-					{/if}
-				</div>
+				<FormField label={t('auth.email')} {error}>
+					{#snippet children(control)}
+						<Input
+							{...control}
+							type="email"
+							autocomplete="email"
+							placeholder="you@example.com"
+							bind:value={email}
+						/>
+					{/snippet}
+				</FormField>
 
 				<Button type="submit" class="w-full" disabled={submitting}>
 					{#if submitting}

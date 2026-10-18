@@ -157,7 +157,12 @@ src/
     │   └── utils.ts         # cn() 与 shadcn 类型工具
     ├── components/shared/   # i18n/date-time/command/confirm 等应用集成；保留兼容 barrel
     ├── shell/               # AppShell / AppSidebar / AppHeader / nav 与 SvelteKit 适配
-    ├── features/users/      # 每个 app layout 独立的演示用户状态与共享展示规则
+    ├── features/            # 领域组件、状态与规则
+    │   ├── users/           # app layout 共享用户状态、编辑器与本地化校验
+    │   ├── orders/          # 订单抽屉、时间线、金额来源与 CSV 投影
+    │   ├── inbox/           # 每个页面实例独立的邮件状态、列表与阅读视图
+    │   ├── sales/           # 发票行编辑器、类型与金额预览
+    │   └── clients/         # 快速创建客户
     ├── config/              # 品牌、默认主题、首页、mock auth 配置
     ├── auth/                # mock auth store / provider / types
     ├── i18n/                # typed t()、translate 桥接与 en / zh-CN 字典
@@ -175,6 +180,7 @@ templates/
 - **`lib/core/components/ui/`**：shadcn-svelte 原语，**以源码形式 vendored**（不是 npm 包）。可用 `npx shadcn-svelte@latest add <name>` 增量添加，或直接编辑。
 - **`lib/core/components/shared/`**：portable 组合组件；**`lib/components/shared/`** 放应用专用集成。运行时代码优先直接导入所需组件文件，兼容 barrel 保留给现有消费者。
 - **`lib/shell/`**：应用外壳与导航模型。新增导航项改 `nav.ts` 即可（见第 7 节）。
+- **`lib/features/`**：按业务领域组织组件和规则。路由负责组合与交互入口；状态按实际共享范围创建，禁止直接修改模块级 mock 种子。Users 在 app layout 内共享，Inbox 与 Orders 的演示交互在各页面实例内隔离。订单列表、详情和 CSV 使用记录中的同一总额，不在详情中另行添加种子未提供的税费。
 - **`lib/core/hooks/` `lib/core/stores/` `lib/core/utils/`**：portable hooks、持久化容器与纯工具；auth、i18n、mock data 与 app shell 依赖留在 core 之外。
 
 > 别名（`$lib`/`$app`）由 SvelteKit 在 `svelte-kit sync` 时生成到 `.svelte-kit/tsconfig.json`；`tsconfig.json` 仅 `extends` 它。如需自定义别名，请在 `svelte.config.js` 的 `kit.alias` 中扩展（见文件内注释），不要手改生成文件。

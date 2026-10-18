@@ -1,6 +1,30 @@
 // English dictionary. Keys define the typed app translation API.
 
 export default {
+	inbox: {
+		title: 'Inbox',
+		description: 'Read, triage and reply to your messages — all in one place.',
+		compose: 'Compose',
+		allMail: 'All mail',
+		unreadCount: '{count} unread',
+		all: 'All',
+		unread: 'Unread',
+		noMessages: 'No messages',
+		noMatches: 'Nothing matches your search or filter right now.',
+		star: 'Star message',
+		unstar: 'Unstar message',
+		reply: 'Reply',
+		forward: 'Forward',
+		archive: 'Archive',
+		delete: 'Delete',
+		send: 'Send',
+		attachments: '{count} attachments',
+		replyTo: 'Reply to {name}...',
+		draftHint: 'Reply draft for this message',
+		selectMessage: 'Select a message',
+		selectDescription: 'Choose a conversation from the list to read it here.',
+		labels: { work: 'Work', personal: 'Personal', updates: 'Updates' }
+	},
 	common: {
 		search: 'Search',
 		save: 'Save',
@@ -284,6 +308,41 @@ export default {
 		compactMode: 'Compact mode',
 		compactDescription: 'Demo preference only; spacing is unchanged.',
 		densitySaved: 'Density preference saved'
+	},
+	orders: {
+		title: 'Sales Orders',
+		description: 'Track and manage customer orders.',
+		export: 'Export',
+		exported: 'Exported {count} orders to CSV',
+		totalOrders: 'Total orders',
+		revenue: 'Revenue',
+		vsLastMonth: 'vs last month',
+		order: 'Order',
+		customer: 'Customer',
+		date: 'Date',
+		items: 'Items',
+		status: 'Status',
+		emptyTitle: 'No orders',
+		emptyDescription: 'Orders from your store will appear here.',
+		view: 'View',
+		viewNamed: 'View {number}',
+		placedBy: 'Placed by {customer} on {date}.',
+		orderDate: 'Order date',
+		itemsTotal: '{count} total',
+		summary: 'Summary',
+		statusTimeline: 'Status timeline',
+		orderPlaced: 'Order placed',
+		cancelled: 'This order was cancelled.',
+		close: 'Close',
+		markShipped: 'Mark as shipped',
+		shipped: '{number} marked as shipped',
+		statuses: {
+			pending: 'Pending',
+			processing: 'Processing',
+			shipped: 'Shipped',
+			delivered: 'Delivered',
+			cancelled: 'Cancelled'
+		}
 	},
 	users: {
 		title: 'Users',

@@ -9,7 +9,7 @@
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
 	import PasswordInput from '$lib/core/components/shared/PasswordInput.svelte';
 	import Spinner from '$lib/core/components/shared/Spinner.svelte';
 	import { auth } from '$lib/auth';
@@ -18,7 +18,6 @@
 	import { t } from '$lib/i18n';
 	import { pageTitle } from '$lib/utils/page-title';
 
-	const formId = $props.id();
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
@@ -77,71 +76,55 @@
 
 	<Card.Content>
 		<form class="space-y-4" onsubmit={handleSubmit} aria-busy={auth.loading} novalidate>
-			<div class="space-y-2">
-				<Label for={`${formId}-name`}>{t('auth.fullName')}</Label>
-				<Input
-					id={`${formId}-name`}
-					type="text"
-					autocomplete="name"
-					placeholder={t('auth.namePlaceholder')}
-					bind:value={name}
-					aria-invalid={errors.name ? 'true' : undefined}
-					aria-describedby={errors.name ? `${formId}-name-error` : undefined}
-				/>
-				{#if errors.name}
-					<p id={`${formId}-name-error`} class="text-xs text-destructive">{errors.name}</p>
-				{/if}
-			</div>
+			<FormField label={t('auth.fullName')} error={errors.name}>
+				{#snippet children(control)}
+					<Input
+						{...control}
+						type="text"
+						autocomplete="name"
+						placeholder={t('auth.namePlaceholder')}
+						bind:value={name}
+					/>
+				{/snippet}
+			</FormField>
 
-			<div class="space-y-2">
-				<Label for={`${formId}-email`}>{t('auth.email')}</Label>
-				<Input
-					id={`${formId}-email`}
-					type="email"
-					autocomplete="email"
-					placeholder="you@example.com"
-					bind:value={email}
-					aria-invalid={errors.email ? 'true' : undefined}
-					aria-describedby={errors.email ? `${formId}-email-error` : undefined}
-				/>
-				{#if errors.email}
-					<p id={`${formId}-email-error`} class="text-xs text-destructive">{errors.email}</p>
-				{/if}
-			</div>
+			<FormField label={t('auth.email')} error={errors.email}>
+				{#snippet children(control)}
+					<Input
+						{...control}
+						type="email"
+						autocomplete="email"
+						placeholder="you@example.com"
+						bind:value={email}
+					/>
+				{/snippet}
+			</FormField>
 
-			<div class="space-y-2">
-				<Label for={`${formId}-password`}>{t('auth.password')}</Label>
-				<PasswordInput
-					id={`${formId}-password`}
-					autocomplete="new-password"
-					placeholder={t('auth.passwordPlaceholder', { min: config.auth.minPasswordLength })}
-					bind:value={password}
-					showLabel={t('auth.showPassword')}
-					hideLabel={t('auth.hidePassword')}
-					aria-invalid={errors.password ? 'true' : undefined}
-					aria-describedby={errors.password ? `${formId}-password-error` : undefined}
-				/>
-				{#if errors.password}
-					<p id={`${formId}-password-error`} class="text-xs text-destructive">{errors.password}</p>
-				{/if}
-			</div>
+			<FormField label={t('auth.password')} error={errors.password}>
+				{#snippet children(control)}
+					<PasswordInput
+						{...control}
+						autocomplete="new-password"
+						placeholder={t('auth.passwordPlaceholder', { min: config.auth.minPasswordLength })}
+						bind:value={password}
+						showLabel={t('auth.showPassword')}
+						hideLabel={t('auth.hidePassword')}
+					/>
+				{/snippet}
+			</FormField>
 
-			<div class="space-y-2">
-				<Label for={`${formId}-confirm`}>{t('auth.confirmPassword')}</Label>
-				<PasswordInput
-					id={`${formId}-confirm`}
-					autocomplete="new-password"
-					placeholder={t('auth.confirmPlaceholder')}
-					bind:value={confirm}
-					showLabel={t('auth.showPassword')}
-					hideLabel={t('auth.hidePassword')}
-					aria-invalid={errors.confirm ? 'true' : undefined}
-					aria-describedby={errors.confirm ? `${formId}-confirm-error` : undefined}
-				/>
-				{#if errors.confirm}
-					<p id={`${formId}-confirm-error`} class="text-xs text-destructive">{errors.confirm}</p>
-				{/if}
-			</div>
+			<FormField label={t('auth.confirmPassword')} error={errors.confirm}>
+				{#snippet children(control)}
+					<PasswordInput
+						{...control}
+						autocomplete="new-password"
+						placeholder={t('auth.confirmPlaceholder')}
+						bind:value={confirm}
+						showLabel={t('auth.showPassword')}
+						hideLabel={t('auth.hidePassword')}
+					/>
+				{/snippet}
+			</FormField>
 
 			{#if formError}
 				<p role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">

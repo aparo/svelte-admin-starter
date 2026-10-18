@@ -16,6 +16,7 @@
   - [EmptyState](#emptystate)
   - [Spinner](#spinner)
   - [SearchInput](#searchinput)
+  - [FormField](#formfield)
   - [DatePicker / TimePicker / DateTimePicker](#datepicker--timepicker--datetimepicker)
   - [ConfirmDialog](#confirmdialog)
   - [ThemeToggle](#themetoggle)
@@ -44,6 +45,8 @@
 portable shell 依赖 core 的 shared 与 ui，core 不依赖应用层。
 
 项目不设独立「组件模板」层。仅调整尺寸、样式、文案或局部结构时，优先使用现有组件的 props、snippets 与 variants；一次性组合留在业务页面，只有同一产品行为在多个页面重复出现时，才提升到 `src/lib/components/shared/`。页面骨架另放在 `templates/pages/`，只用于复制生成，不参与运行时依赖；`/components`、`/icons`、`/charts` 只展示组件，`/templates/*` 则专门预览页面布局。
+
+领域组件放在 `src/lib/features/<domain>/`：用户编辑器与校验归 `users`，订单详情、状态时间线与 CSV 投影归 `orders`，邮件列表、阅读视图与页面状态归 `inbox`。`sales/LineItemsEditor.svelte` 包含发票字段和税额预览，`clients/QuickCreateClient.svelte` 包含客户创建流程；二者不属于 portable core，原 shared 文件与 barrel 保留兼容入口。发票行类型、ID 分配和金额预览函数统一放在 `features/sales/line-items.ts`。
 
 ---
 
@@ -319,6 +322,31 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ---
 
+### FormField
+
+`src/lib/core/components/shared/FormField.svelte` — 本地状态表单使用的字段外壳，统一标签、说明与错误提示，不依赖应用 i18n 或 SuperForms。已有 `ui/form` 仍用于 formsnap / SuperForms 表单。
+
+必填 `label` 和 `children` snippet；可选 `error`、`description`、`id`、`labelAction` 和容器 HTML 属性。`id` 指向输入控件，省略时生成实例唯一 ID。snippet 接收 `id`、`aria-invalid` 和 `aria-describedby`，应将它们传给实际输入控件或 Select 的 Trigger。错误使用 `role="alert"`，说明与错误可同时被控件引用。
+
+```svelte
+<script lang="ts">
+	import FormField from '$lib/core/components/shared/FormField.svelte';
+	import { Input } from '$lib/core/components/ui/input';
+	let email = $state('');
+	let error = $state<string>();
+</script>
+
+<FormField label="Email" {error} description="Use your work address">
+	{#snippet children(control)}
+		<Input {...control} type="email" bind:value={email} />
+	{/snippet}
+</FormField>
+```
+
+用户编辑校验使用 `features/users/schema.ts` 的 `createUserSchema(t)`，在提交时根据当前语言构建完整 schema（包含 `status`）；可复用的邮箱规则来自 core 的 `createEmailSchema`。core 既有 `emailSchema`、`loginSchema`、`userSchema` 导出保持兼容。
+
+---
+
 ### DatePicker / TimePicker / DateTimePicker
 
 日期时间表单组件组合现有的 `Popover`、`Calendar`、`Input` 和 `Button` 原语，并自动跟随主题与中英文 locale。单值组件使用可直接提交和序列化的本地时间字符串，不在组件内部做时区转换：
@@ -331,6 +359,8 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 | `DateRangePicker` | bits-ui `DateRange` | 日期范围；有 name 时输出 `{name}_start` / `{name}_end` 隐藏字段 |
 
 共同 props 包括可双向绑定的 `value` 与 `open`，以及 `id`、`name`、`placeholder`、`locale`、`disabled`、`required`、`clearable`、`class`、`onValueChange` 和 aria 属性。`DatePicker` / `DateTimePicker` 另支持 `minValue`、`maxValue`；`TimePicker` / `DateTimePicker` 支持 `hour12`。
+
+四种选择器共用内部 `PickerTrigger.svelte`，集中维护触发按钮、图标、占位符与无障碍属性。各自保留弹层内容和提交语义：日期、时间与日期时间通过 Apply 提交草稿，日期范围即时更新；Cancel / Close 不应被统一为同一种状态操作。
 
 `DatePicker` / `DateTimePicker` 的确认操作会检查包含边界当天的日期范围；`DateTimePicker` 的 min/max 只限制日期，边界中的时间部分不限制当天的时刻。合法可选秒会规范为分钟精度。`required` 用 `aria-required` 向辅助技术声明必填；隐藏提交字段不参与浏览器 required 校验，父表单必须校验绑定值（范围组件也需校验起止日期）。外部传入的值不会被静默改写为边界值。
 

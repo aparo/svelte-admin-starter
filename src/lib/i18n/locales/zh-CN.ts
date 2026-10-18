@@ -2,6 +2,30 @@
 import type { Dictionary } from '../types';
 
 export default {
+	inbox: {
+		title: '收件箱',
+		description: '集中阅读、整理和回复邮件。',
+		compose: '写邮件',
+		allMail: '全部邮件',
+		unreadCount: '{count} 封未读',
+		all: '全部',
+		unread: '未读',
+		noMessages: '暂无邮件',
+		noMatches: '没有符合当前搜索或筛选条件的邮件。',
+		star: '标记星标',
+		unstar: '取消星标',
+		reply: '回复',
+		forward: '转发',
+		archive: '归档',
+		delete: '删除',
+		send: '发送',
+		attachments: '{count} 个附件',
+		replyTo: '回复 {name}…',
+		draftHint: '当前邮件的回复草稿',
+		selectMessage: '选择邮件',
+		selectDescription: '从列表中选择一封邮件以阅读内容。',
+		labels: { work: '工作', personal: '个人', updates: '动态' }
+	},
 	common: {
 		search: '搜索',
 		save: '保存',
@@ -285,6 +309,41 @@ export default {
 		compactMode: '紧凑模式',
 		compactDescription: '仅保存演示偏好，界面间距不会变化。',
 		densitySaved: '密度偏好已保存'
+	},
+	orders: {
+		title: '销售订单',
+		description: '跟踪和管理客户订单。',
+		export: '导出',
+		exported: '已导出 {count} 个订单至 CSV',
+		totalOrders: '订单总数',
+		revenue: '收入',
+		vsLastMonth: '较上月',
+		order: '订单',
+		customer: '客户',
+		date: '日期',
+		items: '商品',
+		status: '状态',
+		emptyTitle: '暂无订单',
+		emptyDescription: '店铺订单将显示在此处。',
+		view: '查看',
+		viewNamed: '查看 {number}',
+		placedBy: '{customer}于{date}下单。',
+		orderDate: '下单日期',
+		itemsTotal: '共 {count} 件',
+		summary: '订单摘要',
+		statusTimeline: '订单进度',
+		orderPlaced: '已下单',
+		cancelled: '此订单已取消。',
+		close: '关闭',
+		markShipped: '标记为已发货',
+		shipped: '{number}已标记为已发货',
+		statuses: {
+			pending: '待处理',
+			processing: '处理中',
+			shipped: '已发货',
+			delivered: '已送达',
+			cancelled: '已取消'
+		}
 	},
 	users: {
 		title: '用户',

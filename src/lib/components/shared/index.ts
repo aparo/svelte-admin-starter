@@ -8,7 +8,8 @@ export { default as DatePicker } from './DatePicker.svelte';
 export { default as DateRangePicker } from './DateRangePicker.svelte';
 export { default as TimePicker } from './TimePicker.svelte';
 export { default as DateTimePicker } from './DateTimePicker.svelte';
-export { default as LineItemsEditor } from './LineItemsEditor.svelte';
-export { default as QuickCreateClient } from './QuickCreateClient.svelte';
+export { default as LineItemsEditor } from '../../features/sales/LineItemsEditor.svelte';
+export { default as QuickCreateClient } from '../../features/clients/QuickCreateClient.svelte';
 
-export type { EditableLine } from './LineItemsEditor.svelte';
+export type { EditableLine, ServiceItem } from '../../features/sales/line-items';
+export type { Client } from '../../features/clients/QuickCreateClient.svelte';
