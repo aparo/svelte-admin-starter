@@ -118,6 +118,10 @@ export default {
 		confirmDesc: 'The file will open or download in a new window.'
 	},
 	calendar: {
+		keyboardHelp:
+			'Use arrow keys to move by day or week, Home and End for the week edges, Page Up and Page Down for months, and Enter or Space to select.',
+		dayEvents: '{count} events.',
+		allDay: 'All day',
 		title: 'Calendar',
 		description: 'Plan your month and keep track of upcoming events.',
 		jumpToMonth: 'Jump to month',

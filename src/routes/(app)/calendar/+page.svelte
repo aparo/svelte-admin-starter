@@ -5,6 +5,10 @@
   and upcoming event stream.
 -->
 <script lang="ts">
+	import { getContext, untrack } from 'svelte';
+	import { TAB_ACTIVITY, type TabActivity } from '$lib/shell/tab-activity';
+	import { useCalendarToday } from '$lib/features/calendar/today.svelte';
+	import { dateForKey } from '$lib/features/calendar/navigation';
 	import MonthGrid from '$lib/features/calendar/MonthGrid.svelte';
 	import UpcomingEvents from '$lib/features/calendar/UpcomingEvents.svelte';
 	import {
@@ -25,10 +29,12 @@
 	import { Input } from '$lib/core/components/ui/input';
 	import { Label } from '$lib/core/components/ui/label';
 	import { i18n, t } from '$lib/i18n';
-	import { buildGrid, monthLabel, shiftMonth, today, weekdayLabels } from '$lib/calendar';
+	import { buildGrid, monthLabel, shiftMonth, weekdayLabels } from '$lib/calendar';
 
-	const t0 = today();
-	const todayKey = t0.key;
+	const activity = getContext<TabActivity | undefined>(TAB_ACTIVITY);
+	const calendarToday = useCalendarToday(() => activity?.active ?? true);
+	const t0 = untrack(() => calendarToday.current);
+	const todayKey = $derived(calendarToday.current.key);
 
 	let viewYear = $state(t0.year);
 	let viewMonth = $state(t0.month); // 0-indexed
@@ -43,7 +49,7 @@
 
 	const eventsByDay = groupEventsByDay(events);
 	const monthEventCount = $derived(countEventsInMonth(events, viewYear, viewMonth));
-	const upcoming = upcomingEvents(events, todayKey);
+	const upcoming = $derived(upcomingEvents(events, todayKey));
 
 	function move(delta: number): void {
 		selectedKey = null;
@@ -52,8 +58,9 @@
 
 	function goToday(): void {
 		selectedKey = null;
-		viewYear = t0.year;
-		viewMonth = t0.month;
+		const current = calendarToday.refresh();
+		viewYear = current.year;
+		viewMonth = current.month;
 	}
 
 	function jumpToMonth(event: Event): void {
@@ -64,7 +71,11 @@
 		viewMonth = month - 1;
 	}
 
-	const isViewingCurrentMonth = $derived(viewYear === t0.year && viewMonth === t0.month);
+	function navigateToDay(key: string): void {
+		const date = dateForKey(key);
+		viewYear = date.getFullYear();
+		viewMonth = date.getMonth();
+	}
 
 	const instanceId = $props.id();
 </script>
@@ -81,7 +92,7 @@
 					type="month"
 					value={monthInput}
 					onchange={jumpToMonth}
-					class="h-8 w-36"
+					class="h-8 w-40"
 				/>
 				<Button
 					variant="outline"
@@ -91,7 +102,7 @@
 				>
 					<ChevronLeft class="size-4" aria-hidden="true" />
 				</Button>
-				<Button variant="outline" size="sm" onclick={goToday} disabled={isViewingCurrentMonth}>
+				<Button variant="outline" size="sm" onclick={goToday}>
 					{t('calendar.today')}
 				</Button>
 				<Button
@@ -128,7 +139,14 @@
 			</Card.Header>
 
 			<Card.Content>
-				<MonthGrid {grid} {weekdays} {eventsByDay} bind:selectedKey />
+				<MonthGrid
+					{grid}
+					{weekdays}
+					{eventsByDay}
+					label={heading}
+					bind:selectedKey
+					onNavigate={navigateToDay}
+				/>
 			</Card.Content>
 		</Card.Root>
 

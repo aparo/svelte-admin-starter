@@ -19,12 +19,14 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test": "vitest run",
-		"verify": "npm run check && npm run lint && npm test && npm run build && npm run check:export"
+		"verify": "npm run check && npm run lint && npm test && npm run build && npm run check:export",
+		"test:e2e": "tsc --noEmit -p e2e/tsconfig.json && playwright test"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@internationalized/date": "^3.12.2",
 		"@lucide/svelte": "^1.28.0",
+		"@playwright/test": "^1.64.1",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.70.2",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",

@@ -41,7 +41,7 @@
 				!displayValue && 'text-muted-foreground'
 			)}
 			{disabled}
-			aria-label={ariaLabel ?? placeholder}
+			aria-label={ariaLabel}
 			aria-required={required}
 			aria-invalid={ariaInvalid}
 			aria-describedby={ariaDescribedby}

@@ -46,7 +46,7 @@ portable shell 依赖 core 的 shared 与 ui，core 不依赖应用层。
 
 项目不设独立「组件模板」层。仅调整尺寸、样式、文案或局部结构时，优先使用现有组件的 props、snippets 与 variants；一次性组合留在业务页面，只有同一产品行为在多个页面重复出现时，才提升到 `src/lib/components/shared/`。页面骨架另放在 `templates/pages/`，只用于复制生成，不参与运行时依赖；`/components`、`/icons`、`/charts` 只展示组件，`/templates/*` 则专门预览页面布局。
 
-领域组件放在 `src/lib/features/<domain>/`：用户编辑器与校验归 `users`，订单详情、状态时间线与 CSV 投影归 `orders`，邮件列表、阅读视图与页面状态归 `inbox`。`sales/LineItemsEditor.svelte` 包含发票字段和税额预览，`clients/QuickCreateClient.svelte` 包含客户创建流程；二者不属于 portable core，原 shared 文件与 barrel 保留兼容入口。发票行类型、ID 分配和金额预览函数统一放在 `features/sales/line-items.ts`。
+领域组件放在 `src/lib/features/<domain>/`：用户编辑器与校验归 `users`，订单详情、状态时间线与 CSV 投影归 `orders`，邮件列表、阅读视图与页面状态归 `inbox`。`sales/LineItemsEditor.svelte` 包含发票字段和税额预览，`clients/QuickCreateClient.svelte` 包含客户创建流程；二者不属于 portable core，原 shared 文件与 barrel 保留兼容入口。发票行类型、ID 分配和金额预览函数统一放在 `features/sales/line-items.ts`。目录行通过可选的 `catalogItemId` 保留商品身份；`allow_multiple` 按该 ID 判断，不依赖可编辑的描述。旧数据和自定义行没有 ID 时不会按描述猜测归属，接入方应为已有目录行补齐 ID。
 
 ---
 
@@ -366,7 +366,7 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 共同 props 包括可双向绑定的 `value` 与 `open`，以及 `id`、`name`、`placeholder`、`locale`、`disabled`、`required`、`clearable`、`class`、`onValueChange` 和 aria 属性。`DatePicker` / `DateTimePicker` 另支持 `minValue`、`maxValue`；`TimePicker` / `DateTimePicker` 支持 `hour12`。
 
-四种选择器共用内部 `PickerTrigger.svelte`，集中维护触发按钮、图标、占位符与无障碍属性，包括 `aria-describedby`，可直接接收 `FormField` 的 control 属性。各自保留弹层内容和提交语义：日期、时间与日期时间默认通过 Apply 提交草稿，日期范围即时更新；`DatePicker` 可设置 `commitOnSelect` 以选中即提交并关闭，Forms 页面使用此模式。Cancel / Close 不应被统一为同一种状态操作。
+四种选择器共用内部 `PickerTrigger.svelte`，集中维护触发按钮、图标、占位符与无障碍属性，包括 `aria-describedby`，可直接接收 `FormField` 的 control 属性。只有调用方显式提供 `aria-label` 才覆盖关联的字段标签，默认使用标签或按钮文本作为可访问名称。各自保留弹层内容和提交语义：日期、时间与日期时间默认通过 Apply 提交草稿，日期范围即时更新；`DatePicker` 可设置 `commitOnSelect` 以选中即提交并关闭，Forms 页面使用此模式。Cancel / Close 不应被统一为同一种状态操作。
 
 `DatePicker` / `DateTimePicker` 的确认操作会检查包含边界当天的日期范围；`DateTimePicker` 的 min/max 只限制日期，边界中的时间部分不限制当天的时刻。合法可选秒会规范为分钟精度。`required` 用 `aria-required` 向辅助技术声明必填；隐藏提交字段不参与浏览器 required 校验，父表单必须校验绑定值（范围组件也需校验起止日期）。外部传入的值不会被静默改写为边界值。
 

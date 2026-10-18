@@ -11,3 +11,7 @@ yarn.lock
 .env
 .env.*
 *.log
+
+# Browser test artifacts
+/playwright-report/
+/test-results/

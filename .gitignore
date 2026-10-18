@@ -21,3 +21,7 @@ node_modules/
 # Vite temp files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Browser test artifacts
+/playwright-report/
+/test-results/

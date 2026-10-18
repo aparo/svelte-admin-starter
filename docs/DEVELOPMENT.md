@@ -86,6 +86,7 @@ npm run dev      # 启动开发服务器（Vite），默认 http://localhost:517
 | `npm run build` / `npm run preview`     | 生产构建 / 本地预览                        |
 | `npm run check` / `npm run check:watch` | Svelte 与 TypeScript 检查 / 持续检查       |
 | `npm run lint`                          | Prettier 与 ESLint 检查                    |
+| `npm run test:e2e`                      | Chromium 真实浏览器交互回归（先 build）    |
 | `npm test`                              | Vitest 测试                                |
 | `npm run check:export`                  | portable-core 导出契约检查                 |
 | `npm run verify`                        | PR、完整发布和 CI 共用的完整验证入口       |
@@ -96,6 +97,8 @@ npm run dev      # 启动开发服务器（Vite），默认 http://localhost:517
 格式化规则见 `.prettierrc`：使用 Tab 缩进、单引号、`trailingComma: none`、`printWidth: 100`，并启用 `prettier-plugin-svelte` 与 `prettier-plugin-tailwindcss`（后者会自动排序 Tailwind 类名）。
 
 ---
+
+浏览器测试位于 `e2e/`，首次执行先运行 `npx playwright install chromium`，再运行 `npm run build && npm run test:e2e`。命令先检查浏览器测试的 TypeScript 类型，再由 Playwright 自动启动生产预览服务，使用独立的 mock 登录状态，覆盖日历跨天/键盘导航、日期弹层提交/取消与看板键盘移动后的焦点恢复。CI 在 `verify` 后执行这组测试，并保留失败截图和 trace；`npm test` 仅运行 `src/**/*.test.ts`，不会混入浏览器测试。
 
 ## 4. 目录结构
 
@@ -186,7 +189,7 @@ templates/
 - **`lib/core/components/ui/`**：shadcn-svelte 原语，**以源码形式 vendored**（不是 npm 包）。可用 `npx shadcn-svelte@latest add <name>` 增量添加，或直接编辑。
 - **`lib/core/components/shared/`**：portable 组合组件；**`lib/components/shared/`** 放应用专用集成。运行时代码优先直接导入所需组件文件，兼容 barrel 保留给现有消费者。
 - **`lib/shell/`**：应用外壳与导航模型。新增导航项改 `nav.ts` 即可（见第 7 节）。
-- **`lib/features/`**：按业务领域组织组件和规则。路由负责组合与交互入口；状态按实际共享范围创建，禁止直接修改模块级 mock 种子。Users 在 app layout 内共享，Inbox、Orders、Cart 与 Kanban 的演示交互在各页面实例内隔离。Cart 汇总复用纯金额规则；Kanban 同时支持拖放和键盘菜单移动；Calendar 按目标月份的真实天数生成月末种子日期。领域 locale 片段汇入全局中英文字典，继续使用统一的 typed `t()`；设置语言选择直接读取全局 locale。订单列表、详情和 CSV 使用记录中的同一总额，不在详情中另行添加种子未提供的税费。
+- **`lib/features/`**：按业务领域组织组件和规则。路由负责组合与交互入口；状态按实际共享范围创建，禁止直接修改模块级 mock 种子。Users 在 app layout 内共享，Inbox、Orders、Cart 与 Kanban 的演示交互在各页面实例内隔离。Cart 汇总复用纯金额规则；Kanban 同时支持拖放和键盘菜单移动；Calendar 按目标月份的真实天数生成月末种子日期；“今天”在标签页激活、窗口重新聚焦、页面恢复可见及本地午夜刷新，已有日程不会随刷新重新生成。月历支持方向键、Home/End、Page Up/Down 和单一 Tab 入口。领域 locale 片段汇入全局中英文字典，继续使用统一的 typed `t()`；设置语言选择直接读取全局 locale。订单列表、详情和 CSV 使用记录中的同一总额，不在详情中另行添加种子未提供的税费。
 - **`lib/core/hooks/` `lib/core/stores/` `lib/core/utils/`**：portable hooks、持久化容器与纯工具；auth、i18n、mock data 与 app shell 依赖留在 core 之外。
 
 > 别名（`$lib`/`$app`）由 SvelteKit 在 `svelte-kit sync` 时生成到 `.svelte-kit/tsconfig.json`；`tsconfig.json` 仅 `extends` 它。如需自定义别名，请在 `svelte.config.js` 的 `kit.alias` 中扩展（见文件内注释），不要手改生成文件。

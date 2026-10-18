@@ -119,6 +119,10 @@ export default {
 		confirmDesc: '文件将会在新窗口中打开或下载。'
 	},
 	calendar: {
+		keyboardHelp:
+			'使用方向键按天或周移动，Home 和 End 跳到周首或周末，Page Up 和 Page Down 切换月份，按 Enter 或空格选择日期。',
+		dayEvents: '共 {count} 项日程。',
+		allDay: '全天',
 		title: '日历',
 		description: '安排月度计划，关注即将到来的活动。',
 		jumpToMonth: '跳转到月份',

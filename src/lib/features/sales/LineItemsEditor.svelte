@@ -17,6 +17,7 @@
 	import { formatNumber } from '$lib/i18n/formatters';
 	import {
 		nextLineItemId,
+		availableCatalogItems,
 		lineTotal,
 		summarizeLines,
 		type EditableLine,
@@ -81,20 +82,17 @@
 	// Hide catalog entries already added as a line (so each adds once, and the
 	// picker resets instead of keeping a lingering checkmark on the last pick).
 	let pick = $state('');
-	const availableCatalog = $derived.by(() => {
-		const used = new Set(items.map((r) => r.description));
-		// Keep items flagged allow_multiple visible even once added.
-		return catalog.filter((c) => c.allow_multiple || !used.has(catalogDesc(c)));
-	});
+	const availableCatalog = $derived(availableCatalogItems(catalog, items));
 
 	function addFromCatalog(idStr: string) {
-		const s = catalog.find((c) => String(c.id) === idStr);
+		const s = availableCatalog.find((c) => String(c.id) === idStr);
 		pick = '';
 		if (!s) return;
 		items = [
 			...items,
 			{
 				id: allocateId(),
+				catalogItemId: s.id,
 				description: catalogDesc(s),
 				qty: '1',
 				unit_price: String(s.default_unit_price),

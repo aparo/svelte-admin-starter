@@ -39,11 +39,11 @@ describe.each(pickers)('$name trigger', ({ component, placeholder }) => {
 		expect(trigger).toContain('aria-expanded="true"');
 	});
 
-	it('uses the localized placeholder as the default accessible label', () => {
+	it('uses localized button text without overriding an associated form label', () => {
 		setLocale('zh-CN');
 		const body = render(component).body;
 
-		expect(body).toContain(`aria-label="${placeholder}"`);
+		expect(body.match(/<button\b[^>]*>/)?.[0]).not.toContain('aria-label');
 		expect(body).toContain(`>${placeholder}</span>`);
 		expect(body).toContain('aria-expanded="false"');
 		expect(body).not.toContain('type="hidden"');
@@ -58,7 +58,7 @@ describe.each(pickers)('$name trigger', ({ component, placeholder }) => {
 		const hiddenInputs = body.match(/<input\b[^>]*>/g) ?? [];
 
 		expect(trigger).toContain('disabled');
-		expect(trigger).toContain('aria-label="Choose a value"');
+		expect(body).toContain('>Choose a value</span>');
 		expect(hiddenInputs.length).toBeGreaterThan(0);
 		for (const input of hiddenInputs) {
 			expect(input).toContain('type="hidden"');

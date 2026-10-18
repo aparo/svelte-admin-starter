@@ -1,5 +1,7 @@
 export interface EditableLine {
 	id: number;
+	/** Stable catalog identity; absent for custom or legacy rows. */
+	catalogItemId?: number;
 	description: string;
 	qty: string;
 	unit_price: string;
@@ -27,6 +29,15 @@ export interface ServiceItem {
 	myinvois_tax_type?: string | null;
 	myinvois_exemption_reason?: string | null;
 	myinvois_unit_code?: string | null;
+}
+
+/** Custom/legacy descriptions cannot reliably identify a catalog item. */
+export function availableCatalogItems(
+	catalog: readonly ServiceItem[],
+	items: readonly Pick<EditableLine, 'catalogItemId'>[]
+): ServiceItem[] {
+	const used = new Set(items.map((item) => item.catalogItemId));
+	return catalog.filter((item) => item.allow_multiple || !used.has(item.id));
 }
 
 /** Preview arithmetic; authoritative tax calculation belongs to the backend. */

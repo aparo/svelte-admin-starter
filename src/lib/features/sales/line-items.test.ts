@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { nextLineItemId, lineTotal, summarizeLines, type EditableLine } from './line-items';
+import {
+	nextLineItemId,
+	lineTotal,
+	summarizeLines,
+	availableCatalogItems,
+	type EditableLine,
+	type ServiceItem
+} from './line-items';
 
 describe('line-item IDs', () => {
 	it('adds distinct keyed rows to an existing invoice without changing incoming IDs', () => {
@@ -51,5 +58,43 @@ describe('invoice preview totals', () => {
 		expect(lineTotal({ ...line, qty: '' })).toBe(0);
 		expect(lineTotal({ ...line, unit_price: '' })).toBe(0);
 		expect(lineTotal({ ...line, discount_percent: '' })).toBe(100);
+	});
+});
+
+describe('catalog identity', () => {
+	const catalog: ServiceItem[] = [
+		{
+			id: 1,
+			name: 'First',
+			description: 'Same description',
+			default_unit_price: 10,
+			is_taxable: false
+		},
+		{
+			id: 2,
+			name: 'Second',
+			description: 'Same description',
+			default_unit_price: 20,
+			is_taxable: false
+		},
+		{ id: 3, name: 'Repeatable', default_unit_price: 30, is_taxable: false, allow_multiple: true }
+	];
+	it('keeps distinct items with identical descriptions available', () => {
+		expect(availableCatalogItems(catalog, [{ catalogItemId: 1 }]).map((item) => item.id)).toEqual([
+			2, 3
+		]);
+	});
+	it('does not infer identity from editable custom/legacy descriptions', () => {
+		const rows = [
+			{ description: 'Same description', catalogItemId: undefined },
+			{ description: 'Renamed', catalogItemId: 2 }
+		];
+		expect(availableCatalogItems(catalog, rows).map((item) => item.id)).toEqual([1, 3]);
+		rows[1].description = 'Another name';
+		expect(availableCatalogItems(catalog, rows).map((item) => item.id)).toEqual([1, 3]);
+	});
+	it('allows explicitly repeatable items and restores removed items', () => {
+		expect(availableCatalogItems(catalog, [{ catalogItemId: 3 }])).toEqual(catalog);
+		expect(availableCatalogItems(catalog, [])).length(3);
 	});
 });
