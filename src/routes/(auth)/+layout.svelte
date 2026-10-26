@@ -10,8 +10,9 @@
 	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth';
 	import { config } from '$lib/config';
-	import { ThemeToggle, LanguageToggle } from '$lib/components/shared';
 	import { t } from '$lib/i18n';
+	import ThemeToggle from '$lib/core/components/shared/ThemeToggle.svelte';
+	import LanguageToggle from '$lib/components/shared/LanguageToggle.svelte';
 	import Check from '@lucide/svelte/icons/check';
 
 	let { children } = $props();
@@ -89,7 +90,10 @@
 		<!-- Corner controls -->
 		<div class="absolute top-4 right-4 z-10 flex items-center gap-1">
 			<LanguageToggle />
-			<ThemeToggle />
+			<ThemeToggle
+				lightLabel={t('common.switchToLightTheme')}
+				darkLabel={t('common.switchToDarkTheme')}
+			/>
 		</div>
 
 		<div class="w-full max-w-sm space-y-6">

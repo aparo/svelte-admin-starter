@@ -4,27 +4,25 @@
   buttons (change plan, cancel, update card, download invoice) surface a toast.
 -->
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import CreditCard from '@lucide/svelte/icons/credit-card';
 	import Download from '@lucide/svelte/icons/download';
 	import Check from '@lucide/svelte/icons/check';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 
-	import {
-		PageContainer,
-		PageHeader,
-		DataTable,
-		StatusBadge,
-		type Column,
-		type BadgeTone
-	} from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import DataTable from '$lib/core/components/shared/DataTable.svelte';
+	import StatusBadge from '$lib/core/components/shared/StatusBadge.svelte';
+	import type { Column } from '$lib/core/components/shared/DataTable.svelte';
+	import type { BadgeTone } from '$lib/core/components/shared/StatusBadge.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Progress } from '$lib/core/components/ui/progress';
 
-	import { formatCurrency, formatDate } from '$lib/core/utils/formatters';
+	import { formatCurrency, formatDate, formatNumber } from '$lib/i18n/formatters';
 	import { cn } from '$lib/core/utils';
 	import { toast } from 'svelte-sonner';
-	import { t } from '$lib/i18n';
 
 	// --- Current plan (mock) ----------------------------------------------
 	const plan = {
@@ -65,11 +63,10 @@
 	}
 
 	function formatUsage(value: number, metric: UsageMetric): string {
-		const formatted = metric.compact
-			? new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(
-					value
-				)
-			: new Intl.NumberFormat('en-US').format(value);
+		const formatted = formatNumber(
+			value,
+			metric.compact ? { notation: 'compact', maximumFractionDigits: 1 } : undefined
+		);
 		return metric.unit ? `${formatted} ${metric.unit}` : formatted;
 	}
 
@@ -142,10 +139,6 @@
 		});
 	}
 </script>
-
-<svelte:head>
-	<title>Billing · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<PageHeader title={t('billing.pageTitle')} description={t('billing.pageDescription')} />
@@ -289,6 +282,7 @@
 		</Card.Header>
 		<Card.Content>
 			<DataTable
+				text={t}
 				data={invoices}
 				{columns}
 				searchable

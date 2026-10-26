@@ -10,3 +10,4 @@ export { default as NotificationsMenu } from './NotificationsMenu.svelte';
 export { navGroups, findNavItem } from './nav';
 export type { NavItem, NavGroup } from './nav';
 export { logoutDialog } from './logout-dialog.svelte';
+export { TAB_ROUTE, type TabRoute } from './tab-route';

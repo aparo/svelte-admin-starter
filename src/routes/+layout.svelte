@@ -12,7 +12,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { Toaster } from '$lib/core/components/ui/sonner';
 	import { auth } from '$lib/auth';
-	import { initLocale } from '$lib/i18n';
+	import { initLocale, i18n } from '$lib/i18n';
 	import { config } from '$lib/config';
 
 	let { children } = $props();
@@ -21,7 +21,15 @@
 		auth.init();
 		initLocale();
 	});
+
+	$effect(() => {
+		document.documentElement.lang = i18n.locale;
+	});
 </script>
+
+<svelte:head>
+	<meta name="description" content={config.app.description} />
+</svelte:head>
 
 <ModeWatcher defaultMode={config.theme.defaultMode} />
 <Toaster richColors position="top-right" />

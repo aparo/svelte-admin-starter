@@ -1,17 +1,13 @@
 <!-- TimePicker — a clock-face time selector with 12/24-hour support. -->
 <script lang="ts">
 	import * as Popover from '$lib/core/components/ui/popover';
+	import PickerTrigger from './PickerTrigger.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import { cn } from '$lib/core/utils';
 	import { i18n, t } from '$lib/i18n';
 	import ClockIcon from '@lucide/svelte/icons/clock-3';
 	import XIcon from '@lucide/svelte/icons/x';
-	import {
-		currentTimeValue,
-		formatTimeForDisplay,
-		formatTimeValue,
-		parseTimeValue
-	} from './date-time-utils';
+	import { formatTimeForDisplay, formatTimeValue, parseTimeValue } from './date-time-utils';
 
 	type ClockView = 'hour' | 'minute';
 	type Period = 'AM' | 'PM';
@@ -25,12 +21,14 @@
 		locale?: string;
 		hour12?: boolean;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound value. */
 		required?: boolean;
 		clearable?: boolean;
 		class?: string;
 		onValueChange?: (value: string) => void;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -47,7 +45,8 @@
 		class: className,
 		onValueChange,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 
 	let draftHour = $state(12);
@@ -75,7 +74,8 @@
 
 	$effect(() => {
 		if (!open) return;
-		const parsed = parseTimeValue(value || currentTimeValue())!;
+		const now = new Date();
+		const parsed = parseTimeValue(value) ?? { hour: now.getHours(), minute: now.getMinutes() };
 		draftHour = parsed.hour;
 		draftMinute = parsed.minute;
 		view = 'hour';
@@ -174,26 +174,17 @@
 
 <div class={cn('w-full', className)} data-slot="time-picker">
 	<Popover.Root bind:open>
-		<Popover.Trigger {disabled}>
-			{#snippet child({ props })}
-				<Button
-					{...props}
-					{id}
-					variant="outline"
-					class={cn(
-						'w-full justify-start text-left font-normal',
-						!value && 'text-muted-foreground'
-					)}
-					{disabled}
-					aria-label={ariaLabel ?? resolvedPlaceholder}
-					aria-required={required}
-					aria-invalid={ariaInvalid}
-				>
-					<ClockIcon class="size-4" aria-hidden="true" />
-					<span class="min-w-0 flex-1 truncate">{displayValue || resolvedPlaceholder}</span>
-				</Button>
-			{/snippet}
-		</Popover.Trigger>
+		<PickerTrigger
+			{id}
+			icon={ClockIcon}
+			{displayValue}
+			placeholder={resolvedPlaceholder}
+			{disabled}
+			{required}
+			aria-label={ariaLabel}
+			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
+		/>
 
 		<Popover.Content class="w-80 p-0" align="start">
 			<div class="p-4 pb-3">

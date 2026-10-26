@@ -3,6 +3,8 @@
 	import * as Breadcrumb from '$lib/core/components/ui/breadcrumb';
 	import { page } from '$app/state';
 	import { findNavItem } from './nav';
+	import { navGroupLabel, navTitle, routeLabelFor, titleCase, translatedLabel } from './labels';
+	import { resolveAppUrl, toAppPathname } from './paths';
 	import { cn } from '$lib/core/utils';
 	import { t } from '$lib/i18n';
 	import { config } from '$lib/config';
@@ -12,21 +14,16 @@
 		href?: string;
 	}
 
-	function titleCase(segment: string): string {
-		return segment
-			.split('-')
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-			.join(' ');
-	}
-
 	const crumbs = $derived.by((): Crumb[] => {
-		const pathname = page.url.pathname;
-		const trail: Crumb[] = [{ label: 'Home', href: config.app.homePath }];
+		const pathname = toAppPathname(page.url.pathname);
+		const trail: Crumb[] = [
+			{ label: translatedLabel('nav.home', 'Home'), href: config.app.homePath }
+		];
 
 		const match = findNavItem(pathname);
 		if (match) {
-			trail.push({ label: t(match.group.labelKey) });
-			trail.push({ label: t(match.item.titleKey), href: match.item.href });
+			trail.push({ label: navGroupLabel(match.group) });
+			trail.push({ label: navTitle(match.item), href: match.item.href });
 
 			// Any path segments beyond the matched nav item become extra crumbs.
 			const rest = pathname.slice(match.item.href.length).split('/').filter(Boolean);
@@ -46,9 +43,11 @@
 
 		// A page can supply a friendly label for its leaf crumb via load data
 		// (e.g. /users/[id] returns the user's name instead of the raw id).
-		const data = page.data as { breadcrumb?: unknown };
-		if (typeof data.breadcrumb === 'string' && data.breadcrumb && trail.length > 1) {
-			trail[trail.length - 1] = { ...trail[trail.length - 1], label: data.breadcrumb };
+		if (trail.length > 1) {
+			trail[trail.length - 1] = {
+				...trail[trail.length - 1],
+				label: routeLabelFor(pathname, page.data)
+			};
 		}
 		return trail;
 	});
@@ -66,7 +65,7 @@
 					>
 				{:else}
 					<Breadcrumb.Link
-						href={crumb.href}
+						href={resolveAppUrl(crumb.href)}
 						class="truncate max-w-[120px] sm:max-w-[200px] inline-block align-bottom"
 						>{crumb.label}</Breadcrumb.Link
 					>

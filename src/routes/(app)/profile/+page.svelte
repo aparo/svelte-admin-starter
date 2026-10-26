@@ -1,66 +1,55 @@
-<!--
-  Profile — view and edit the current user's account details. Two-column layout:
-  an avatar card on the left, an editable form on the right. All state is local
-  ($state copies of auth.user); saving just fires a toast (no backend).
--->
+<!-- Local profile draft; saving validates and shows demo feedback. -->
 <script lang="ts">
 	import Camera from '@lucide/svelte/icons/camera';
-
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import type { z } from 'zod';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import * as Select from '$lib/core/components/ui/select';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
 	import { Textarea } from '$lib/core/components/ui/textarea';
-
+	import { fieldError } from '$lib/core/utils/validators';
+	import { createProfileSchema } from '$lib/features/profile/schema';
+	import { USER_ROLES, roleLabel } from '$lib/features/users/presentation';
 	import { toast } from 'svelte-sonner';
-
 	import { auth } from '$lib/auth';
+	import type { User } from '$lib/auth/types';
+	import { initials } from '$lib/i18n/formatters';
 	import { t } from '$lib/i18n';
-	import { initials } from '$lib/core/utils/formatters';
 
-	// `value` is typed `string` to satisfy the single-select binding (bits-ui).
-	const ROLE_OPTIONS: { value: string; label: string }[] = [
-		{ value: 'admin', label: 'Admin' },
-		{ value: 'editor', label: 'Editor' },
-		{ value: 'viewer', label: 'Viewer' }
-	];
-
-	// Local editable copy of the user's profile (mock — no persistence).
 	let name = $state(auth.user?.name ?? '');
 	let email = $state(auth.user?.email ?? '');
 	let role = $state<string>(auth.user?.role ?? 'viewer');
-	let bio = $state(
-		'Product-focused engineer who loves clean, accessible interfaces and shipping fast.'
-	);
-
-	const roleLabel = $derived(ROLE_OPTIONS.find((r) => r.value === role)?.label ?? 'Viewer');
-	const avatarInitials = $derived(initials(name || 'User'));
+	let bio = $state(t('profile.defaultBio'));
+	let errors = $state<z.ZodError | null>(null);
+	const avatarInitials = $derived(initials(name || t('profile.user')));
 
 	function save(event: SubmitEvent) {
 		event.preventDefault();
-		toast.success(t('profile.savedToast'));
+		const result = createProfileSchema(t).safeParse({ name, email, bio });
+		if (!result.success) {
+			errors = result.error;
+			return;
+		}
+		errors = null;
+		({ name, email, bio } = result.data);
+		toast.success(t('profile.updated'));
 	}
 
 	function changeAvatar() {
-		toast.info(t('profile.avatarToast'));
+		toast.info(t('profile.avatarUnavailable'));
 	}
 </script>
 
-<svelte:head>
-	<title>Profile · Admin Starter</title>
-</svelte:head>
-
 <PageContainer>
-	<PageHeader title={t('profile.pageTitle')} description={t('profile.pageDescription')} />
-
+	<PageHeader title={t('profile.title')} description={t('profile.description')} />
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-		<!-- Left: avatar card -->
 		<Card.Root class="lg:col-span-1">
 			<Card.Header>
-				<Card.Title>{t('profile.photoTitle')}</Card.Title>
+				<Card.Title>{t('profile.photo')}</Card.Title>
 				<Card.Description>{t('profile.photoDescription')}</Card.Description>
 			</Card.Header>
 			<Card.Content class="flex flex-col items-center gap-4 text-center">
@@ -71,7 +60,7 @@
 					<Avatar.Fallback class="text-2xl">{avatarInitials}</Avatar.Fallback>
 				</Avatar.Root>
 				<div class="space-y-0.5">
-					<p class="font-medium text-foreground">{name || t('profile.unnamed')}</p>
+					<p class="font-medium text-foreground">{name || t('profile.unnamedUser')}</p>
 					<p class="text-sm text-muted-foreground">{email}</p>
 				</div>
 				<Button variant="outline" size="sm" onclick={changeAvatar}>
@@ -81,67 +70,68 @@
 			</Card.Content>
 		</Card.Root>
 
-		<!-- Right: editable form -->
 		<Card.Root class="lg:col-span-2">
-			<form onsubmit={save}>
+			<form onsubmit={save} novalidate>
 				<Card.Header>
-					<Card.Title>{t('profile.detailsTitle')}</Card.Title>
-					<Card.Description>{t('profile.detailsDescription')}</Card.Description>
+
+					<Card.Title>{t('profile.accountDetails')}</Card.Title>
+					<Card.Description>{t('profile.accountDescription')}</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<div class="grid gap-4 sm:grid-cols-2">
-						<div class="space-y-2">
-							<Label for="name">{t('profile.nameLabel')}</Label>
-							<Input
-								id="name"
-								bind:value={name}
-								placeholder={t('profile.namePlaceholder')}
-								autocomplete="name"
-							/>
-						</div>
-						<div class="space-y-2">
-							<Label for="email">{t('profile.emailLabel')}</Label>
-							<Input
-								id="email"
-								type="email"
-								bind:value={email}
-								placeholder={t('profile.emailPlaceholder')}
-								autocomplete="email"
-							/>
-						</div>
+						<FormField label={t('common.name')} error={fieldError(errors, 'name')}>
+							{#snippet children(control)}
+								<Input
+									{...control}
+									bind:value={name}
+									placeholder={t('profile.namePlaceholder')}
+									autocomplete="name"
+								/>
+							{/snippet}
+						</FormField>
+						<FormField label={t('auth.email')} error={fieldError(errors, 'email')}>
+							{#snippet children(control)}
+								<Input
+									{...control}
+									type="email"
+									bind:value={email}
+									placeholder="you@example.com"
+									autocomplete="email"
+								/>
+							{/snippet}
+						</FormField>
 					</div>
 
-					<div class="space-y-2">
-						<Label for="role">{t('profile.roleLabel')}</Label>
-						<Select.Root type="single" bind:value={role} disabled>
-							<Select.Trigger id="role" class="w-full">
-								{roleLabel}
-							</Select.Trigger>
-							<Select.Content>
-								{#each ROLE_OPTIONS as option (option.value)}
-									<Select.Item value={option.value} label={option.label}>
-										{option.label}
-									</Select.Item>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-						<p class="text-xs text-muted-foreground">
-							{t('profile.roleNote')}
-						</p>
-					</div>
+					<FormField label={t('profile.role')} description={t('profile.roleDescription')}>
+						{#snippet children(control)}
+							<Select.Root type="single" bind:value={role} disabled>
+								<Select.Trigger {...control} class="w-full">
+									{roleLabel(role as User['role'])}
+								</Select.Trigger>
+								<Select.Content>
+									{#each Object.entries(USER_ROLES) as [value, presentation] (value)}
+										<Select.Item {value} label={t(presentation.label)}>
+											{t(presentation.label)}
+										</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						{/snippet}
+					</FormField>
 
-					<div class="space-y-2">
-						<Label for="bio">{t('profile.bioLabel')}</Label>
-						<Textarea
-							id="bio"
-							bind:value={bio}
-							rows={4}
-							placeholder={t('profile.bioPlaceholder')}
-						/>
-					</div>
+					<FormField label={t('profile.bio')} error={fieldError(errors, 'bio')}>
+						{#snippet children(control)}
+							<Textarea
+								{...control}
+								bind:value={bio}
+								rows={4}
+								placeholder={t('profile.bioPlaceholder')}
+							/>
+						{/snippet}
+					</FormField>
 				</Card.Content>
 				<Card.Footer class="justify-end gap-2">
-					<Button type="submit">{t('profile.saveChanges')}</Button>
+					<Button type="submit">{t('users.saveChanges')}</Button>
 				</Card.Footer>
 			</form>
 		</Card.Root>

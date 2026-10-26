@@ -1,0 +1,33 @@
+export default {
+	title: 'Kanban',
+	description: 'Plan and track work across stages.',
+	addTask: 'Add task',
+	addTaskTo: 'Add task to {column}',
+	addTaskEmpty: 'Add a task',
+	selectColumn: 'Select {column} board',
+	columnNavigation: 'Jump to board column',
+	summary: '{tasks} tasks across {stages} stages',
+	moveHint: 'Drag a card or use its move menu to change columns',
+	moveTask: 'Move {task} to column',
+	moveTo: 'Move to column',
+	moveToColumn: 'Move to {column}',
+	moveUp: 'Move up in column',
+	moveDown: 'Move down in column',
+	taskMoved: 'Moved {task} to {column}, position {position}',
+	taskAdded: 'Task added',
+	taskAddedDescription: 'A new card was added to {column}.',
+	newTask: 'New task',
+	newTaskDescription: 'Add a description, assignee and priority.',
+	untitled: 'Untitled',
+	unassigned: 'Unassigned',
+	comments: '{count} comments',
+	attachments: '{count} attachments',
+	columns: {
+		backlog: 'Backlog',
+		todo: 'To do',
+		'in-progress': 'In progress',
+		review: 'Review',
+		done: 'Done'
+	},
+	priority: { low: 'Low', medium: 'Medium', high: 'High' }
+};

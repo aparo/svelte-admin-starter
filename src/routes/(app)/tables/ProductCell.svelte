@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { StatusBadge, type BadgeTone, type Column } from '$lib/components/shared';
+	import StatusBadge from '$lib/core/components/shared/StatusBadge.svelte';
+	import type { BadgeTone } from '$lib/core/components/shared/StatusBadge.svelte';
+	import type { Column } from '$lib/core/components/shared/DataTable.svelte';
 	import type { DemoProduct } from '$lib/data/products';
-	import { formatCurrency, formatNumber } from '$lib/core/utils/formatters';
+	import { formatCurrency, formatNumber } from '$lib/i18n/formatters';
 
 	let { row, column }: { row: DemoProduct; column: Column<DemoProduct> } = $props();
 

@@ -16,7 +16,8 @@
 	import Download from '@lucide/svelte/icons/download';
 	import type { Component } from 'svelte';
 
-	import { PageContainer, StatCard } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import StatCard from '$lib/core/components/shared/StatCard.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import { Button } from '$lib/core/components/ui/button';
@@ -24,7 +25,7 @@
 	import { auth } from '$lib/auth';
 	import { t } from '$lib/i18n';
 	import { stats, revenueSeries, recentActivity, trafficByChannel } from '$lib/data/dashboard';
-	import { formatDate, formatNumber, initials } from '$lib/core/utils/formatters';
+	import { formatDate, formatNumber, initials } from '$lib/i18n/formatters';
 	import { exportToCsv } from '$lib/core/utils/csv';
 
 	// Map each stat to a Lucide icon (data stays icon-free per the contract).
@@ -34,12 +35,14 @@
 	const firstName = $derived(auth.user?.name?.split(' ')[0] ?? 'there');
 
 	// Today's date for the hero banner (e.g. "Monday, June 9").
-	const today = formatDate(new Date(), { weekday: 'long', month: 'long', day: 'numeric' });
+	const today = $derived(
+		formatDate(new Date(), { weekday: 'long', month: 'long', day: 'numeric' })
+	);
 
 	// Format a "2024-07" month key into a short label like "Jul".
 	function monthLabel(key: string): string {
 		const [year, month] = key.split('-').map(Number);
-		return new Date(year, month - 1, 1).toLocaleString('en-US', { month: 'short' });
+		return formatDate(new Date(year, month - 1, 1), { month: 'short' });
 	}
 
 	// --- Revenue area chart geometry (responsive via viewBox) ---
@@ -80,11 +83,8 @@
 			{ key: 'orders', header: 'Orders' }
 		]);
 	}
+	const revenueFillId = $props.id();
 </script>
-
-<svelte:head>
-	<title>Dashboard · Admin Starter</title>
-</svelte:head>
 
 <PageContainer>
 	<!-- Hero greeting -->
@@ -140,13 +140,13 @@
 					aria-label="Revenue over the last 12 months"
 				>
 					<defs>
-						<linearGradient id="revenue-fill" x1="0" y1="0" x2="0" y2="1">
+						<linearGradient id={revenueFillId} x1="0" y1="0" x2="0" y2="1">
 							<stop offset="0%" stop-color="var(--primary)" stop-opacity="0.25" />
 							<stop offset="100%" stop-color="var(--primary)" stop-opacity="0" />
 						</linearGradient>
 					</defs>
 					<!-- Area fill -->
-					<path d={areaPath} fill="url(#revenue-fill)" />
+					<path d={areaPath} fill={`url(#${revenueFillId})`} />
 					<!-- Line -->
 					<path
 						d={linePath}

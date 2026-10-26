@@ -6,10 +6,13 @@
   `@lucide/svelte/icons/<name>`.
 -->
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import type { Component } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { t } from '$lib/i18n';
-	import { PageContainer, PageHeader, SearchInput, EmptyState } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import SearchInput from '$lib/core/components/shared/SearchInput.svelte';
+	import EmptyState from '$lib/core/components/shared/EmptyState.svelte';
 	import SearchXIcon from '@lucide/svelte/icons/search-x';
 	import HouseIcon from '@lucide/svelte/icons/house';
 	import LayoutDashboardIcon from '@lucide/svelte/icons/layout-dashboard';
@@ -343,17 +346,14 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Icons · Admin Starter</title>
-</svelte:head>
-
 <PageContainer>
 	<PageHeader title={t('icons.pageTitle')} description={t('icons.pageDescription')} />
 
 	<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 		<SearchInput
+			clearLabel={t('common.clearSearch')}
 			bind:value={query}
-			placeholder={t('icons.searchPlaceholder')}
+			placeholder={t('common.searchIcons')}
 			class="sm:max-w-xs"
 		/>
 		<p class="text-muted-foreground text-sm tabular-nums">

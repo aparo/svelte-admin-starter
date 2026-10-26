@@ -1,23 +1,24 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import Eye from '@lucide/svelte/icons/eye';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { toast } from 'svelte-sonner';
-	import { DataTable, PageContainer, PageHeader } from '$lib/components/shared';
+	import DataTable from '$lib/core/components/shared/DataTable.svelte';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import { demoProducts } from '$lib/data/products';
 	import ProductCell from '../ProductCell.svelte';
 	import { columns } from '../demo';
 </script>
 
-<svelte:head><title>Data Table Actions · Admin Starter</title></svelte:head>
-
 <PageContainer>
 	<PageHeader
 		title="Row Actions"
 		description="A sticky trailing column for common record operations."
 	/>
-	<DataTable data={demoProducts.slice(0, 8)} {columns} pageSize={8}>
+	<DataTable text={t} data={demoProducts.slice(0, 8)} {columns} pageSize={8}>
 		{#snippet cell(row, column)}<ProductCell {row} {column} />{/snippet}
 		{#snippet actions(row)}<div class="flex justify-end gap-1">
 				<Button

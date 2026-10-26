@@ -6,19 +6,29 @@
   error (+error.svelte) can still render in-shell.
 -->
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth';
-	import { AppShell, logoutDialog } from '$lib/shell';
-	import { ConfirmDialog, ConfirmHost } from '$lib/components/shared';
+	import AppShell from '$lib/shell/AppShell.svelte';
+	import { logoutDialog } from '$lib/shell/logout-dialog.svelte';
+	import { leafCrumb } from '$lib/shell/breadcrumb.svelte';
+	import { tabs } from '$lib/shell/tabs.svelte';
+	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
+	import ConfirmHost from '$lib/components/shared/ConfirmHost.svelte';
 	import { config } from '$lib/config';
 	import { t } from '$lib/i18n';
+	import { USERS_STATE, createUsersState } from '$lib/features/users/state.svelte';
+	import { NOTIFICATIONS_STATE, createNotificationsState } from '$lib/stores/notifications.svelte';
 
 	let { children } = $props();
 	let ready = $state(false);
+	setContext(USERS_STATE, createUsersState());
+	setContext(NOTIFICATIONS_STATE, createNotificationsState());
 
 	onMount(() => {
+		leafCrumb.clear();
+		tabs.refreshTitles();
 		auth.init();
 		if (!auth.isAuthenticated) goto(resolve(config.auth.afterLogout));
 		else ready = true;
@@ -37,4 +47,34 @@
 		onConfirm={() => auth.logout()}
 	/>
 	<ConfirmHost />
+{:else}
+	<div
+		class="bg-background text-foreground flex min-h-svh"
+		role="status"
+		aria-label={t('common.loading')}
+	>
+		<div aria-hidden="true" class="bg-sidebar hidden w-64 shrink-0 space-y-6 border-r p-5 md:block">
+			<div class="bg-muted h-9 w-36 animate-pulse rounded-md motion-reduce:animate-none"></div>
+			<div class="space-y-3">
+				{#each Array(7) as _, index (index)}
+					<div class="bg-muted h-8 animate-pulse rounded-md motion-reduce:animate-none"></div>
+				{/each}
+			</div>
+		</div>
+		<div aria-hidden="true" class="min-w-0 flex-1">
+			<div class="flex h-14 items-center border-b px-6">
+				<div class="bg-muted h-5 w-44 animate-pulse rounded-md motion-reduce:animate-none"></div>
+			</div>
+			<div class="space-y-6 p-6">
+				<div class="bg-muted h-8 w-56 animate-pulse rounded-md motion-reduce:animate-none"></div>
+				<div class="grid gap-4 sm:grid-cols-3">
+					{#each Array(3) as _, index (index)}
+						<div class="bg-muted h-28 animate-pulse rounded-lg motion-reduce:animate-none"></div>
+					{/each}
+				</div>
+				<div class="bg-muted h-64 animate-pulse rounded-lg motion-reduce:animate-none"></div>
+			</div>
+		</div>
+		<span class="sr-only">{t('common.loading')}</span>
+	</div>
 {/if}

@@ -8,9 +8,10 @@
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
-import type { User } from './types';
-import { authProvider } from './provider';
+import { isUser, type User } from './types';
+import { authProvider, type AuthResult } from './provider';
 import { config } from '$lib/config';
+import { t } from '$lib/i18n';
 import { tabs } from '$lib/shell/tabs.svelte';
 
 const SESSION_KEY = config.auth.sessionKey;
@@ -39,7 +40,11 @@ class AuthStore {
 		try {
 			const raw = localStorage.getItem(SESSION_KEY);
 			if (raw) {
-				const parsed = JSON.parse(raw) as User;
+				const parsed: unknown = JSON.parse(raw);
+				if (!isUser(parsed)) {
+					this.#clear();
+					return;
+				}
 				// Clean up stale or missing avatarUrl references from legacy localStorage sessions
 				if (parsed.avatarUrl && parsed.avatarUrl.includes('/avatars/')) {
 					delete parsed.avatarUrl;
@@ -47,7 +52,7 @@ class AuthStore {
 				this.#user = parsed;
 			}
 		} catch {
-			this.#user = null;
+			this.#clear();
 		}
 	}
 
@@ -74,27 +79,27 @@ class AuthStore {
 		}
 	}
 
-	async login(email: string, password: string): Promise<{ ok: boolean; error?: string }> {
+	async login(email: string, password: string): Promise<AuthResult> {
 		this.#loading = true;
 		try {
 			const result = await authProvider.login(email, password);
-			if (result.ok && result.user) this.#persist(result.user);
-			return { ok: result.ok, error: result.error };
+			if (result.ok) this.#persist(result.user);
+			return result;
+		} catch {
+			return { ok: false, error: t('auth.errors.connectionFailed') };
 		} finally {
 			this.#loading = false;
 		}
 	}
 
-	async register(
-		name: string,
-		email: string,
-		password: string
-	): Promise<{ ok: boolean; error?: string }> {
+	async register(name: string, email: string, password: string): Promise<AuthResult> {
 		this.#loading = true;
 		try {
 			const result = await authProvider.register(name, email, password);
-			if (result.ok && result.user) this.#persist(result.user);
-			return { ok: result.ok, error: result.error };
+			if (result.ok) this.#persist(result.user);
+			return result;
+		} catch {
+			return { ok: false, error: t('auth.errors.connectionFailed') };
 		} finally {
 			this.#loading = false;
 		}

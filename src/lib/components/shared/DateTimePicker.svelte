@@ -1,12 +1,13 @@
 <!-- DateTimePicker — a single confirmable popover for local date and time. -->
 <script lang="ts">
 	import * as Popover from '$lib/core/components/ui/popover';
+	import PickerTrigger from './PickerTrigger.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Calendar } from '$lib/core/components/ui/calendar';
 	import { Input } from '$lib/core/components/ui/input';
 	import { cn } from '$lib/core/utils';
 	import { i18n, t } from '$lib/i18n';
-	import { getLocalTimeZone, today, type DateValue } from '@internationalized/date';
+	import { getLocalTimeZone, toCalendarDate, today, type DateValue } from '@internationalized/date';
 	import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
 	import ClockIcon from '@lucide/svelte/icons/clock-3';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
@@ -15,6 +16,7 @@
 		currentTimeValue,
 		dateValueToString,
 		formatDateTimeForDisplay,
+		isDateWithinBounds,
 		parseDateTimeValue,
 		parseDateValue,
 		parseTimeValue
@@ -28,15 +30,18 @@
 		placeholder?: string;
 		locale?: string;
 		hour12?: boolean;
+		/** Inclusive calendar-day bounds. Time components are ignored. */
 		minValue?: DateValue;
 		maxValue?: DateValue;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound value. */
 		required?: boolean;
 		clearable?: boolean;
 		class?: string;
 		onValueChange?: (value: string) => void;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -55,7 +60,8 @@
 		class: className,
 		onValueChange,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 
 	let draftDate = $state<DateValue | undefined>();
@@ -67,7 +73,9 @@
 		value ? formatDateTimeForDisplay(value, resolvedLocale, hour12) : ''
 	);
 	const draftDateString = $derived(dateValueToString(draftDate));
-	const canApply = $derived(Boolean(draftDate && parseTimeValue(draftTime)));
+	const canApply = $derived(
+		isDateWithinBounds(draftDate, minValue, maxValue) && Boolean(parseTimeValue(draftTime))
+	);
 
 	$effect(() => {
 		if (!open) return;
@@ -82,6 +90,10 @@
 	}
 
 	function commit(nextValue: string): void {
+		if (nextValue) {
+			const parsed = parseDateTimeValue(nextValue);
+			if (!parsed || !isDateWithinBounds(parsed.date, minValue, maxValue)) return;
+		}
 		value = nextValue;
 		onValueChange?.(nextValue);
 		open = false;
@@ -100,26 +112,17 @@
 
 <div class={cn('w-full', className)} data-slot="date-time-picker">
 	<Popover.Root bind:open>
-		<Popover.Trigger {disabled}>
-			{#snippet child({ props })}
-				<Button
-					{...props}
-					{id}
-					variant="outline"
-					class={cn(
-						'w-full justify-start text-left font-normal',
-						!value && 'text-muted-foreground'
-					)}
-					{disabled}
-					aria-label={ariaLabel ?? resolvedPlaceholder}
-					aria-required={required}
-					aria-invalid={ariaInvalid}
-				>
-					<CalendarClockIcon class="size-4" aria-hidden="true" />
-					<span class="min-w-0 flex-1 truncate">{displayValue || resolvedPlaceholder}</span>
-				</Button>
-			{/snippet}
-		</Popover.Trigger>
+		<PickerTrigger
+			{id}
+			icon={CalendarClockIcon}
+			{displayValue}
+			placeholder={resolvedPlaceholder}
+			{disabled}
+			{required}
+			aria-label={ariaLabel}
+			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
+		/>
 
 		<Popover.Content class="w-auto max-w-[calc(100vw-2rem)] overflow-hidden p-0" align="start">
 			<div class="grid gap-2 border-b p-3 sm:grid-cols-2">
@@ -133,8 +136,8 @@
 						type="date"
 						value={draftDateString}
 						onchange={updateDraftDate}
-						min={minValue?.toString()}
-						max={maxValue?.toString()}
+						min={minValue ? toCalendarDate(minValue).toString() : undefined}
+						max={maxValue ? toCalendarDate(maxValue).toString() : undefined}
 						class="ps-8"
 					/>
 				</label>

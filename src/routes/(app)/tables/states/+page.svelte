@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { DataTable, PageContainer, PageHeader } from '$lib/components/shared';
+	import { t } from '$lib/i18n';
+	import DataTable from '$lib/core/components/shared/DataTable.svelte';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { demoProducts } from '$lib/data/products';
 	import ProductCell from '../ProductCell.svelte';
 	import { columns } from '../demo';
 </script>
-
-<svelte:head><title>Data Table States · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader
@@ -15,11 +16,12 @@
 	<div class="grid gap-6 xl:grid-cols-2">
 		<div class="space-y-3">
 			<h2 class="font-semibold">Loading</h2>
-			<DataTable data={[]} {columns} loading pageSize={5} />
+			<DataTable text={t} data={[]} {columns} loading pageSize={5} />
 		</div>
 		<div class="space-y-3">
 			<h2 class="font-semibold">Empty</h2>
 			<DataTable
+				text={t}
 				data={[]}
 				{columns}
 				emptyTitle="No products yet"
@@ -29,7 +31,7 @@
 	</div>
 	<div class="space-y-3">
 		<h2 class="font-semibold">No search results</h2>
-		<DataTable data={demoProducts} {columns} searchable search="not-a-real-product"
+		<DataTable text={t} data={demoProducts} {columns} searchable search="not-a-real-product"
 			><!-- Custom cells demonstrate that empty search still owns the state. -->{#snippet cell(
 				row,
 				column

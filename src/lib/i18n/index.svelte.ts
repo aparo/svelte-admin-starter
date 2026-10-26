@@ -7,8 +7,9 @@ import { config } from '$lib/config';
 import en from './locales/en';
 import it from './locales/it';
 import zhCN from './locales/zh-CN';
+import type { Dictionary, Locale, TranslationKey, TranslationValues } from './types';
 
-export type Locale = 'en' | 'it' | 'zh-CN';
+export type { Dictionary, Locale, TranslationKey, TranslationValues } from './types';
 
 export const LOCALES: { value: Locale; label: string }[] = [
 	{ value: 'en', label: 'English' },
@@ -17,8 +18,6 @@ export const LOCALES: { value: Locale; label: string }[] = [
 ];
 
 const LOCALE_KEY = 'admin-starter:locale';
-
-type Dictionary = Record<string, unknown>;
 
 const dictionaries: Record<Locale, Dictionary> = {
 	en,
@@ -34,8 +33,8 @@ function isLocale(value: string | null): value is Locale {
 function resolve(dict: Dictionary, key: string): string | undefined {
 	let node: unknown = dict;
 	for (const segment of key.split('.')) {
-		if (node && typeof node === 'object' && segment in (node as Dictionary)) {
-			node = (node as Dictionary)[segment];
+		if (node && typeof node === 'object' && Object.hasOwn(node, segment)) {
+			node = (node as Record<string, unknown>)[segment];
 		} else {
 			return undefined;
 		}
@@ -44,7 +43,7 @@ function resolve(dict: Dictionary, key: string): string | undefined {
 }
 
 /** Replace {var} placeholders with provided values. */
-function interpolate(template: string, vars?: Record<string, string | number>): string {
+function interpolate(template: string, vars?: TranslationValues): string {
 	if (!vars) return template;
 	return template.replace(/\{(\w+)\}/g, (match, name: string) =>
 		name in vars ? String(vars[name]) : match
@@ -57,9 +56,14 @@ let current = $state<Locale>(config.i18n.defaultLocale);
  * Translate a dot-path key for the active locale. Falls back to the `en`
  * dictionary, then to the key itself when no entry exists.
  */
-export function t(key: string, vars?: Record<string, string | number>): string {
+export function translate(key: string, vars?: TranslationValues): string {
 	const template = resolve(dictionaries[current], key) ?? resolve(dictionaries.en, key) ?? key;
 	return interpolate(template, vars);
+}
+
+/** Typed app lookups; `translate` also accepts dynamic and portable-core keys. */
+export function t(key: TranslationKey, vars?: TranslationValues): string {
+	return translate(key, vars);
 }
 
 export const i18n: { readonly locale: Locale } = {

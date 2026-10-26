@@ -1,0 +1,33 @@
+export default {
+	title: '看板',
+	description: '按阶段规划和跟踪工作。',
+	addTask: '添加任务',
+	addTaskTo: '向{column}添加任务',
+	addTaskEmpty: '添加任务',
+	selectColumn: '选择{column}看板',
+	columnNavigation: '跳转到看板列',
+	summary: '{tasks} 个任务，分布在 {stages} 个阶段',
+	moveHint: '拖动卡片或使用其移动菜单切换列',
+	moveTask: '将{task}移动到列',
+	moveTo: '移动到列',
+	moveToColumn: '移动到{column}',
+	moveUp: '在列中上移',
+	moveDown: '在列中下移',
+	taskMoved: '已将{task}移动到{column}，位于第 {position} 位',
+	taskAdded: '任务已添加',
+	taskAddedDescription: '已向{column}添加新卡片。',
+	newTask: '新任务',
+	newTaskDescription: '添加描述、负责人和优先级。',
+	untitled: '未命名',
+	unassigned: '未分配',
+	comments: '{count} 条评论',
+	attachments: '{count} 个附件',
+	columns: {
+		backlog: '待规划',
+		todo: '待办',
+		'in-progress': '进行中',
+		review: '审核',
+		done: '已完成'
+	},
+	priority: { low: '低', medium: '中', high: '高' }
+};

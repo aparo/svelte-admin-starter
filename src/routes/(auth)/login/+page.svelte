@@ -10,16 +10,17 @@
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
-	import { PasswordInput, Spinner } from '$lib/components/shared';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
+	import PasswordInput from '$lib/core/components/shared/PasswordInput.svelte';
+	import Spinner from '$lib/core/components/shared/Spinner.svelte';
 	import { auth } from '$lib/auth';
 	import { loginSchema, fieldError } from '$lib/core/utils/validators';
 	import { config } from '$lib/config';
 	import { t } from '$lib/i18n';
+	import { pageTitle } from '$lib/utils/page-title';
 
 	let email = $state(config.auth.demo.email);
 	let password = $state(config.auth.demo.password);
-	let submitting = $state(false);
 
 	// Field errors are only shown after a submit attempt to avoid nagging.
 	let errors = $state<{ email?: string; password?: string }>({});
@@ -27,27 +28,30 @@
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		if (auth.loading) return;
 		formError = '';
 
 		const parsed = loginSchema.safeParse({ email, password });
 		if (!parsed.success) {
 			errors = {
-				email: fieldError(parsed.error, 'email'),
+				email: fieldError(parsed.error, 'email')
+					? t(email.trim() ? 'auth.errors.emailInvalid' : 'auth.errors.emailRequired')
+					: undefined,
 				password: fieldError(parsed.error, 'password')
+					? t('auth.errors.passwordRequired')
+					: undefined
 			};
 			return;
 		}
 		errors = {};
 
-		submitting = true;
 		const result = await auth.login(parsed.data.email, parsed.data.password);
-		submitting = false;
 
 		if (result.ok) {
-			toast.success(t('login.welcomeToast'));
-			goto(resolve(config.app.homePath));
+			toast.success(t('auth.signedIn'));
+			void goto(resolve(config.app.homePath));
 		} else {
-			formError = result.error ?? t('login.errorFallback');
+			formError = result.error;
 			toast.error(formError);
 		}
 	}
@@ -61,13 +65,13 @@
 </script>
 
 <svelte:head>
-	<title>Sign in · Admin Starter</title>
+	<title>{pageTitle(t('auth.signIn'))}</title>
 </svelte:head>
 
 <Card.Root class="shadow-sm">
 	<Card.Header class="space-y-1 text-center">
-		<Card.Title class="text-xl">{t('login.cardTitle')}</Card.Title>
-		<Card.Description>{t('login.cardDescription')}</Card.Description>
+		<Card.Title class="text-xl">{t('auth.welcomeBack')}</Card.Title>
+		<Card.Description>{t('auth.signInDescription')}</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
@@ -75,61 +79,62 @@
 		<button
 			type="button"
 			onclick={fillDemo}
+			disabled={auth.loading}
 			class="mb-5 w-full rounded-lg border border-dashed border-border bg-muted/50 px-3 py-2.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted"
 		>
-			{t('login.demoHint')}
+			<span class="font-medium text-foreground">{t('auth.demoCredentials')}</span> — {t(
+				'auth.autofillHint'
+			)}
 			<span class="font-mono">{config.auth.demo.email}</span> /
 			<span class="font-mono">{config.auth.demo.password}</span>
 		</button>
 
-		<form class="space-y-4" onsubmit={handleSubmit} novalidate>
-			<div class="space-y-2">
-				<Label for="email">{t('auth.email')}</Label>
-				<Input
-					id="email"
-					type="email"
-					autocomplete="email"
-					placeholder="you@example.com"
-					bind:value={email}
-					aria-invalid={errors.email ? 'true' : undefined}
-				/>
-				{#if errors.email}
-					<p class="text-xs text-red-500">{errors.email}</p>
-				{/if}
-			</div>
+		<form class="space-y-4" onsubmit={handleSubmit} aria-busy={auth.loading} novalidate>
+			<FormField label={t('auth.email')} error={errors.email}>
+				{#snippet children(control)}
+					<Input
+						{...control}
+						type="email"
+						autocomplete="email"
+						placeholder="you@example.com"
+						bind:value={email}
+					/>
+				{/snippet}
+			</FormField>
 
-			<div class="space-y-2">
-				<div class="flex items-center justify-between">
-					<Label for="password">{t('auth.password')}</Label>
+			<FormField label={t('auth.password')} error={errors.password}>
+				{#snippet labelAction()}
 					<a
 						href={resolve('/forgot-password')}
 						class="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
 					>
-						{t('login.forgotPassword')}
+						{t('auth.forgotPassword')}
 					</a>
-				</div>
-				<PasswordInput
-					id="password"
-					autocomplete="current-password"
-					placeholder="••••••••"
-					bind:value={password}
-					aria-invalid={errors.password ? 'true' : undefined}
-				/>
-				{#if errors.password}
-					<p class="text-xs text-red-500">{errors.password}</p>
-				{/if}
-			</div>
+				{/snippet}
+				{#snippet children(control)}
+					<PasswordInput
+						{...control}
+						autocomplete="current-password"
+						placeholder="••••••••"
+						bind:value={password}
+						showLabel={t('auth.showPassword')}
+						hideLabel={t('auth.hidePassword')}
+					/>
+				{/snippet}
+			</FormField>
 
 			{#if formError}
-				<p class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-red-500">{formError}</p>
+				<p role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+					{formError}
+				</p>
 			{/if}
 
-			<Button type="submit" class="w-full" disabled={submitting}>
-				{#if submitting}
+			<Button type="submit" class="w-full" disabled={auth.loading}>
+				{#if auth.loading}
 					<Spinner class="size-4 text-primary-foreground" />
-					{t('login.submitting')}
+					{t('auth.signingIn')}
 				{:else}
-					{t('login.submit')}
+					{t('auth.signIn')}
 				{/if}
 			</Button>
 		</form>
@@ -137,12 +142,12 @@
 
 	<Card.Footer class="justify-center">
 		<p class="text-sm text-muted-foreground">
-			{t('login.noAccount')}
+			{t('auth.noAccount')}
 			<a
 				href={resolve('/register')}
 				class="font-medium text-foreground underline-offset-4 hover:underline"
 			>
-				{t('login.signUp')}
+				{t('auth.signUp')}
 			</a>
 		</p>
 	</Card.Footer>

@@ -12,5 +12,6 @@ yarn.lock
 .env.*
 *.log
 
-# Claude Code tooling dir (skills/config) — docs, not app source
-.claude/
+# Browser test artifacts
+/playwright-report/
+/test-results/

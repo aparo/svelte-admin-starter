@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import * as Card from '$lib/core/components/ui/card';
 	import { Input } from '$lib/core/components/ui/input';
@@ -10,9 +11,8 @@
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
 	}
+	const instanceId = $props.id();
 </script>
-
-<svelte:head><title>Create item · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader title="Create item" description="Add a new item." />
@@ -20,8 +20,8 @@
 		<Card.Root>
 			<Card.Content class="space-y-4 pt-6">
 				<div class="grid gap-2">
-					<Label for="name">Name</Label>
-					<Input id="name" bind:value={name} required />
+					<Label for={`${instanceId}-name`}>Name</Label>
+					<Input id={`${instanceId}-name`} bind:value={name} required />
 				</div>
 				<Button type="submit">Save</Button>
 			</Card.Content>

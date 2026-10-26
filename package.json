@@ -1,7 +1,7 @@
 {
 	"name": "svelte-admin-starter",
 	"description": "Production-grade SvelteKit + Svelte 5 + Tailwind v4 + shadcn-svelte admin dashboard starter — frontend-only, mock data, clone-and-go.",
-	"version": "1.4.2",
+	"version": "2.0.2",
 	"private": true,
 	"license": "MIT",
 	"type": "module",
@@ -19,12 +19,14 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test": "vitest run",
-		"verify": "npm run check && npm run lint && npm test && npm run build && npm run check:export"
+		"verify": "npm run check && npm run lint && npm test && npm run build && npm run check:export",
+		"test:e2e": "tsc --noEmit -p e2e/tsconfig.json && playwright test"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@internationalized/date": "^3.12.2",
 		"@lucide/svelte": "^1.28.0",
+		"@playwright/test": "^1.64.1",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.70.2",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
@@ -51,14 +53,13 @@
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.61.0",
 		"vaul-svelte": "^1.0.0-next.7",
-		"vite": "^8.2.0",
-		"vitest": "^4.1.10"
+		"vite": "^8.3.5",
+		"vitest": "^4.1.11"
 	},
 	"dependencies": {
 		"@fontsource-variable/geist": "^5.2.9",
 		"@fontsource-variable/geist-mono": "^5.2.8",
 		"clsx": "^2.1.1",
-		"date-fns": "^4.1.0",
 		"mode-watcher": "^1.1.0",
 		"svelte-sonner": "^1.0.7",
 		"tailwind-merge": "^3.4.0",

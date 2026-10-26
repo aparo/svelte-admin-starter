@@ -10,6 +10,7 @@
 	import type { Pathname } from '$app/types';
 	import * as Command from '$lib/core/components/ui/command';
 	import { navGroups } from '$lib/shell/nav';
+	import { resolveAppUrl } from '$lib/shell/paths';
 	import { t } from '$lib/i18n';
 
 	interface Props {
@@ -20,8 +21,9 @@
 
 	function runCommand(href: Pathname) {
 		open = false;
+		// The shared boundary calls $app/paths.resolve and preserves app-relative URLs.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(href);
+		void goto(resolveAppUrl(href));
 	}
 
 	function onKeydown(event: KeyboardEvent) {

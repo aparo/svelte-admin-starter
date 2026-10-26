@@ -5,31 +5,33 @@
 -->
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { Button } from '$lib/core/components/ui/button';
 	import { t } from '$lib/i18n';
 	import House from '@lucide/svelte/icons/house';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import { config } from '$lib/config';
+	import { pageTitle } from '$lib/utils/page-title';
 
 	const isNotFound = $derived(page.status === 404);
 
 	const headline = $derived(
 		page.status === 404
-			? t('errors.notFound')
+			? t('error.notFoundTitle')
 			: page.status === 403
-				? t('errors.accessDenied')
+				? t('error.forbiddenTitle')
 				: page.status >= 500
-					? t('errors.somethingWrong')
-					: t('errors.unexpectedError')
+					? t('error.serverTitle')
+					: t('error.unexpectedTitle')
 	);
 
 	const description = $derived(
 		page.status === 404
-			? t('errors.notFoundDesc')
+			? t('error.notFoundDescription')
 			: page.status === 403
-				? t('errors.accessDeniedDesc')
-				: (page.error?.message ?? t('errors.unexpectedDesc'))
+				? t('error.forbiddenDescription')
+				: (page.error?.message ?? t('error.unexpectedDescription'))
 	);
 
 	function goBack() {
@@ -41,7 +43,7 @@
 </script>
 
 <svelte:head>
-	<title>{page.status} · Admin Starter</title>
+	<title>{pageTitle(page.status)}</title>
 </svelte:head>
 
 <div
@@ -57,9 +59,9 @@
 		<div
 			class="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md text-sm font-bold"
 		>
-			A
+			{config.app.logo}
 		</div>
-		<span class="text-sm font-semibold tracking-tight">{t('errors.brandLabel')}</span>
+		<span class="text-sm font-semibold tracking-tight">{config.app.name}</span>
 	</div>
 
 	<p
@@ -74,19 +76,19 @@
 	</div>
 
 	<div class="relative mt-6 flex flex-wrap items-center justify-center gap-2">
-		<Button href={config.app.homePath}>
+		<Button href={resolve(config.app.homePath)}>
 			<House class="size-4" aria-hidden="true" />
-			{t('errors.goToDashboard')}
+			{t('error.goHome')}
 		</Button>
 		{#if isNotFound}
 			<Button variant="outline" onclick={goBack}>
 				<ArrowLeft class="size-4" aria-hidden="true" />
-				{t('errors.goBack')}
+				{t('error.goBack')}
 			</Button>
 		{:else}
 			<Button variant="outline" onclick={reload}>
 				<RotateCcw class="size-4" aria-hidden="true" />
-				{t('errors.tryAgain')}
+				{t('common.retry')}
 			</Button>
 		{/if}
 	</div>

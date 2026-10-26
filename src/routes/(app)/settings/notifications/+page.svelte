@@ -5,11 +5,12 @@
 <script lang="ts">
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
-	import { Switch } from '$lib/core/components/ui/switch';
+	import PreferenceRow from '$lib/core/components/shared/PreferenceRow.svelte';
+	import { t } from '$lib/i18n';
 	import { Separator } from '$lib/core/components/ui/separator';
 	import { toast } from 'svelte-sonner';
-	import { t } from '$lib/i18n';
 	import type { Component } from 'svelte';
+	import type { TranslationKey } from '$lib/i18n';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
@@ -17,15 +18,15 @@
 
 	interface Preference {
 		id: string;
-		label: string;
-		description: string;
+		label: TranslationKey;
+		description: TranslationKey;
 		enabled: boolean;
 	}
 
 	interface PreferenceGroup {
 		id: string;
-		title: string;
-		description: string;
+		title: TranslationKey;
+		description: TranslationKey;
 		icon: Component;
 		preferences: Preference[];
 	}
@@ -34,66 +35,66 @@
 	let groups = $state<PreferenceGroup[]>([
 		{
 			id: 'email',
-			title: t('notificationsPage.emailGroup'),
-			description: t('notificationsPage.emailGroupDesc'),
+			title: 'notificationSettings.email',
+			description: 'notificationSettings.emailDescription',
 			icon: Mail,
 			preferences: [
 				{
 					id: 'email-product',
-					label: t('notificationsPage.productUpdates'),
-					description: t('notificationsPage.productUpdatesDesc'),
+					label: 'notificationSettings.product',
+					description: 'notificationSettings.productDescription',
 					enabled: true
 				},
 				{
 					id: 'email-security',
-					label: t('notificationsPage.securityAlerts'),
-					description: t('notificationsPage.securityAlertsDesc'),
+					label: 'notificationSettings.security',
+					description: 'notificationSettings.securityDescription',
 					enabled: true
 				},
 				{
 					id: 'email-marketing',
-					label: 'Marketing',
-					description: 'Tips, offers, and announcements.',
+					label: 'notificationSettings.marketing',
+					description: 'notificationSettings.marketingDescription',
 					enabled: false
 				}
 			]
 		},
 		{
 			id: 'push',
-			title: t('notificationsPage.pushGroup'),
-			description: t('notificationsPage.pushGroupDesc'),
+			title: 'notificationSettings.push',
+			description: 'notificationSettings.pushDescription',
 			icon: Smartphone,
 			preferences: [
 				{
 					id: 'push-activity',
-					label: 'Account activity',
-					description: 'Mentions, comments, and assignments.',
+					label: 'notificationSettings.activity',
+					description: 'notificationSettings.activityDescription',
 					enabled: true
 				},
 				{
 					id: 'push-reminders',
-					label: 'Reminders',
-					description: 'Scheduled tasks and follow-ups.',
+					label: 'notificationSettings.reminders',
+					description: 'notificationSettings.remindersDescription',
 					enabled: false
 				}
 			]
 		},
 		{
 			id: 'sms',
-			title: t('notificationsPage.smsGroup'),
-			description: t('notificationsPage.smsGroupDesc'),
+			title: 'notificationSettings.sms',
+			description: 'notificationSettings.smsDescription',
 			icon: MessageSquare,
 			preferences: [
 				{
 					id: 'sms-security',
-					label: 'Security codes',
-					description: 'One-time codes for verification.',
+					label: 'notificationSettings.codes',
+					description: 'notificationSettings.codesDescription',
 					enabled: true
 				},
 				{
 					id: 'sms-alerts',
-					label: 'Urgent alerts',
-					description: 'High-priority account warnings.',
+					label: 'notificationSettings.alerts',
+					description: 'notificationSettings.alertsDescription',
 					enabled: false
 				}
 			]
@@ -107,15 +108,11 @@
 	}
 
 	function savePreferences(): void {
-		toast.success(t('notificationsPage.savedToast'), {
-			description: t('notificationsPage.savedDescription')
+		toast.success(t('notificationSettings.saved'), {
+			description: t('notificationSettings.savedDescription')
 		});
 	}
 </script>
-
-<svelte:head>
-	<title>Notifications · Admin Starter</title>
-</svelte:head>
 
 {#each groups as group (group.id)}
 	<Card.Root>
@@ -127,8 +124,8 @@
 					<group.icon class="size-4" />
 				</div>
 				<div>
-					<Card.Title>{group.title}</Card.Title>
-					<Card.Description>{group.description}</Card.Description>
+					<Card.Title>{t(group.title)}</Card.Title>
+					<Card.Description>{t(group.description)}</Card.Description>
 				</div>
 			</div>
 		</Card.Header>
@@ -137,16 +134,12 @@
 				{#if i > 0}
 					<Separator class="my-1" />
 				{/if}
-				<div class="flex items-center justify-between gap-4 py-2">
-					<div class="min-w-0 space-y-0.5">
-						<p class="text-sm font-medium">{pref.label}</p>
-						<p class="text-muted-foreground text-sm">{pref.description}</p>
-					</div>
-					<Switch
-						checked={pref.enabled}
-						onCheckedChange={(value) => setPreference(group.id, pref.id, value)}
-					/>
-				</div>
+				<PreferenceRow
+					label={t(pref.label)}
+					description={t(pref.description)}
+					checked={pref.enabled}
+					onCheckedChange={(value) => setPreference(group.id, pref.id, value)}
+				/>
 			{/each}
 		</Card.Content>
 	</Card.Root>
@@ -155,6 +148,6 @@
 <div class="flex justify-end">
 	<Button onclick={savePreferences}>
 		<Save class="size-4" />
-		{t('notificationsPage.savePreferences')}
+		{t('notificationSettings.save')}
 	</Button>
 </div>

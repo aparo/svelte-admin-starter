@@ -1,5 +1,5 @@
-// In-memory notifications store (mock). Seeded with a few demo items so the
-// header bell has something to show. Runes singleton — import `notifications`.
+// One notification feed per authenticated app layout, shared by its tabs.
+import { getContext } from 'svelte';
 
 export interface AppNotification {
 	id: string;
@@ -45,8 +45,14 @@ const seed: AppNotification[] = [
 	}
 ];
 
-class NotificationsStore {
-	#items = $state<AppNotification[]>(seed);
+export const NOTIFICATIONS_STATE = Symbol('notifications-state');
+
+export class NotificationsStore {
+	#items = $state<AppNotification[]>([]);
+
+	constructor(initial: readonly AppNotification[] = seed) {
+		this.#items = initial.map((item) => ({ ...item }));
+	}
 
 	get items(): AppNotification[] {
 		return this.#items;
@@ -69,4 +75,12 @@ class NotificationsStore {
 	}
 }
 
-export const notifications = new NotificationsStore();
+export function createNotificationsState(initial?: readonly AppNotification[]): NotificationsStore {
+	return new NotificationsStore(initial);
+}
+
+export function useNotificationsState(): NotificationsStore {
+	const state = getContext<NotificationsStore | undefined>(NOTIFICATIONS_STATE);
+	if (!state) throw new Error('Notifications must be initialized by the app layout.');
+	return state;
+}

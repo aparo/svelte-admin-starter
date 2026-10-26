@@ -1,6 +1,8 @@
 // Navigation model for the admin shell: grouped sidebar routes + lookup helper.
 import type { Component } from 'svelte';
 import type { Pathname } from '$app/types';
+import type { TranslationKey } from '$lib/i18n';
+import { toRouteId } from '$lib/core/shell/route-registry';
 import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 import Users from '@lucide/svelte/icons/users';
 import CalendarDays from '@lucide/svelte/icons/calendar-days';
@@ -19,14 +21,14 @@ import User from '@lucide/svelte/icons/user';
 import Settings from '@lucide/svelte/icons/settings';
 
 export interface NavItem {
-	titleKey: string;
+	titleKey: TranslationKey;
 	href: Pathname;
 	icon: Component;
 	badge?: string | number;
 }
 
 export interface NavGroup {
-	labelKey: string;
+	labelKey: TranslationKey;
 	items: NavItem[];
 }
 
@@ -88,11 +90,15 @@ export function filterNavGroups(groups: NavGroup[], routes: ReadonlySet<string>)
 		.filter((group) => group.items.length > 0);
 }
 
-const appRoutes = new Set(
-	Object.keys(import.meta.glob('/src/routes/**/+page.svelte'))
-		.filter((file) => file.includes('/(app)/'))
-		.map((file) => file.slice('/src/routes/(app)'.length, -'/+page.svelte'.length))
-);
+export function appRoutePaths(files: Iterable<string>): Set<string> {
+	return new Set(
+		Array.from(files)
+			.filter((file) => file.includes('/(app)/'))
+			.map((file) => toRouteId(file, '/+page.svelte'))
+	);
+}
+
+const appRoutes = appRoutePaths(Object.keys(import.meta.glob('/src/routes/**/+page.svelte')));
 
 /** Only render configured destinations whose route still exists. */
 export const navGroups = filterNavGroups(configuredNavGroups, appRoutes);

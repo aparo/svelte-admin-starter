@@ -10,21 +10,22 @@
 <script lang="ts">
 	import * as Card from '$lib/core/components/ui/card';
 	import * as Chart from '$lib/core/components/ui/chart';
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { revenueSeries, trafficByChannel } from '$lib/data/dashboard';
-	import { formatCurrency, formatNumber } from '$lib/core/utils/formatters';
+	import { formatCurrency, formatDate, formatNumber } from '$lib/i18n/formatters';
 	import { PieChart } from 'layerchart';
 	import { t } from '$lib/i18n';
 
 	// Turn the "2025-06" month strings into short labels like "Jun" for the axes.
 	function monthLabel(date: string): string {
 		const d = new Date(`${date}-01T00:00:00`);
-		return d.toLocaleDateString('en-US', { month: 'short' });
+		return formatDate(d, { month: 'short' });
 	}
 
 	// Pre-shape the series so accessors stay simple string keys.
 	const revenueData = revenueSeries.map((r) => ({
-		month: monthLabel(r.date),
+		month: r.date,
 		revenue: r.revenue,
 		orders: r.orders
 	}));
@@ -77,11 +78,8 @@
 		trafficData.map((d, i) => [d.channel, { label: d.channel, color: palette[i % palette.length] }])
 	) satisfies Chart.ChartConfig;
 	const totalVisitors = trafficData.reduce((sum, d) => sum + d.visitors, 0);
+	const revenueFillId = $props.id();
 </script>
-
-<svelte:head>
-	<title>Charts · Admin Starter</title>
-</svelte:head>
 
 {#snippet yAxis(ticks: number[], niceMax: number, fmt: (v: number) => string)}
 	<div class="relative w-14 shrink-0" style="height: {CHART_H}px" aria-hidden="true">
@@ -99,7 +97,7 @@
 {#snippet xMonths()}
 	<div class="text-muted-foreground mt-2 flex justify-between text-xs">
 		{#each revenueData as d (d.month)}
-			<span>{d.month}</span>
+			<span>{monthLabel(d.month)}</span>
 		{/each}
 	</div>
 {/snippet}
@@ -127,7 +125,7 @@
 							aria-label={t('charts.revenueDescription')}
 						>
 							<defs>
-								<linearGradient id="rev-area" x1="0" y1="0" x2="0" y2="1">
+								<linearGradient id={revenueFillId} x1="0" y1="0" x2="0" y2="1">
 									<stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.25" />
 									<stop offset="100%" stop-color="var(--chart-1)" stop-opacity="0" />
 								</linearGradient>
@@ -143,7 +141,7 @@
 									vector-effect="non-scaling-stroke"
 								/>
 							{/each}
-							<path d={revArea} fill="url(#rev-area)" />
+							<path d={revArea} fill={`url(#${revenueFillId})`} />
 							<path
 								d={revLine}
 								fill="none"

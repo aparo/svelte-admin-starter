@@ -1,7 +1,9 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Pencil from '@lucide/svelte/icons/pencil';
-	import { PageContainer, PageHeader, StatusBadge } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import StatusBadge from '$lib/core/components/shared/StatusBadge.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import * as Card from '$lib/core/components/ui/card';
 
@@ -12,8 +14,6 @@
 		['Visibility', 'Workspace']
 	];
 </script>
-
-<svelte:head><title>Detail Template · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<Button variant="ghost" class="w-fit"><ArrowLeft class="size-4" />Back to projects</Button>

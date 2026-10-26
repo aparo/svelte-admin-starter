@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import * as Card from '$lib/core/components/ui/card';
 	import { Label } from '$lib/core/components/ui/label';
@@ -8,9 +9,8 @@
 	let updates = $state(true);
 	let security = $state(true);
 	const sections = ['General', 'Notifications', 'Security', 'Integrations'];
+	const instanceId = $props.id();
 </script>
-
-<svelte:head><title>Settings Template · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader
@@ -32,24 +32,24 @@
 			><Card.Content class="divide-y"
 				><div class="flex items-center justify-between gap-4 py-4">
 					<div>
-						<Label for="updates">Product updates</Label>
+						<Label for={`${instanceId}-updates`}>Product updates</Label>
 						<p class="text-sm text-muted-foreground">Receive important release announcements.</p>
 					</div>
 					<Switch
-						id="updates"
+						id={`${instanceId}-updates`}
 						checked={updates}
 						onCheckedChange={(checked) => (updates = checked)}
 					/>
 				</div>
 				<div class="flex items-center justify-between gap-4 py-4">
 					<div>
-						<Label for="security">Security alerts</Label>
+						<Label for={`${instanceId}-security`}>Security alerts</Label>
 						<p class="text-sm text-muted-foreground">
 							Get notified about unusual account activity.
 						</p>
 					</div>
 					<Switch
-						id="security"
+						id={`${instanceId}-security`}
 						checked={security}
 						onCheckedChange={(checked) => (security = checked)}
 					/>

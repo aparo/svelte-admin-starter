@@ -3,7 +3,9 @@
 	import FolderKanban from '@lucide/svelte/icons/folder-kanban';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import Clock from '@lucide/svelte/icons/clock';
-	import { PageContainer, PageHeader, StatCard } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import StatCard from '$lib/core/components/shared/StatCard.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 
 	const stats = [
@@ -18,8 +20,6 @@
 		'Billing migration was completed'
 	];
 </script>
-
-<svelte:head><title>Dashboard Template · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader

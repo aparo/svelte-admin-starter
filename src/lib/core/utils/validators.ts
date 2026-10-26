@@ -3,12 +3,18 @@
 
 import { z } from 'zod';
 
+/** A trimmed email address with optional application-provided messages. */
+export function createEmailSchema(
+	messages: { required: string; invalid: string } = {
+		required: 'Email is required',
+		invalid: 'Enter a valid email address'
+	}
+): z.ZodString {
+	return z.string().trim().min(1, messages.required).email(messages.invalid);
+}
+
 /** A trimmed, well-formed email address. */
-export const emailSchema: z.ZodString = z
-	.string()
-	.trim()
-	.min(1, 'Email is required')
-	.email('Enter a valid email address');
+export const emailSchema: z.ZodString = createEmailSchema();
 
 /** Credentials accepted by the login form. */
 export const loginSchema = z.object({

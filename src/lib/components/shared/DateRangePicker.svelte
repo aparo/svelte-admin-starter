@@ -1,6 +1,7 @@
 <!-- DateRangePicker — a two-month interactive calendar popover for date range selection. -->
 <script lang="ts">
 	import * as Popover from '$lib/core/components/ui/popover';
+	import PickerTrigger from './PickerTrigger.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import { RangeCalendar } from '$lib/core/components/ui/range-calendar';
 	import { cn } from '$lib/core/utils';
@@ -26,12 +27,14 @@
 		minValue?: DateValue;
 		maxValue?: DateValue;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound range. */
 		required?: boolean;
 		clearable?: boolean;
 		class?: string;
 		onValueChange?: (value: DateRange | undefined) => void;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -50,7 +53,8 @@
 		class: className,
 		onValueChange,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 
 	const resolvedLocale = $derived(locale ?? i18n.locale);
@@ -79,26 +83,17 @@
 
 <div class={cn('w-full', className)} data-slot="date-range-picker">
 	<Popover.Root bind:open>
-		<Popover.Trigger {disabled}>
-			{#snippet child({ props })}
-				<Button
-					{...props}
-					{id}
-					variant="outline"
-					class={cn(
-						'w-full justify-start text-left font-normal',
-						!displayValue && 'text-muted-foreground'
-					)}
-					{disabled}
-					aria-label={ariaLabel ?? resolvedPlaceholder}
-					aria-required={required}
-					aria-invalid={ariaInvalid}
-				>
-					<CalendarIcon class="size-4 shrink-0" aria-hidden="true" />
-					<span class="min-w-0 flex-1 truncate">{displayValue || resolvedPlaceholder}</span>
-				</Button>
-			{/snippet}
-		</Popover.Trigger>
+		<PickerTrigger
+			{id}
+			icon={CalendarIcon}
+			{displayValue}
+			placeholder={resolvedPlaceholder}
+			{disabled}
+			{required}
+			aria-label={ariaLabel}
+			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
+		/>
 
 		<Popover.Content class="w-auto max-w-[calc(100vw-2rem)] overflow-hidden p-0" align="start">
 			<div class="flex items-center justify-between gap-4 border-b px-4 py-3">

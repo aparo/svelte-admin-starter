@@ -9,10 +9,11 @@
 	import * as Card from '$lib/core/components/ui/card';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
-	import { Spinner } from '$lib/components/shared';
-	import { emailSchema, fieldError } from '$lib/core/utils/validators';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
+	import Spinner from '$lib/core/components/shared/Spinner.svelte';
+	import { emailSchema } from '$lib/core/utils/validators';
 	import { t } from '$lib/i18n';
+	import { pageTitle } from '$lib/utils/page-title';
 
 	let email = $state('');
 	let submitting = $state(false);
@@ -21,15 +22,17 @@
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		if (submitting) return;
 		error = '';
 
 		const result = emailSchema.safeParse(email);
 		if (!result.success) {
-			error = fieldError(result.error, '') ?? t('forgotPassword.emailInvalid');
+			error = t(email.trim() ? 'auth.errors.emailInvalid' : 'auth.errors.emailRequired');
 			return;
 		}
 
 		submitting = true;
+		email = result.data;
 		// Simulate a request round-trip for a realistic mock experience.
 		await new Promise((resolve) => setTimeout(resolve, 600));
 		submitting = false;
@@ -38,7 +41,7 @@
 </script>
 
 <svelte:head>
-	<title>Reset password · Admin Starter</title>
+	<title>{pageTitle(t('auth.resetPassword'))}</title>
 </svelte:head>
 
 <Card.Root class="shadow-sm">
@@ -49,46 +52,43 @@
 			>
 				<MailCheck class="size-6" aria-hidden="true" />
 			</div>
-			<Card.Title class="text-xl">{t('forgotPassword.sentTitle')}</Card.Title>
+			<Card.Title class="text-xl">{t('auth.checkInbox')}</Card.Title>
 			<Card.Description>
-				{t('forgotPassword.sentDescription', { email })}
+				{t('auth.resetSent', { email })}
 			</Card.Description>
 		</Card.Header>
 		<Card.Footer class="justify-center">
-			<Button href="/login" variant="outline" class="w-full">
+			<Button href={resolve('/login')} variant="outline" class="w-full">
 				<ArrowLeft class="size-4" aria-hidden="true" />
-				{t('forgotPassword.backToSignIn')}
+				{t('auth.backToSignIn')}
 			</Button>
 		</Card.Footer>
 	{:else}
 		<Card.Header class="space-y-1 text-center">
-			<Card.Title class="text-xl">{t('forgotPassword.cardTitle')}</Card.Title>
-			<Card.Description>{t('forgotPassword.cardDescription')}</Card.Description>
+			<Card.Title class="text-xl">{t('auth.forgotTitle')}</Card.Title>
+			<Card.Description>{t('auth.resetDescription')}</Card.Description>
 		</Card.Header>
 
 		<Card.Content>
-			<form class="space-y-4" onsubmit={handleSubmit} novalidate>
-				<div class="space-y-2">
-					<Label for="email">{t('auth.email')}</Label>
-					<Input
-						id="email"
-						type="email"
-						autocomplete="email"
-						placeholder="you@example.com"
-						bind:value={email}
-						aria-invalid={error ? 'true' : undefined}
-					/>
-					{#if error}
-						<p class="text-xs text-red-500">{error}</p>
-					{/if}
-				</div>
+			<form class="space-y-4" onsubmit={handleSubmit} aria-busy={submitting} novalidate>
+				<FormField label={t('auth.email')} {error}>
+					{#snippet children(control)}
+						<Input
+							{...control}
+							type="email"
+							autocomplete="email"
+							placeholder="you@example.com"
+							bind:value={email}
+						/>
+					{/snippet}
+				</FormField>
 
 				<Button type="submit" class="w-full" disabled={submitting}>
 					{#if submitting}
 						<Spinner class="size-4 text-primary-foreground" />
-						{t('forgotPassword.sending')}
+						{t('auth.sending')}
 					{:else}
-						{t('forgotPassword.submit')}
+						{t('auth.sendReset')}
 					{/if}
 				</Button>
 			</form>
@@ -100,7 +100,7 @@
 				class="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
 			>
 				<ArrowLeft class="size-4" aria-hidden="true" />
-				{t('forgotPassword.footerLink')}
+				{t('auth.backToSignIn')}
 			</a>
 		</Card.Footer>
 	{/if}

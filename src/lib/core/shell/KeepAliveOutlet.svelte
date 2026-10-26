@@ -18,20 +18,24 @@
 	short pages therefore have the same content width and do not shift on switch.
 -->
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { SvelteMap } from 'svelte/reactivity';
+	import { untrack, type Snippet } from 'svelte';
 	import { cn } from '../utils';
 	import { Button } from '../components/ui/button';
 	import Spinner from '../components/shared/Spinner.svelte';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import type { TabsState } from './tabs.svelte';
 	import LayoutChain from './LayoutChain.svelte';
+	import { TabRouteCache, type TabRoute } from './tab-route';
 
 	interface Props {
 		children: Snippet;
 		tabs: TabsState;
 		currentUrl: string;
 		currentData: unknown;
+		currentPathname?: string;
+		currentLocation?: URL;
+		currentParams?: Record<string, string>;
+		currentForm?: unknown;
 		routeError: unknown;
 		translate: (key: string) => string;
 		loadRoute: (pathname: string, revision?: number) => Promise<import('svelte').Component[]>;
@@ -43,6 +47,10 @@
 		tabs,
 		currentUrl,
 		currentData,
+		currentPathname,
+		currentLocation,
+		currentParams,
+		currentForm,
 		routeError,
 		translate,
 		loadRoute,
@@ -55,61 +63,68 @@
 		routeLoadRevision += 1;
 	}
 
-	// Snapshot each route's load data under its own pathname so inactive tabs keep
-	// the data they last had while the global page.data follows the active route.
-	const dataCache = new SvelteMap<string, unknown>();
-	$effect(() => {
-		if (currentData !== undefined) dataCache.set(currentUrl, currentData);
+	const routes = new TabRouteCache();
+	const currentRoute = $derived.by((): TabRoute | undefined => {
+		if (routeError || currentData === undefined) return undefined;
+		return {
+			pathname: currentPathname ?? currentUrl.split('?')[0],
+			url: new URL(
+				currentLocation ?? currentUrl,
+				typeof location === 'undefined' ? 'http://localhost/' : location.href
+			),
+			params: { ...currentParams },
+			data: currentData,
+			form: currentForm
+		};
 	});
-	function dataFor(url: string): unknown | undefined {
-		if (url === currentUrl && currentData !== undefined) return currentData;
-		return dataCache.get(url);
-	}
-	// Release a tab's cached data once it closes.
+	// Route data can land before afterNavigate selects its tab. Cache the landed
+	// snapshot first, then attach it only to the matching active tab.
 	$effect(() => {
-		const open = new Set<string>(tabs.items.map((t) => t.url));
-		for (const key of dataCache.keys()) if (!open.has(key)) dataCache.delete(key);
+		const items = tabs.items.map(({ id, url, route }) => ({ id, url, route }));
+		const active = tabs.active;
+		const url = currentUrl;
+		const route = currentRoute;
+		untrack(() => routes.sync(items, active, url, route));
 	});
 </script>
 
 <div class="relative min-h-0 flex-1">
+	{#each tabs.items as tab (tab.id)}
+		{@const active = !routeError && tab.id === tabs.active}
+		{@const route = routes.get(tab.id)}
+		<div
+			class={cn('absolute inset-0 [scrollbar-gutter:stable] overflow-auto', !active && 'hidden')}
+		>
+			{#key tab.revision}
+				{#if route === undefined}
+					<div class="flex h-full items-center justify-center">
+						<Spinner class="text-primary size-6" />
+					</div>
+				{:else}
+					{#await loadRoute(tab.href, routeLoadRevision)}
+						<div class="flex h-full items-center justify-center">
+							<Spinner class="text-primary size-6" />
+						</div>
+					{:then components}
+						<LayoutChain {components} {active} {route} data={route.data} />
+					{:catch}
+						<div class="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+							<p class="text-muted-foreground text-sm">
+								{translate('error.unexpectedDescriptionApp')}
+							</p>
+							<Button variant="outline" onclick={() => retryRoute(tab.href)}>
+								<RotateCcw class="size-4" aria-hidden="true" />
+								{translate('common.retry')}
+							</Button>
+						</div>
+					{/await}
+				{/if}
+			{/key}
+		</div>
+	{/each}
 	{#if routeError}
 		<div class="absolute inset-0 [scrollbar-gutter:stable] overflow-auto">
 			{@render children()}
 		</div>
-	{:else}
-		{#each tabs.items as tab (tab.id)}
-			{@const active = tab.id === tabs.active}
-			{@const tabData = dataFor(tab.url)}
-			<div
-				class={cn('absolute inset-0 [scrollbar-gutter:stable] overflow-auto', !active && 'hidden')}
-			>
-				{#key tab.revision}
-					{#if tabData === undefined}
-						<div class="flex h-full items-center justify-center">
-							<Spinner class="text-primary size-6" />
-						</div>
-					{:else}
-						{#await loadRoute(tab.href, routeLoadRevision)}
-							<div class="flex h-full items-center justify-center">
-								<Spinner class="text-primary size-6" />
-							</div>
-						{:then components}
-							<LayoutChain {components} {active} data={tabData} />
-						{:catch}
-							<div class="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-								<p class="text-muted-foreground text-sm">
-									{translate('error.unexpectedDescriptionApp')}
-								</p>
-								<Button variant="outline" onclick={() => retryRoute(tab.href)}>
-									<RotateCcw class="size-4" aria-hidden="true" />
-									{translate('common.retry')}
-								</Button>
-							</div>
-						{/await}
-					{/if}
-				{/key}
-			</div>
-		{/each}
 	{/if}
 </div>

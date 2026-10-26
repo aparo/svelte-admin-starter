@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { PageContainer, PageHeader, StatCard } from '$lib/components/shared';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
+	import StatCard from '$lib/core/components/shared/StatCard.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 
 	const stats = [
@@ -7,8 +9,6 @@
 		{ title: 'Active', value: 0 }
 	];
 </script>
-
-<svelte:head><title>Overview · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader title="Overview" description="A summary of your data." />

@@ -68,51 +68,69 @@ function buildPages(current: number, totalPages: number, siblings = 1): number[]
 	return [first, -1, ...middle, -1, last];
 }
 
+function integer(value: number, minimum: number, fallback: number): number {
+	return Number.isFinite(value) ? Math.max(minimum, Math.trunc(value)) : fallback;
+}
+
+/** Derive consistent, finite bounds and controls without lifecycle effects. */
+export function getPaginationState(page: number, pageSize: number, total: number) {
+	pageSize = integer(pageSize, 1, PAGE_SIZE_OPTIONS[0]!);
+	total = integer(total, 0, 0);
+	const totalPages = Math.max(1, Math.ceil(total / pageSize));
+	page = Math.min(integer(page, 1, 1), totalPages);
+	const offset = (page - 1) * pageSize;
+
+	return {
+		page,
+		pageSize,
+		total,
+		totalPages,
+		offset,
+		start: total === 0 ? 0 : offset + 1,
+		end: Math.min(page * pageSize, total),
+		hasPrev: page > 1,
+		hasNext: page < totalPages,
+		pages: buildPages(page, totalPages)
+	};
+}
+
 /**
  * Create a pagination controller. All fields are reactive; `page`, `pageSize`
  * and `total` are assignable, while derived fields are read-only.
  */
 export function usePagination(opts: PaginationOptions = {}): Pagination {
-	let page = $state(Math.max(1, opts.initialPage ?? 1));
-	let pageSize = $state(opts.pageSize ?? PAGE_SIZE_OPTIONS[0]!);
-	let total = $state(opts.total ?? 0);
-
-	const totalPages = $derived(Math.max(1, Math.ceil(total / pageSize)));
-	// Keep the active page within bounds as total/pageSize change.
-	const clampedPage = $derived(Math.min(Math.max(page, 1), totalPages));
-	const start = $derived(total === 0 ? 0 : (clampedPage - 1) * pageSize + 1);
-	const end = $derived(Math.min(clampedPage * pageSize, total));
-	const hasPrev = $derived(clampedPage > 1);
-	const hasNext = $derived(clampedPage < totalPages);
-	const pages = $derived(buildPages(clampedPage, totalPages));
+	let page = $state(integer(opts.initialPage ?? 1, 1, 1));
+	let pageSize = $state(integer(opts.pageSize ?? PAGE_SIZE_OPTIONS[0]!, 1, PAGE_SIZE_OPTIONS[0]!));
+	let total = $state(integer(opts.total ?? 0, 0, 0));
+	const state = $derived(getPaginationState(page, pageSize, total));
 
 	function setPage(p: number): void {
-		page = Math.min(Math.max(Math.trunc(p), 1), totalPages);
+		page = getPaginationState(p, pageSize, total).page;
 	}
 
 	function next(): void {
-		if (hasNext) page = clampedPage + 1;
+		if (state.hasNext) page = state.page + 1;
 	}
 
 	function prev(): void {
-		if (hasPrev) page = clampedPage - 1;
+		if (state.hasPrev) page = state.page - 1;
 	}
 
 	function setTotal(n: number): void {
-		total = Math.max(0, Math.trunc(n));
+		total = integer(n, 0, 0);
 		// Re-clamp so we never sit past the new last page.
-		page = Math.min(Math.max(page, 1), Math.max(1, Math.ceil(total / pageSize)));
+		setPage(page);
 	}
 
 	function setPageSize(n: number): void {
-		pageSize = Math.max(1, Math.trunc(n));
+		pageSize = integer(n, 1, PAGE_SIZE_OPTIONS[0]!);
 		// Reset to the first page on a page-size change for predictable UX.
 		page = 1;
 	}
 
 	return {
 		get page() {
-			return clampedPage;
+			return state.page;
 		},
 		set page(p: number) {
 			setPage(p);
@@ -130,22 +148,22 @@ export function usePagination(opts: PaginationOptions = {}): Pagination {
 			setTotal(n);
 		},
 		get totalPages() {
-			return totalPages;
+			return state.totalPages;
 		},
 		get start() {
-			return start;
+			return state.start;
 		},
 		get end() {
-			return end;
+			return state.end;
 		},
 		get hasPrev() {
-			return hasPrev;
+			return state.hasPrev;
 		},
 		get hasNext() {
-			return hasNext;
+			return state.hasNext;
 		},
 		get pages() {
-			return pages;
+			return state.pages;
 		},
 		setPage,
 		next,

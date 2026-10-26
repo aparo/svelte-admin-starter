@@ -9,14 +9,16 @@
 	import * as Avatar from '$lib/core/components/ui/avatar';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Input } from '$lib/core/components/ui/input';
-	import { Label } from '$lib/core/components/ui/label';
+	import FormField from '$lib/core/components/shared/FormField.svelte';
+	import LanguageSelect from '$lib/features/settings/LanguageSelect.svelte';
 	import { Badge } from '$lib/core/components/ui/badge';
 	import { Separator } from '$lib/core/components/ui/separator';
 	import { toast } from 'svelte-sonner';
 	import { auth } from '$lib/auth';
 	import { logoutDialog } from '$lib/shell';
-	import { setLocale, LOCALES, i18n, t, type Locale } from '$lib/i18n';
-	import { initials } from '$lib/core/utils/formatters';
+	import { t } from '$lib/i18n';
+	import { roleLabel } from '$lib/features/users/presentation';
+	import { initials } from '$lib/i18n/formatters';
 	import Save from '@lucide/svelte/icons/save';
 
 	// A small, static list of common timezones for the mock Select.
@@ -35,112 +37,73 @@
 	let supportEmail = $state('support@acme.example');
 	let timezone = $state('UTC');
 
-	// Language is bound to the live i18n locale and applied immediately on change.
-	let language = $state<Locale>(i18n.locale);
-
 	const timezoneLabel = $derived(
-		timezones.find((tz) => tz.value === timezone)?.label ?? 'Select timezone'
-	);
-	const languageLabel = $derived(
-		LOCALES.find((l) => l.value === language)?.label ?? 'Select language'
+		timezones.find((tz) => tz.value === timezone)?.label ?? t('settingsForm.selectTimezone')
 	);
 
 	const user = $derived(auth.user);
 
-	function onLanguageChange(value: string): void {
-		language = value as Locale;
-		setLocale(language);
-	}
-
 	function saveGeneral(event: SubmitEvent): void {
 		event.preventDefault();
 		// No backend — just confirm the (local) change.
-		toast.success(t('settings.savedToast'), {
-			description: t('settings.savedDescription')
+		toast.success(t('settingsForm.saved'), {
+			description: t('settingsForm.savedDescription')
 		});
 	}
 </script>
 
-<svelte:head>
-	<title>General Settings · Admin Starter</title>
-</svelte:head>
-
 <form onsubmit={saveGeneral} class="space-y-6">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{t('settings.orgTitle')}</Card.Title>
+			<Card.Title>{t('settingsForm.organization')}</Card.Title>
 			<Card.Description>
-				{t('settings.orgDescription')}
+				{t('settingsForm.organizationDescription')}
 			</Card.Description>
 		</Card.Header>
 		<Card.Content class="space-y-5">
-			<div class="grid gap-2">
-				<Label for="org-name">{t('settings.orgName')}</Label>
-				<Input id="org-name" bind:value={orgName} placeholder="Acme Inc." />
-			</div>
-
-			<div class="grid gap-2">
-				<Label for="support-email">{t('settings.supportEmail')}</Label>
-				<Input
-					id="support-email"
-					type="email"
-					bind:value={supportEmail}
-					placeholder="support@example.com"
-				/>
-				<p class="text-muted-foreground text-xs">
-					{t('settings.emailNote')}
-				</p>
-			</div>
-
+			<FormField label={t('settingsForm.organizationName')}>
+				{#snippet children(control)}
+					<Input {...control} bind:value={orgName} placeholder="Acme Inc." />
+				{/snippet}
+			</FormField>
+			<FormField label={t('settingsForm.supportEmail')} description={t('settingsForm.supportHint')}>
+				{#snippet children(control)}
+					<Input
+						{...control}
+						type="email"
+						bind:value={supportEmail}
+						placeholder="support@example.com"
+					/>
+				{/snippet}
+			</FormField>
 			<div class="grid gap-5 sm:grid-cols-2">
-				<div class="grid gap-2">
-					<Label for="timezone">{t('settings.timezone')}</Label>
-					<Select.Root type="single" bind:value={timezone}>
-						<Select.Trigger id="timezone" class="w-full">
-							{timezoneLabel}
-						</Select.Trigger>
-						<Select.Content>
-							{#each timezones as tz (tz.value)}
-								<Select.Item value={tz.value} label={tz.label}>
-									{tz.label}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
-
-				<div class="grid gap-2">
-					<Label for="language">{t('settings.language')}</Label>
-					<Select.Root type="single" value={language} onValueChange={onLanguageChange}>
-						<Select.Trigger id="language" class="w-full">
-							{languageLabel}
-						</Select.Trigger>
-						<Select.Content>
-							{#each LOCALES as locale (locale.value)}
-								<Select.Item value={locale.value} label={locale.label}>
-									{locale.label}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<p class="text-muted-foreground text-xs">
-						{t('settings.timezoneNote')}
-					</p>
-				</div>
+				<FormField label={t('settingsForm.timezone')}>
+					{#snippet children(control)}
+						<Select.Root type="single" bind:value={timezone}>
+							<Select.Trigger {...control} class="w-full">{timezoneLabel}</Select.Trigger>
+							<Select.Content>
+								{#each timezones as tz (tz.value)}
+									<Select.Item value={tz.value} label={tz.label}>{tz.label}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					{/snippet}
+				</FormField>
+				<LanguageSelect />
 			</div>
 		</Card.Content>
 		<Card.Footer class="justify-end border-t">
 			<Button type="submit">
 				<Save class="size-4" />
-				{t('settings.saveChanges')}
+				{t('settingsForm.save')}
 			</Button>
 		</Card.Footer>
 	</Card.Root>
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{t('settings.accountTitle')}</Card.Title>
-			<Card.Description>{t('settings.accountDescription')}</Card.Description>
+			<Card.Title>{t('common.account')}</Card.Title>
+			<Card.Description>{t('settingsForm.accountDescription')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -155,13 +118,13 @@
 					</Avatar.Root>
 					<div class="min-w-0">
 						<div class="flex items-center gap-2">
-							<p class="truncate font-medium">{user?.name ?? t('settings.guest')}</p>
+							<p class="truncate font-medium">{user?.name ?? t('common.guest')}</p>
 							{#if user}
-								<Badge variant="secondary" class="capitalize">{user.role}</Badge>
+								<Badge variant="secondary" class="capitalize">{roleLabel(user.role)}</Badge>
 							{/if}
 						</div>
 						<p class="text-muted-foreground truncate text-sm">
-							{user?.email ?? t('settings.notSignedIn')}
+							{user?.email ?? t('settingsForm.notSignedIn')}
 						</p>
 					</div>
 				</div>
@@ -171,12 +134,12 @@
 					class="text-destructive hover:text-destructive"
 					onclick={() => (logoutDialog.open = true)}
 				>
-					{t('settings.signOut')}
+					{t('common.logout')}
 				</Button>
 			</div>
 			<Separator class="my-4" />
 			<p class="text-muted-foreground text-xs">
-				{t('settings.demoNote')}
+				{t('settingsForm.demoAccount')}
 			</p>
 		</Card.Content>
 	</Card.Root>

@@ -1,6 +1,7 @@
 <!-- DatePicker — a form-ready, confirmable calendar popover. -->
 <script lang="ts">
 	import * as Popover from '$lib/core/components/ui/popover';
+	import PickerTrigger from './PickerTrigger.svelte';
 	import { Button } from '$lib/core/components/ui/button';
 	import { Calendar } from '$lib/core/components/ui/calendar';
 	import { cn } from '$lib/core/utils';
@@ -8,7 +9,12 @@
 	import type { DateValue } from '@internationalized/date';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import XIcon from '@lucide/svelte/icons/x';
-	import { dateValueToString, formatDateForDisplay, parseDateValue } from './date-time-utils';
+	import {
+		dateValueToString,
+		formatDateForDisplay,
+		isDateWithinBounds,
+		parseDateValue
+	} from './date-time-utils';
 
 	interface Props {
 		value?: string;
@@ -20,12 +26,16 @@
 		minValue?: DateValue;
 		maxValue?: DateValue;
 		disabled?: boolean;
+		/** Announces a required field. Parent forms must validate the bound value. */
 		required?: boolean;
 		clearable?: boolean;
+		/** Commit calendar selections immediately instead of requiring Apply. */
+		commitOnSelect?: boolean;
 		class?: string;
 		onValueChange?: (value: string) => void;
 		'aria-label'?: string;
 		'aria-invalid'?: boolean | 'true' | 'false';
+		'aria-describedby'?: string;
 	}
 
 	let {
@@ -40,22 +50,26 @@
 		disabled = false,
 		required = false,
 		clearable = true,
+		commitOnSelect = false,
 		class: className,
 		onValueChange,
 		'aria-label': ariaLabel,
-		'aria-invalid': ariaInvalid
+		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby
 	}: Props = $props();
 
 	let draftValue = $state<DateValue | undefined>();
 	const resolvedLocale = $derived(locale ?? i18n.locale);
 	const resolvedPlaceholder = $derived(placeholder ?? t('dateTimePicker.pickDate'));
 	const displayValue = $derived(value ? formatDateForDisplay(value, resolvedLocale) : '');
+	const canApply = $derived(isDateWithinBounds(draftValue, minValue, maxValue));
 
 	$effect(() => {
 		if (open) draftValue = parseDateValue(value);
 	});
 
 	function commit(nextValue: string): void {
+		if (nextValue && !isDateWithinBounds(parseDateValue(nextValue), minValue, maxValue)) return;
 		value = nextValue;
 		onValueChange?.(nextValue);
 		open = false;
@@ -64,26 +78,17 @@
 
 <div class={cn('w-full', className)} data-slot="date-picker">
 	<Popover.Root bind:open>
-		<Popover.Trigger {disabled}>
-			{#snippet child({ props })}
-				<Button
-					{...props}
-					{id}
-					variant="outline"
-					class={cn(
-						'w-full justify-start text-left font-normal',
-						!value && 'text-muted-foreground'
-					)}
-					{disabled}
-					aria-label={ariaLabel ?? resolvedPlaceholder}
-					aria-required={required}
-					aria-invalid={ariaInvalid}
-				>
-					<CalendarIcon class="size-4" aria-hidden="true" />
-					<span class="min-w-0 flex-1 truncate">{displayValue || resolvedPlaceholder}</span>
-				</Button>
-			{/snippet}
-		</Popover.Trigger>
+		<PickerTrigger
+			{id}
+			icon={CalendarIcon}
+			{displayValue}
+			placeholder={resolvedPlaceholder}
+			{disabled}
+			{required}
+			aria-label={ariaLabel}
+			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedby}
+		/>
 
 		<Popover.Content class="w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden p-0" align="start">
 			<div class="flex items-center justify-between gap-4 border-b px-4 py-3">
@@ -104,6 +109,9 @@
 				locale={resolvedLocale}
 				captionLayout="dropdown"
 				class="mx-auto w-fit"
+				onValueChange={(nextValue) => {
+					if (commitOnSelect) commit(dateValueToString(nextValue));
+				}}
 			/>
 			<div class="flex items-center justify-between gap-2 border-t p-3">
 				{#if clearable}
@@ -118,13 +126,15 @@
 					<Button variant="ghost" size="sm" onclick={() => (open = false)}>
 						{t('common.cancel')}
 					</Button>
-					<Button
-						size="sm"
-						disabled={!draftValue}
-						onclick={() => commit(dateValueToString(draftValue))}
-					>
-						{t('dateTimePicker.apply')}
-					</Button>
+					{#if !commitOnSelect}
+						<Button
+							size="sm"
+							disabled={!canApply}
+							onclick={() => commit(dateValueToString(draftValue))}
+						>
+							{t('dateTimePicker.apply')}
+						</Button>
+					{/if}
 				</div>
 			</div>
 		</Popover.Content>

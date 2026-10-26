@@ -1,18 +1,19 @@
 <script lang="ts">
-	import { DataTable, PageContainer, PageHeader } from '$lib/components/shared';
+	import { t } from '$lib/i18n';
+	import DataTable from '$lib/core/components/shared/DataTable.svelte';
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import { demoProducts } from '$lib/data/products';
 	import ProductCell from '../ProductCell.svelte';
 	import { columns } from '../demo';
 </script>
-
-<svelte:head><title>Searchable Data Table · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader
 		title="Search & Sort"
 		description="Search marked columns and sort from the table headers."
 	/>
-	<DataTable data={demoProducts} {columns} searchable pageSize={8}>
+	<DataTable text={t} data={demoProducts} {columns} searchable pageSize={8}>
 		{#snippet cell(row, column)}<ProductCell {row} {column} />{/snippet}
 	</DataTable>
 </PageContainer>

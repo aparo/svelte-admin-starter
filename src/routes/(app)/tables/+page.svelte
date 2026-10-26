@@ -1,6 +1,7 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- table sub-routes are typed Pathname values validated by SvelteKit. */
-	import { PageContainer, PageHeader } from '$lib/components/shared';
+	/* eslint-disable svelte/no-navigation-without-resolve -- typed nav paths are already validated by SvelteKit. */
+	import PageContainer from '$lib/core/components/shared/PageContainer.svelte';
+	import PageHeader from '$lib/core/components/shared/PageHeader.svelte';
 	import * as Card from '$lib/core/components/ui/card';
 	import { t } from '$lib/i18n';
 	import List from '@lucide/svelte/icons/list';
@@ -31,8 +32,6 @@
 		{ href: '/tables/states', title: 'States', icon: Loader }
 	];
 </script>
-
-<svelte:head><title>Data Tables · Admin Starter</title></svelte:head>
 
 <PageContainer>
 	<PageHeader title={t('tables.pageTitle')} description={t('tables.pageDescription')} />

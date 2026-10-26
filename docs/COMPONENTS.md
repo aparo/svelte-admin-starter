@@ -16,6 +16,7 @@
   - [EmptyState](#emptystate)
   - [Spinner](#spinner)
   - [SearchInput](#searchinput)
+  - [FormField](#formfield)
   - [DatePicker / TimePicker / DateTimePicker](#datepicker--timepicker--datetimepicker)
   - [ConfirmDialog](#confirmdialog)
   - [ThemeToggle](#themetoggle)
@@ -44,6 +45,8 @@
 portable shell 依赖 core 的 shared 与 ui，core 不依赖应用层。
 
 项目不设独立「组件模板」层。仅调整尺寸、样式、文案或局部结构时，优先使用现有组件的 props、snippets 与 variants；一次性组合留在业务页面，只有同一产品行为在多个页面重复出现时，才提升到 `src/lib/components/shared/`。页面骨架另放在 `templates/pages/`，只用于复制生成，不参与运行时依赖；`/components`、`/icons`、`/charts` 只展示组件，`/templates/*` 则专门预览页面布局。
+
+领域组件放在 `src/lib/features/<domain>/`：用户编辑器与校验归 `users`，订单详情、状态时间线与 CSV 投影归 `orders`，邮件列表、阅读视图与页面状态归 `inbox`。`sales/LineItemsEditor.svelte` 包含发票字段和税额预览，`clients/QuickCreateClient.svelte` 包含客户创建流程；二者不属于 portable core，原 shared 文件与 barrel 保留兼容入口。发票行类型、ID 分配和金额预览函数统一放在 `features/sales/line-items.ts`。目录行通过可选的 `catalogItemId` 保留商品身份；`allow_multiple` 按该 ID 判断，不依赖可编辑的描述。旧数据和自定义行没有 ID 时不会按描述猜测归属，接入方应为已有目录行补齐 ID。
 
 ---
 
@@ -123,7 +126,7 @@ CLI 会把组件源码写入 `src/lib/core/components/ui/<component>/`。**删�
 
 ## 3. Shared 复用业务组件
 
-全部从 barrel 统一导入（`src/lib/components/shared/index.ts`）：
+运行时代码优先从 canonical 文件直接导入，例如 `$lib/core/components/shared/PageHeader.svelte`；日期时间、确认与命令菜单等应用组件使用 `$lib/components/shared/<Name>.svelte`。下列兼容 barrel（`src/lib/components/shared/index.ts`）仍保留原 API：
 
 ```svelte
 import {
@@ -140,7 +143,7 @@ import {
 
 ### PageContainer
 
-`src/lib/components/shared/PageContainer.svelte` — 每个页面的标准居中内容容器，提供统一的最大宽度、响应式内边距与垂直间距（`mx-auto w-full max-w-7xl p-4 sm:p-6 space-y-6`）。
+`src/lib/core/components/shared/PageContainer.svelte` — 每个页面的标准居中内容容器，提供统一的最大宽度、响应式内边距与垂直间距（`mx-auto w-full max-w-7xl p-4 sm:p-6 space-y-6`）。
 
 | prop       | 类型      | 默认值      | bindable | 说明              |
 | ---------- | --------- | ----------- | -------- | ----------------- |
@@ -158,7 +161,7 @@ import {
 
 ### PageHeader
 
-`src/lib/components/shared/PageHeader.svelte` — 页面标题块，含可选描述与右侧 action 插槽（按钮、菜单等）。小屏自动堆叠。
+`src/lib/core/components/shared/PageHeader.svelte` — 页面标题块，含可选描述与右侧 action 插槽（按钮、菜单等）。小屏自动堆叠。
 
 | prop          | 类型      | 默认值      | bindable | 说明                         |
 | ------------- | --------- | ----------- | -------- | ---------------------------- |
@@ -182,7 +185,7 @@ import {
 
 ### StatCard
 
-`src/lib/components/shared/StatCard.svelte` — 基于 `Card` 原语的 KPI 磁贴。展示标题、大数值、可选前置图标，以及可选趋势（带色箭头 + 百分比）。`change` 是带符号数字（如 `12.5` → `+12.5%`），`trend` 决定颜色；若不传 `trend` 则由 `change` 的正负自动推断。
+`src/lib/core/components/shared/StatCard.svelte` — 基于 `Card` 原语的 KPI 磁贴。展示标题、大数值、可选前置图标，以及可选趋势（带色箭头 + 百分比）。`change` 是带符号数字（如 `12.5` → `+12.5%`），`trend` 决定颜色；若不传 `trend` 则由 `change` 的正负自动推断。
 
 视觉细节（来自源码）：图标渲染为右上角的靛蓝**图标芯片**（`bg-primary/10 text-primary`、`rounded-lg`、`size-9`）；趋势渲染为带底色的**药丸**（`up` → 翠绿、`down` → 红色、`neutral` → 中性 `bg-muted` 底）而非松散文字；数值与趋势百分比用 `tabular-nums` 等宽数字对齐；整卡有细微的 hover 提升（`transition-shadow hover:shadow-md`）。
 
@@ -211,7 +214,7 @@ import {
 
 ### StatusBadge
 
-`src/lib/components/shared/StatusBadge.svelte` — 统一上色的状态/角色药丸（pill）。在基础 `Badge` 原语之上，按语义化的 `tone` 解析出柔和底色 + 匹配文字色，把全站「角色 / 状态」标签的配色约定收敛到**单一来源**：页面只选 `tone`，不再各自手写颜色类。Users / Tables / Orders / Billing 等页面均复用它来渲染角色与状态。
+`src/lib/core/components/shared/StatusBadge.svelte` — 统一上色的状态/角色药丸（pill）。在基础 `Badge` 原语之上，按语义化的 `tone` 解析出柔和底色 + 匹配文字色，把全站「角色 / 状态」标签的配色约定收敛到**单一来源**：页面只选 `tone`，不再各自手写颜色类。Users / Tables / Orders / Billing 等页面均复用它来渲染角色与状态。
 
 `StatusBadge` 与类型 `BadgeTone` 都从 `$lib/components/shared` barrel 导出。
 
@@ -256,7 +259,7 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ### EmptyState
 
-`src/lib/components/shared/EmptyState.svelte` — 列表/表格/区域无内容时的居中占位。含可选图标、标题、描述与 action 插槽（如「创建」按钮）。
+`src/lib/core/components/shared/EmptyState.svelte` — 列表/表格/区域无内容时的居中占位。含可选图标、标题、描述与 action 插槽（如「创建」按钮）。
 
 | prop          | 类型        | 默认值      | bindable | 说明             |
 | ------------- | ----------- | ----------- | -------- | ---------------- |
@@ -286,7 +289,7 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ### Spinner
 
-`src/lib/components/shared/Spinner.svelte` — 极简、可访问的加载指示器，包装 Lucide `loader-circle` 图标并加 `animate-spin`。尺寸/颜色通过合并到 `class` 控制（默认 `size-4 animate-spin text-muted-foreground`）。
+`src/lib/core/components/shared/Spinner.svelte` — 极简、可访问的加载指示器，包装 Lucide `loader-circle` 图标并加 `animate-spin`。尺寸/颜色通过合并到 `class` 控制（默认 `size-4 animate-spin text-muted-foreground`）。
 
 | prop    | 类型     | 默认值      | bindable | 说明                                    |
 | ------- | -------- | ----------- | -------- | --------------------------------------- |
@@ -300,7 +303,7 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ### SearchInput
 
-`src/lib/components/shared/SearchInput.svelte` — 带前置搜索图标的文本框，以及仅在有值时出现的尾部清除（x）按钮。`value` 可绑定。
+`src/lib/core/components/shared/SearchInput.svelte` — 带前置搜索图标的文本框，以及仅在有值时出现的尾部清除（x）按钮。`value` 可绑定。清空后自动将焦点送回输入框，支持键盘和鼠标连续搜索。
 
 | prop          | 类型     | 默认值        | bindable | 说明                          |
 | ------------- | -------- | ------------- | -------- | ----------------------------- |
@@ -319,17 +322,53 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ---
 
+### FormField
+
+`src/lib/core/components/shared/FormField.svelte` — 本地状态表单使用的字段外壳，统一标签、说明与错误提示，不依赖应用 i18n 或 SuperForms。已有 `ui/form` 仍用于 formsnap / SuperForms 表单。
+
+必填 `label` 和 `children` snippet；可选 `error`、`description`、`id`、`labelAction` 和容器 HTML 属性。`id` 指向输入控件，省略时生成实例唯一 ID。snippet 接收 `id`、`aria-invalid` 和 `aria-describedby`，应将它们传给实际输入控件或 Select 的 Trigger。错误使用 `role="alert"`，说明与错误可同时被控件引用。
+
+```svelte
+<script lang="ts">
+	import FormField from '$lib/core/components/shared/FormField.svelte';
+	import { Input } from '$lib/core/components/ui/input';
+	let email = $state('');
+	let error = $state<string>();
+</script>
+
+<FormField label="Email" {error} description="Use your work address">
+	{#snippet children(control)}
+		<Input {...control} type="email" bind:value={email} />
+	{/snippet}
+</FormField>
+```
+
+用户编辑校验使用 `features/users/schema.ts` 的 `createUserSchema(t)`，在提交时根据当前语言构建完整 schema（包含 `status`）；可复用的邮箱规则来自 core 的 `createEmailSchema`。core 既有 `emailSchema`、`loginSchema`、`userSchema` 导出保持兼容。
+
+---
+
+### PreferenceRow
+
+`src/lib/core/components/shared/PreferenceRow.svelte` 组合偏好名称、可选说明与开关。接收 `label`、`description`、可绑定的 `checked`、`disabled`、`onCheckedChange` 和 `class`，自动生成每个实例独立的 ID 并关联标签与说明。通知设置使用此组件；翻译和保存逻辑留在调用页面。
+
+---
+
 ### DatePicker / TimePicker / DateTimePicker
 
-三个可确认、可清除的日期时间表单组件，均组合现有的 `Popover`、`Calendar`、`Input` 和 `Button` 原语，并自动跟随主题与中英文 locale。它们使用可直接提交和序列化的本地时间字符串，不在组件内部做时区转换：
+日期时间表单组件组合现有的 `Popover`、`Calendar`、`Input` 和 `Button` 原语，并自动跟随主题与中英文 locale。单值组件使用可直接提交和序列化的本地时间字符串，不在组件内部做时区转换：
 
-| 组件             | `value` 格式       | 主要交互                                          |
-| ---------------- | ------------------ | ------------------------------------------------- |
-| `DatePicker`     | `YYYY-MM-DD`       | 月历、月份/年份下拉、最小/最大日期                |
-| `TimePicker`     | `HH:mm`            | 带指针的可拖拽表盘、小时/分钟切换、12/24 小时显示 |
-| `DateTimePicker` | `YYYY-MM-DDTHH:mm` | 日期输入、时间输入、月历、快捷「现在」            |
+| 组件              | `value` 格式        | 主要交互                                                        |
+| ----------------- | ------------------- | --------------------------------------------------------------- |
+| `DatePicker`      | `YYYY-MM-DD`        | 月历、月份/年份下拉、最小/最大日期                              |
+| `TimePicker`      | `HH:mm`             | 带指针的可拖拽表盘、小时/分钟切换、12/24 小时显示               |
+| `DateTimePicker`  | `YYYY-MM-DDTHH:mm`  | 日期输入、时间输入、月历、快捷「现在」                          |
+| `DateRangePicker` | bits-ui `DateRange` | 日期范围；有 name 时输出 `{name}_start` / `{name}_end` 隐藏字段 |
 
 共同 props 包括可双向绑定的 `value` 与 `open`，以及 `id`、`name`、`placeholder`、`locale`、`disabled`、`required`、`clearable`、`class`、`onValueChange` 和 aria 属性。`DatePicker` / `DateTimePicker` 另支持 `minValue`、`maxValue`；`TimePicker` / `DateTimePicker` 支持 `hour12`。
+
+四种选择器共用内部 `PickerTrigger.svelte`，集中维护触发按钮、图标、占位符与无障碍属性，包括 `aria-describedby`，可直接接收 `FormField` 的 control 属性。只有调用方显式提供 `aria-label` 才覆盖关联的字段标签，默认使用标签或按钮文本作为可访问名称。各自保留弹层内容和提交语义：日期、时间与日期时间默认通过 Apply 提交草稿，日期范围即时更新；`DatePicker` 可设置 `commitOnSelect` 以选中即提交并关闭，Forms 页面使用此模式。Cancel / Close 不应被统一为同一种状态操作。
+
+`DatePicker` / `DateTimePicker` 的确认操作会检查包含边界当天的日期范围；`DateTimePicker` 的 min/max 只限制日期，边界中的时间部分不限制当天的时刻。合法可选秒会规范为分钟精度。`required` 用 `aria-required` 向辅助技术声明必填；隐藏提交字段不参与浏览器 required 校验，父表单必须校验绑定值（范围组件也需校验起止日期）。外部传入的值不会被静默改写为边界值。
 
 ```svelte
 <script lang="ts">
@@ -384,7 +423,7 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ### ThemeToggle
 
-`src/lib/components/shared/ThemeToggle.svelte` — ghost 图标按钮，通过 `mode-watcher` 的 `toggleMode` 切换明/暗主题。暗色显示 Sun、亮色显示 Moon，并做交叉淡入过渡。**无 props**。
+`src/lib/core/components/shared/ThemeToggle.svelte` — ghost 图标按钮，通过 `mode-watcher` 的 `toggleMode` 切换明/暗主题。暗色显示 Sun、亮色显示 Moon，并做交叉淡入过渡。可选 `lightLabel` / `darkLabel` 注入目标主题的无障碍文案，默认分别为 `Switch to light theme` / `Switch to dark theme`。
 
 ```svelte
 <script lang="ts">
@@ -436,16 +475,20 @@ type BadgeTone = 'neutral' | 'outline' | 'brand' | 'success' | 'warning' | 'dang
 
 ### DataTable
 
-`src/lib/components/shared/DataTable.svelte` — 通用的**纯客户端**数据表（无后端）。这是 shared 层最核心的组件。
+`src/lib/core/components/shared/DataTable.svelte` — 支持客户端数据或外部 server 分页回调的数据表，组件本身不执行后端访问。应用兼容入口保留原有 API。
 
-**特性（全部在客户端）：**
+服务端表格的 `server` 参数支持可选 `sortKey: string | null` 和 `sortDirection: 'asc' | 'desc'`。提供 `sortKey` 即采用受控排序：表头箭头、`aria-sort` 和下次排序方向都读取调用方状态，`onSortChange` 仅发出请求；返回新数据时由调用方更新排序状态。`sortKey: null` 表示清除排序。省略这两个字段的旧调用保持内部排序指示行为；组件始终不会自行重排服务端传入的数据。
+
+**特性：**
 
 - 对标记 `searchable` 的列做文本搜索
 - 对标记 `sortable` 的列点击排序（asc → desc → asc）
-- 通过 `usePagination` hook + `ui/pagination` 原语分页
+- 通过纯 `getPaginationState` 派生分页边界与 `ui/pagination` 控件，SSR 首次渲染即可显示正确行数、计数和按钮状态
 - 可选行选择（复选框列，`selected` 可绑定）
 - 加载骨架态；无数据时渲染 `EmptyState`
 - 自定义单元格（`cell`）、每行操作（`actions`）、工具栏（`toolbar`）三个 snippet 钩子
+- 可选 `text` 翻译回调，portable core 默认英文；应用传入 `$lib/i18n` 的 `translate` 桥接本地字典
+- 排序表头通过 `aria-sort` 反映当前方向
 
 **视觉约定（来自源码）：**
 
@@ -484,6 +527,7 @@ export interface Column<T> {
 | `selectable`       | `boolean`                 | `false`                                | 否       | 是否显示行选择复选框列                     |
 | `loading`          | `boolean`                 | `false`                                | 否       | 显示骨架行                                 |
 | `pageSize`         | `number`                  | `10`                                   | 否       | 每页行数                                   |
+| `text`             | `DataTableText`           | 英文回调                               | 否       | 表格、搜索和分页文案，应用可传 `translate` |
 | `emptyTitle`       | `string`                  | `'No results'`                         | 否       | 空态标题                                   |
 | `emptyDescription` | `string`                  | `'There is nothing to show here yet.'` | 否       | 空态描述                                   |
 | `selected`         | `(string \| number)[]`    | `[]`                                   | **是**   | 已选行的 id 列表，`bind:selected`          |
@@ -599,7 +643,7 @@ const columns: Column<DemoUser>[] = [
 </DataTable>
 ```
 
-> `selected` 与 `users` 在父组件中是 `$state`，`bind:selected` 让批量删除/导出能读到当前选择。表格内部用 `usePagination` 管理分页，并随筛选/排序结果自动更新 `total` 与回到第 1 页。
+> `bind:selected` 让批量删除/导出能读到当前选择。Users 页使用 app layout context 的共享演示状态；每个 app 实例单独创建，不修改模块级种子。表格在渲染时从当前数据、查询和页码派生可见行与分页，筛选/排序后回到第 1 页，首次 SSR 不依赖客户端 effect。
 >
 > 注意 `columns` 现含 `role`、`status` 两列，二者都通过页面的 `roleTone()` / `statusTone()` 映射为 `BadgeTone` 后交给 `StatusBadge` 渲染（见 Users 页源码）。行操作已从下拉菜单改为内联的 View / Edit / Delete 图标按钮。
 
@@ -644,31 +688,30 @@ Users 页的 add / edit / view 已从居中的 `Dialog` 改为右侧 **`Sheet` �
 
 ## 4. Shell 布局外壳
 
-从 barrel 导入（`src/lib/shell/index.ts`）：
+运行时代码优先直接导入组件；`src/lib/shell/index.ts` 保留兼容导出：
 
-```svelte
-import {(AppShell, AppSidebar, AppHeader, Breadcrumbs, NotificationsMenu, navGroups, findNavItem)} from
-'$lib/shell'; import type {(NavItem, NavGroup)} from '$lib/shell';
+```ts
+import AppShell from '$lib/shell/AppShell.svelte';
+import { navGroups, findNavItem } from '$lib/shell/nav';
+import type { NavItem, NavGroup } from '$lib/shell/nav';
 ```
 
 ### AppShell 组合方式
 
-`src/lib/shell/AppShell.svelte` 是顶层后台布局：`Sidebar.Provider` 包裹 `AppSidebar` 与 `Sidebar.Inset`（内含 `AppHeader` + `<main>`）。
+`src/lib/shell/AppShell.svelte` 是顶层后台布局：`Sidebar.Provider` 包裹 `AppSidebar` 与 `Sidebar.Inset`（内含 `AppHeader`、TabBar 与 KeepAliveOutlet）。
 
-| prop       | 类型      | 默认值   | bindable | 说明                      |
-| ---------- | --------- | -------- | -------- | ------------------------- |
-| `children` | `Snippet` | （必填） | 否       | 页面内容，渲染进 `<main>` |
+| prop       | 类型      | 默认值   | bindable | 说明                                                   |
+| ---------- | --------- | -------- | -------- | ------------------------------------------------------ |
+| `children` | `Snippet` | （必填） | 否       | 转交 Kit 的错误页 children；正常页面由 keep-alive 渲染 |
 
 ```svelte
 <!-- 典型用法：在 (app) 路由组的 +layout.svelte 中 -->
 <script lang="ts">
-	import { AppShell } from '$lib/shell';
+	import AppShell from '$lib/shell/AppShell.svelte';
 	let { children } = $props();
 </script>
 
-<AppShell>
-	{@render children()}
-</AppShell>
+<AppShell {children} />
 ```
 
 结构（来自源码）：
@@ -678,12 +721,15 @@ import {(AppShell, AppSidebar, AppHeader, Breadcrumbs, NotificationsMenu, navGro
 	<AppSidebar />
 	<Sidebar.Inset>
 		<AppHeader />
-		<main class="flex flex-1 flex-col">
-			{@render children()}
-		</main>
+		<TabBar />
+		<KeepAliveOutlet {children} />
 	</Sidebar.Inset>
 </Sidebar.Provider>
 ```
+
+每个 tab 以独立 ID 保留 DOM 与路由快照；错误页出现时缓存页仍挂载，只切换可见性。`LayoutChain` 继续传递 `data`，并增加可选 `params` / `url` / `form` props；`TAB_ROUTE` context（`$lib/core/shell/tab-route`）提供该 tab 的 `pathname`、`url`、`params`、`data`、`form`。动态缓存页应消费这些值，避免让全局 `$app/state.page` 改变隐藏 tab 对应的记录。`TAB_ACTIVITY` 仍提供活动状态。
+
+AppShell 是正常 app 页唯一的 `<title>` 所有者，使用活动 tab 标签和 `pageTitle()` 加品牌；错误子树自行提供标题。新增 app 页面不要重复声明 `<title>`。表单 ID、SVG gradient 与 DOM 查询需用 `$props.id()` 加后缀，并保持 label / ARIA / fragment 引用成对，才能安全克隆同一路由。
 
 ### 配置导航 — `src/lib/shell/nav.ts`
 
@@ -692,51 +738,45 @@ import {(AppShell, AppSidebar, AppHeader, Breadcrumbs, NotificationsMenu, navGro
 数据模型：
 
 ```ts
+import type { Component } from 'svelte';
+import type { Pathname } from '$app/types';
+import type { TranslationKey } from '$lib/i18n';
+
 export interface NavItem {
 	title: string;
-	href: string;
+	titleKey?: TranslationKey;
+	href: Pathname;
 	icon: Component; // Lucide 图标组件
 	badge?: string | number;
 }
 
 export interface NavGroup {
 	label: string;
+	labelKey?: TranslationKey;
 	items: NavItem[];
 }
 ```
 
-真实结构（`navGroups`）：
+配置示例（省略其它组；最终 navGroups 会过滤不存在的路由）：
 
 ```ts
-export const navGroups: NavGroup[] = [
+const configuredNavGroups: NavGroup[] = [
 	{
 		label: 'Overview',
-		items: [{ title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }]
-	},
-	{
-		label: 'Management',
+		labelKey: 'nav.groups.overview',
 		items: [
-			{ title: 'Users', href: '/users', icon: Users },
-			{ title: 'Tables', href: '/tables', icon: Table },
-			{ title: 'Forms', href: '/forms', icon: ClipboardList }
+			{ title: 'Dashboard', titleKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard }
 		]
 	},
 	{
-		label: 'Showcase',
-		items: [
-			{ title: 'Components', href: '/components', icon: ComponentIcon },
-			{ title: 'Charts', href: '/charts', icon: ChartLine }
-		]
-	},
-	{
-		label: 'Account',
-		items: [
-			{ title: 'Profile', href: '/profile', icon: User },
-			{ title: 'Settings', href: '/settings', icon: Settings }
-		]
+		label: 'Applications',
+		labelKey: 'nav.groups.applications',
+		items: [{ title: 'Users', titleKey: 'nav.users', href: '/users', icon: Users }]
 	}
 ];
 ```
+
+`title` / `label` 保留英文 API，`titleKey` / `labelKey` 可选，供侧栏、面包屑、命令菜单与 tab title 响应语言切换。不存在的 key 回退英文标签。route group 目录不参与路径匹配；浏览器 pathname 应先在应用边界去除 base。
 
 **新增一个导航项**：在对应组的 `items` 里加一条，并 import 一个 Lucide 图标；侧边栏、命令面板、面包屑会自动同步。可选 `badge` 会在侧边栏渲染为 `Sidebar.MenuBadge`。
 
@@ -756,13 +796,13 @@ export function findNavItem(pathname: string): { group: NavGroup; item: NavItem 
 | **AppSidebar**        | `AppSidebar.svelte`        | 品牌头、按 `navGroups` 分组的导航（基于 `page.url.pathname` 高亮当前项）、底部用户下拉（Profile / Settings / Logout，调用 `auth`）。`Sidebar.Root collapsible="icon"` 支持折叠为图标条。**无 props**。                 |
 | **AppHeader**         | `AppHeader.svelte`         | 内嵌于 `Sidebar.Inset` 的 sticky 顶栏：`Sidebar.Trigger`、`Breadcrumbs`、搜索按钮（打开 `CommandMenu`，⌘K）、`NotificationsMenu`、`LanguageToggle`、`ThemeToggle`、用户头像下拉菜单。文案走 `t()` i18n。**无 props**。 |
 | **Breadcrumbs**       | `Breadcrumbs.svelte`       | 由当前路径 + `findNavItem` 推导面包屑：`Home → 组标签 → 导航项 → 余下路径段`（路径段做 title-case）。无匹配时直接按路径段构建。**无 props**。                                                                          |
-| **NotificationsMenu** | `NotificationsMenu.svelte` | 带未读角标的铃铛下拉，列出 `notifications` store 的条目；按类型（info/success/warning）配图标与颜色；支持单条 `markRead` 与 `markAllRead`。**无 props**。                                                              |
+| **NotificationsMenu** | `NotificationsMenu.svelte` | 带未读角标的铃铛 Popover，使用原生按钮支持 Tab / Shift+Tab 和 Escape，列出当前会话通知条目；按类型（info/success/warning）配图标与颜色；支持单条 `markRead` 与 `markAllRead`。**无 props**。                           |
 
 ---
 
 ## 5. Hooks
 
-位于 `src/lib/hooks/`，均为 Svelte 5 runes 模块（`.svelte.ts`），返回带 getter 的响应式容器，只能在组件/effect 等 runes 上下文中使用。
+实现在 `src/lib/core/hooks/`，应用的 `src/lib/hooks/` 保留兼容入口。runes 模块使用 `.svelte.ts` 后缀；带 effect 的 hook（如 useDebounce / useLocalStorage）需要组件初始化或 `$effect.root` 上下文，纯分页派生不依赖生命周期。
 
 ### usePagination — `use-pagination.svelte.ts`
 
@@ -778,9 +818,25 @@ export interface PaginationOptions {
 }
 
 export function usePagination(opts?: PaginationOptions): Pagination;
+export function getPaginationState(
+	page: number,
+	pageSize: number,
+	total: number
+): {
+	page: number;
+	pageSize: number;
+	total: number;
+	totalPages: number;
+	offset: number;
+	start: number;
+	end: number;
+	hasPrev: boolean;
+	hasNext: boolean;
+	pages: number[];
+};
 ```
 
-返回的 `Pagination`：可写字段 `page` / `pageSize` / `total`；只读派生 `totalPages` / `start` / `end` / `hasPrev` / `hasNext` / `pages`（窗口化页码，`-1` 为省略号）；方法 `setPage(p)` / `next()` / `prev()` / `setTotal(n)` / `setPageSize(n)`。`page` 始终自动夹在 `[1, totalPages]` 内。
+返回的 `Pagination`：可写字段 `page` / `pageSize` / `total`；只读派生 `totalPages` / `start` / `end` / `hasPrev` / `hasNext` / `pages`（窗口化页码，`-1` 为省略号）；方法 `setPage(p)` / `next()` / `prev()` / `setTotal(n)` / `setPageSize(n)`。页码始终夹在 `[1, totalPages]`，空集合计数为 0–0；非有限值、小数与非法 pageSize 会被规范成有效整数。所有派生值在 SSR 首次读取就一致，不依赖 effect 稍后修正。
 
 ```ts
 const pagination = usePagination({ pageSize: 20 });
@@ -791,7 +847,7 @@ const slice = rows.slice(
 );
 ```
 
-> `DataTable` 内部即用它驱动分页（见 DataTable 源码）。
+> `DataTable` 直接消费纯 `getPaginationState`，从当前筛选结果与页码派生行切片，避免 SSR 计数或控件状态滞后。
 
 ### useDebounce — `use-debounce.svelte.ts`
 
@@ -823,7 +879,7 @@ const wide = useMediaQuery('(min-width: 1024px)');
 
 ### useLocalStorage — `use-local-storage.svelte.ts`
 
-响应式 localStorage 容器，返回 `{ current }`；客户端读取已存值、每次变更写回。SSR 安全（服务端用 `initial`，不触碰 storage）。
+响应式 localStorage 容器，返回 `{ current }`；初始化尝试读取已存值，effect 首次执行会写回，并追踪赋值与嵌套响应式对象的变更。它需要组件初始化或 `$effect.root` 上下文。SSR 使用 `initial`；storage 不可用、JSON 损坏或配额不足时安全回退。
 
 ```ts
 export function useLocalStorage<T>(key: string, initial: T): { current: T };
@@ -853,9 +909,9 @@ const isMobile = new IsMobile();
 
 ## 6. Stores 与全局 helper
 
-### persisted() — `src/lib/stores/persisted.svelte.ts`
+### persisted() — `src/lib/core/stores/persisted.svelte.ts`
 
-可复用的 runes 持久化状态：初始化时从 localStorage 读取，`current` 变更时写回。SSR 安全（`browser` 守卫）。
+可复用的 runes 持久化状态工厂：初始化尝试读取 localStorage，**仅在赋值 `current` 时写回**。没有初始写入，也不因嵌套对象原地变更而写入；不需要生命周期上下文。不可用 storage 或损坏 JSON 回退到 `initial`，写入失败不抛出。
 
 ```ts
 export function persisted<T>(key: string, initial: T): { current: T };
@@ -866,11 +922,11 @@ const sidebarOpen = persisted('admin-starter:sidebar', true);
 sidebarOpen.current = false; // 自动持久化
 ```
 
-> 与 `useLocalStorage` 行为类似；`persisted` 是 store 层的通用单例式写法，`useLocalStorage` 是 hook 层封装。两者择一即可。
+> 两者共用安全的读写 helper，但写入时机不同：需要 effect 追踪初始值与深层变更时用 `useLocalStorage`；需要显式赋值才持久化时用 `persisted`。`persisted` 每次调用创建独立容器，不会自动形成全局单例。
 
 ### notifications — `src/lib/stores/notifications.svelte.ts`
 
-内存版通知 store（mock 单例），已注入若干演示条目供顶栏铃铛展示。直接 import 单例 `notifications`。
+内存版通知 store，由 `(app)/+layout.svelte` 通过 `createNotificationsState()` 创建并提供 context。同一登录会话内共享，退出后重新登录会创建独立状态；构造时复制种子，不修改模块级数据。组件在初始化期间调用 `useNotificationsState()` 获取当前会话。
 
 ```ts
 export interface AppNotification {
@@ -882,14 +938,16 @@ export interface AppNotification {
 	type: 'info' | 'success' | 'warning';
 }
 
-export const notifications; // 单例
+export function createNotificationsState(initial?: readonly AppNotification[]): NotificationsStore;
+export function useNotificationsState(): NotificationsStore;
 ```
 
-可用成员：`notifications.items`（只读数组）、`notifications.unread`（未读数）、`markRead(id)`、`markAllRead()`、`remove(id)`。
+可用成员：`notifications.items`（条目数组）、`notifications.unread`（未读数）、`markRead(id)`、`markAllRead()`、`remove(id)`。
 
 ```ts
-import { notifications } from '$lib/stores/notifications.svelte';
+import { useNotificationsState } from '$lib/stores/notifications.svelte';
 
+const notifications = useNotificationsState();
 const unread = $derived(notifications.unread);
 notifications.markAllRead();
 ```
@@ -917,40 +975,44 @@ toast.error('Something went wrong');
 
 ### theme — `mode-watcher`
 
-主题（明/暗）由 `mode-watcher` 管理。根 layout 挂载 `<ModeWatcher />`：
+主题由 `mode-watcher` 统一管理。根 layout 挂载 `<ModeWatcher defaultMode={config.theme.defaultMode} />`：
 
 ```svelte
 <!-- src/routes/+layout.svelte -->
-<ModeWatcher />
+<ModeWatcher defaultMode={config.theme.defaultMode} />
 ```
 
 切换与读取：
 
 ```ts
-import { toggleMode, mode } from 'mode-watcher';
+import { toggleMode, setMode, mode, userPrefersMode } from 'mode-watcher';
 
 toggleMode(); // 明 ↔ 暗
+setMode('system'); // 恢复跟随系统
 const isDark = mode.current === 'dark'; // 读取当前模式
+const preference = userPrefersMode.current; // light / dark / system 的用户意图
 ```
 
-> `ThemeToggle` 即封装了 `toggleMode` + `mode`。
+> 顶栏 ThemeToggle 与 Appearance 控件共用上述状态和持久化；无需额外 theme-pref store。
 
 ### i18n — `$lib/i18n`
 
 轻量自研 i18n（无外部库），响应式 `locale` + 点路径 `t()` 查找 + `{var}` 插值 + 持久化到 `localStorage` 键 `admin-starter:locale`。支持 `en` 与 `zh-CN`。
 
 ```ts
-import { t, setLocale, initLocale, i18n, LOCALES, type Locale } from '$lib/i18n';
+import { t, translate, setLocale, initLocale, i18n, LOCALES, type Locale } from '$lib/i18n';
 ```
 
-| 导出            | 说明                                                                                                                  |
-| --------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `t(key, vars?)` | 按点路径翻译当前 locale 的文案；缺失时回退到 `en` 再回退到 key 本身。`vars` 用于 `{var}` 插值。                       |
-| `setLocale(l)`  | 切换并持久化 locale                                                                                                   |
-| `initLocale()`  | 从 localStorage 恢复 locale（在根 layout 的 `onMount` 调用）                                                          |
-| `i18n.locale`   | 只读当前 locale                                                                                                       |
-| `LOCALES`       | `{ value: Locale; label: string }[]`，即 `[{ value: 'en', label: 'English' }, { value: 'zh-CN', label: '简体中文' }]` |
-| `Locale`        | 类型 `'en' \| 'zh-CN'`                                                                                                |
+| 导出                    | 说明                                                                                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `t(key, vars?)`         | 接受 `TranslationKey`，编译期检查固定 dot-path，`vars` 用于 `{var}` 插值。                                            |
+| `translate(key, vars?)` | 接受宽 `string` 的 portable core / 动态 metadata 桥接，当前语言 → `en` → key 回退。                                   |
+| `Dictionary`            | 从英文派生的嵌套字符串结构，约束其它 locale 提供相同键。                                                              |
+| `setLocale(l)`          | 切换并持久化 locale                                                                                                   |
+| `initLocale()`          | 从 localStorage 恢复 locale（在根 layout 的 `onMount` 调用）                                                          |
+| `i18n.locale`           | 只读当前 locale                                                                                                       |
+| `LOCALES`               | `{ value: Locale; label: string }[]`，即 `[{ value: 'en', label: 'English' }, { value: 'zh-CN', label: '简体中文' }]` |
+| `Locale`                | 类型 `'en' \| 'zh-CN'`                                                                                                |
 
 ```svelte
 <script lang="ts">
@@ -966,7 +1028,7 @@ import { t, setLocale, initLocale, i18n, LOCALES, type Locale } from '$lib/i18n'
 
 ## 7. Utils 工具函数
 
-### formatters — `src/lib/utils/formatters.ts`
+### formatters — `src/lib/core/utils/formatters.ts`
 
 纯格式化 helper，无运行时依赖，服务端/客户端均可 import。
 
@@ -988,14 +1050,16 @@ formatDate('2026-06-09'); // "Jun 9, 2026"
 initials('Jane Doe'); // "JD"
 ```
 
-### csv — `src/lib/utils/csv.ts`
+### csv — `src/lib/core/utils/csv.ts`
 
 浏览器侧文件下载与 CSV 导出。SSR 守卫（无 `document` 时为 no-op）。
 
-| 函数           | 签名                                                                                                    | 说明                                                                                                                        |
-| -------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `downloadBlob` | `(content: BlobPart, filename: string, mime = 'text/plain') => void`                                    | 触发浏览器下载                                                                                                              |
-| `exportToCsv`  | `<T extends object>(rows: T[], filename: string, columns?: { key: keyof T; header: string }[]) => void` | 导出对象数组为 CSV。传 `columns` 则只导出指定列（按序，用给定表头）；否则用首行所有键。会加 UTF-8 BOM 以便 Excel 正确识别。 |
+| 函数           | 签名                                                                                                                          | 说明                                                             |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `downloadBlob` | `(content: BlobPart, filename: string, mime = 'text/plain') => void`                                                          | 触发浏览器下载                                                   |
+| `exportToCsv`  | `<T extends object>(rows: T[], filename: string, columns?: { key: keyof T; header: string }[], options?: CsvOptions) => void` | 导出指定列或首行所有键；加 UTF-8 BOM。第四参数控制表格文本保护。 |
+
+`CsvOptions.spreadsheetSafe` 默认为 `true`：以公式前缀（含前导空白或全角前缀）开头的字符串及表头会加 tab 前缀并按 CSV 规则加引号；数值型负数仍为数值。需要保留原始文本供一般 CSV 消费者读取时，传第四参数 `{ spreadsheetSafe: false }`，常规逗号、引号和换行转义仍保留。下载 object URL 在点击派发后的定时回调中释放。
 
 真实用法（来自 users 页）：
 
@@ -1011,7 +1075,7 @@ exportToCsv(rows, 'users.csv', [
 ]);
 ```
 
-### validators — `src/lib/utils/validators.ts`
+### validators — `src/lib/core/utils/validators.ts`
 
 可复用的 zod schema 与逐字段错误读取 helper。
 
